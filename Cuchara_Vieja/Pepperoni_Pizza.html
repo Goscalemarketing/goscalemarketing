@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AR directo</title>
+
+  <!-- Preload del modelo (ayuda en Android y caché) -->
+  <link rel="preload" href="Pan.glb" as="fetch" crossorigin>
+  <link rel="preload" href="Pan.usdz" as="fetch">
+
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+    }
+  </style>
+</head>
+<body>
+
+<script>
+  const ua = navigator.userAgent;
+  const isiOS = /iPad|iPhone|iPod/.test(ua);
+  const isAndroid = /Android/.test(ua);
+
+  if (isiOS) {
+    // iOS → Quick Look (permiso + carga simultánea)
+    window.location.href = "Hamburguesa.usdz";
+  }
+
+  else if (isAndroid) {
+    // Android → Scene Viewer (permiso + carga simultánea)
+    window.location.href = "intent://arvr.google.com/scene-viewer/1.0" +
+  "?file=https://julioreyesjim-cpu.github.io/AR1/Hamburguesa.glb" +
+  "&mode=ar_only" +
+  "#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end;";
+  }
+
+</script>
+
+</body>
+</html>
