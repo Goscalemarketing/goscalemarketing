@@ -6,8 +6,8 @@
   <title>AR directo</title>
 
   <!-- Preload del modelo (ayuda en Android y caché) -->
-  <link rel="preload" href="Pan.glb" as="fetch" crossorigin>
-  <link rel="preload" href="Pan.usdz" as="fetch">
+  <link rel="preload" href="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.glb" as="fetch" crossorigin>
+  <link rel="preload" href="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.usdz" as="fetch">
 
   <style>
     body {
@@ -25,13 +25,13 @@
 
   if (isiOS) {
     // iOS → Quick Look (permiso + carga simultánea)
-    window.location.href = "Hamburguesa.usdz";
+    window.location.href = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.usdz";
   }
 
   else if (isAndroid) {
     // Android → Scene Viewer (permiso + carga simultánea)
     window.location.href = "intent://arvr.google.com/scene-viewer/1.0" +
-  "?file=https://julioreyesjim-cpu.github.io/AR1/Hamburguesa.glb" +
+  "?file=https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.glb" +
   "&mode=ar_only" +
   "#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end;";
   }
@@ -40,3 +40,4 @@
 
 </body>
 </html>
+
