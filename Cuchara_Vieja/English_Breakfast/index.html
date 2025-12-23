@@ -87,20 +87,6 @@
       padding:16px;
     }
 
-    .brand{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:10px 0 6px;
-    }
-
-    .brand img{
-      max-width: 210px;
-      width: 60%;
-      height: auto;
-      opacity: .95;
-    }
-
     h1{
       font-size:22px;
       margin:0 0 6px 0;
@@ -199,28 +185,16 @@
   <div class="wrap">
 
     <div class="topbar">
-      <!-- Volver al menú (Canva) -->
-      <a class="back" id="backLink" href="https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view?utm_content=DAG8SYy2DPc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5c7aa53580">
+      <a class="back" id="backLink" href="#">
         ← <span data-i18n="back">Volver al menú</span>
       </a>
 
-      <!-- Idiomas -->
       <div class="lang" aria-label="Idioma">
         <button type="button" id="btnES" class="active">ES</button>
         <button type="button" id="btnEN">EN</button>
       </div>
     </div>
 
-    <!-- Branding (logo) en la pantalla previa -->
-    <div class="brand">
-      <img
-        id="brandLogo"
-        src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png"
-        alt="Go Scale Marketing"
-      />
-    </div>
-
-    <!-- Ficha del plato -->
     <div class="card">
       <h1 data-i18n="title">English Breakfast</h1>
       <p class="subtitle" data-i18n="desc">
@@ -235,17 +209,15 @@
       </div>
     </div>
 
-    <!-- Indicaciones -->
     <div class="card">
       <h1 style="font-size:18px; margin-bottom:10px;" data-i18n="tipsTitle">Cómo verlo en AR</h1>
       <ul class="tips">
-        <li data-i18n="tip1">Pulsa <b>Ver en AR</b> y acepta el permiso de cámara.</li>
+        <li data-i18n="tip1">Pulsa Ver en AR y acepta el permiso de cámara.</li>
         <li data-i18n="tip2">Apunta a una superficie plana (mesa o suelo) con buena luz.</li>
         <li data-i18n="tip3">Mueve el móvil suavemente para que detecte el espacio.</li>
       </ul>
     </div>
 
-    <!-- CTA -->
     <div class="cta">
       <button class="btn" id="openARBtn" type="button" data-i18n="openBtn">Ver en AR</button>
       <p class="small" data-i18n="smallNote">Si no se abre, prueba desde Chrome/Safari (evita navegadores dentro de apps).</p>
@@ -253,7 +225,6 @@
 
   </div>
 
-  <!-- Loader solo al abrir AR -->
   <div id="loaderOverlay">
     <div class="loader">
       <div class="spinner"></div>
@@ -262,13 +233,14 @@
   </div>
 
   <script>
-    // Menú (Canva) al que queremos volver
+    // ✅ Menú al que queremos volver SIEMPRE al cerrar AR
     const MENU_URL = "https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view?utm_content=DAG8SYy2DPc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5c7aa53580";
 
-    // Modelo
+    // ✅ Modelos
     const GLB_URL  = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.glb";
     const USDZ_URL = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.usdz";
 
+    // Dispositivo
     const ua = navigator.userAgent;
     const isiOS = /iPad|iPhone|iPod/.test(ua);
     const isAndroid = /Android/.test(ua);
@@ -317,9 +289,11 @@
       }
     };
 
-    let currentLang = "es";
+    const overlay = document.getElementById("loaderOverlay");
+    const backLink = document.getElementById("backLink");
+    backLink.href = MENU_URL;
+
     const setLang = (lang) => {
-      currentLang = lang;
       document.getElementById("btnES").classList.toggle("active", lang === "es");
       document.getElementById("btnEN").classList.toggle("active", lang === "en");
 
@@ -332,13 +306,26 @@
     document.getElementById("btnES").addEventListener("click", () => setLang("es"));
     document.getElementById("btnEN").addEventListener("click", () => setLang("en"));
 
-    // Volver al menú siempre apunta al Canva
-    document.getElementById("backLink").href = MENU_URL;
+    // Idioma inicial
+    const navLang = (navigator.language || "").toLowerCase();
+    setLang(navLang.startsWith("en") ? "en" : "es");
 
-    // Abrir AR (IMPORTANTE: usamos href, no replace, para que "atrás" vuelva aquí)
-    const overlay = document.getElementById("loaderOverlay");
+    // ✅ Auto-redirect al volver desde AR
+    window.addEventListener("pageshow", () => {
+      // Si el navegador restaura la página, ocultamos el loader sí o sí
+      overlay.style.display = "none";
+
+      // Si venimos de abrir AR, mandamos al menú automáticamente
+      if (sessionStorage.getItem("fromAR") === "1") {
+        sessionStorage.removeItem("fromAR");
+        window.location.href = MENU_URL;
+      }
+    });
+
+    // Abrir AR
     document.getElementById("openARBtn").addEventListener("click", () => {
       overlay.style.display = "flex";
+      sessionStorage.setItem("fromAR", "1");
 
       setTimeout(() => {
         if (isiOS) {
@@ -355,18 +342,6 @@
         }
       }, 250);
     });
-
-    // Idioma por navegador
-    const navLang = (navigator.language || "").toLowerCase();
-    if (navLang.startsWith("en")) setLang("en");
-    else setLang("es");
-
-    // Extra (opcional): si vuelven desde AR y quieres llevarlos al menú automáticamente,
-    // descomenta esto. Yo lo dejaría como botón para no marear.
-    // window.addEventListener("pageshow", (e) => {
-    //   // Si la página vuelve del caché (back/forward), mandamos al menú
-    //   if (e.persisted) window.location.href = MENU_URL;
-    // });
   </script>
 
 </body>
