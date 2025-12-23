@@ -15,7 +15,6 @@
       --btn:#ffffff;
       --btnText:#000000;
     }
-
     body{
       margin:0;
       background:var(--bg);
@@ -27,7 +26,6 @@
       padding:18px;
       box-sizing:border-box;
     }
-
     .wrap{
       width:100%;
       max-width:520px;
@@ -35,7 +33,6 @@
       flex-direction:column;
       gap:14px;
     }
-
     .topbar{
       display:flex;
       justify-content:space-between;
@@ -47,7 +44,6 @@
       background: linear-gradient(to bottom, rgba(11,11,11,1), rgba(11,11,11,0.92), rgba(11,11,11,0));
       z-index: 10;
     }
-
     .back{
       color:#fff;
       text-decoration:none;
@@ -58,7 +54,6 @@
       opacity:.9;
       white-space: nowrap;
     }
-
     .lang{
       display:flex;
       border:1px solid var(--border);
@@ -66,7 +61,6 @@
       overflow:hidden;
       white-space: nowrap;
     }
-
     .lang button{
       background:transparent;
       border:0;
@@ -79,8 +73,6 @@
       background:rgba(255,255,255,.10);
       opacity:1;
     }
-
-    /* Logo */
     .brand{
       display:flex;
       justify-content:center;
@@ -92,14 +84,12 @@
       height:auto;
       opacity:.95;
     }
-
     .card{
       background:var(--card);
       border:1px solid var(--border);
       border-radius:16px;
       padding:16px;
     }
-
     h1{
       font-size:22px;
       margin:0 0 6px 0;
@@ -111,7 +101,6 @@
       font-size:14px;
       line-height:1.35;
     }
-
     .meta{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -129,7 +118,6 @@
       color:#fff;
       font-weight:600;
     }
-
     .tips{
       margin:0;
       padding-left:18px;
@@ -138,7 +126,6 @@
       line-height:1.45;
     }
     .tips li{ margin:8px 0; }
-
     .cta{
       display:flex;
       flex-direction:column;
@@ -161,8 +148,6 @@
       font-size:12px;
       margin:0;
     }
-
-    /* Loader overlay */
     #loaderOverlay{
       position:fixed;
       inset:0;
@@ -196,7 +181,6 @@
 
 <body>
   <div class="wrap">
-
     <div class="topbar">
       <a class="back" id="backLink" href="#">
         ← <span data-i18n="back">Volver al menú</span>
@@ -242,7 +226,6 @@
       <button class="btn" id="openARBtn" type="button" data-i18n="openBtn">Ver en AR</button>
       <p class="small" data-i18n="smallNote">Si no se abre, prueba desde Chrome/Safari (evita navegadores dentro de apps).</p>
     </div>
-
   </div>
 
   <div id="loaderOverlay">
@@ -253,10 +236,9 @@
   </div>
 
   <script>
-    // ✅ Menú Canva
     const MENU_URL = "https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view?utm_content=DAG8SYy2DPc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5c7aa53580";
 
-    // ✅ Modelos (Pastel Banana Chip)
+    // IMPORTANT: estas URLs YA tienen %20, así que NO las vuelvas a encodear.
     const GLB_URL  = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/Pastel%20Banana%20Chip.glb";
     const USDZ_URL = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/Pastel%20Banana%20Chip.usdz";
 
@@ -264,7 +246,6 @@
     const isiOS = /iPad|iPhone|iPod/.test(ua);
     const isAndroid = /Android/.test(ua);
 
-    // ✅ Aviso in-app (Instagram/TikTok/etc) — mantiene calidad en Android
     const isInApp = /Instagram|FBAN|FBAV|TikTok|Twitter|Line|Snapchat/i.test(ua);
 
     const overlay = document.getElementById("loaderOverlay");
@@ -275,7 +256,6 @@
       alert("Para mejor calidad en Android, abre este enlace en Chrome (menú ⋮ → Abrir en Chrome).");
     }
 
-    // i18n
     const strings = {
       es: {
         back: "Volver al menú",
@@ -331,11 +311,9 @@
     document.getElementById("btnES").addEventListener("click", () => setLang("es"));
     document.getElementById("btnEN").addEventListener("click", () => setLang("en"));
 
-    // Idioma inicial
     const navLang = (navigator.language || "").toLowerCase();
     setLang(navLang.startsWith("en") ? "en" : "es");
 
-    // ✅ Al volver desde AR -> ocultar loader + ir al menú
     const resumeHandler = () => {
       overlay.style.display = "none";
       if (sessionStorage.getItem("fromAR") === "1") {
@@ -350,7 +328,6 @@
       if (!document.hidden) resumeHandler();
     });
 
-    // Abrir AR
     document.getElementById("openARBtn").addEventListener("click", () => {
       overlay.style.display = "flex";
       sessionStorage.setItem("fromAR", "1");
@@ -359,15 +336,15 @@
         if (isiOS) {
           window.location.href = USDZ_URL;
         } else if (isAndroid) {
-          // ✅ Intent (Google App) + fallback URL (evita "Not found")
+          // ✅ NO encodeURIComponent aquí (evita %2520)
           const sceneViewerUrl =
             "https://arvr.google.com/scene-viewer/1.0" +
-            "?file=" + encodeURIComponent(GLB_URL) +
+            "?file=" + GLB_URL +
             "&mode=ar_only";
 
           const intent =
             "intent://arvr.google.com/scene-viewer/1.0" +
-            "?file=" + encodeURIComponent(GLB_URL) +
+            "?file=" + GLB_URL +
             "&mode=ar_only" +
             "#Intent;scheme=https;package=com.google.android.googlequicksearchbox;" +
             "action=android.intent.action.VIEW;" +
@@ -376,7 +353,6 @@
 
           window.location.href = intent;
 
-          // Fallback por si el intent no lo coge
           setTimeout(() => {
             window.location.href = sceneViewerUrl;
           }, 1200);
