@@ -26,156 +26,49 @@
       padding:18px;
       box-sizing:border-box;
     }
-    .wrap{
-      width:100%;
-      max-width:520px;
-      display:flex;
-      flex-direction:column;
-      gap:14px;
-    }
+    .wrap{ width:100%; max-width:520px; display:flex; flex-direction:column; gap:14px; }
     .topbar{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      position: sticky;
-      top: 0;
-      padding-top: 6px;
+      display:flex; justify-content:space-between; align-items:center; gap:12px;
+      position: sticky; top: 0; padding-top: 6px;
       background: linear-gradient(to bottom, rgba(11,11,11,1), rgba(11,11,11,0.92), rgba(11,11,11,0));
       z-index: 10;
     }
     .back{
-      color:#fff;
-      text-decoration:none;
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:10px 12px;
-      font-size:14px;
-      opacity:.9;
-      white-space: nowrap;
+      color:#fff; text-decoration:none; border:1px solid var(--border);
+      border-radius:12px; padding:10px 12px; font-size:14px; opacity:.9; white-space: nowrap;
     }
     .lang{
-      display:flex;
-      border:1px solid var(--border);
-      border-radius:12px;
-      overflow:hidden;
-      white-space: nowrap;
+      display:flex; border:1px solid var(--border); border-radius:12px; overflow:hidden; white-space: nowrap;
     }
-    .lang button{
-      background:transparent;
-      border:0;
-      color:#fff;
-      padding:10px 12px;
-      font-size:14px;
-      opacity:.7;
-    }
-    .lang button.active{
-      background:rgba(255,255,255,.10);
-      opacity:1;
-    }
-    .brand{
-      display:flex;
-      justify-content:center;
-      padding:8px 0 2px;
-    }
-    .brand img{
-      max-width:220px;
-      width:60%;
-      height:auto;
-      opacity:.95;
-    }
-    .card{
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:16px;
-    }
-    h1{
-      font-size:22px;
-      margin:0 0 6px 0;
-      letter-spacing:.2px;
-    }
-    .subtitle{
-      margin:0;
-      color:var(--muted);
-      font-size:14px;
-      line-height:1.35;
-    }
-    .meta{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-      margin-top:14px;
-    }
-    .pill{
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:10px 12px;
-      font-size:13px;
-      color:var(--muted);
-    }
-    .pill b{
-      color:#fff;
-      font-weight:600;
-    }
-    .tips{
-      margin:0;
-      padding-left:18px;
-      color:var(--muted);
-      font-size:14px;
-      line-height:1.45;
-    }
+    .lang button{ background:transparent; border:0; color:#fff; padding:10px 12px; font-size:14px; opacity:.7; }
+    .lang button.active{ background:rgba(255,255,255,.10); opacity:1; }
+    .brand{ display:flex; justify-content:center; padding:8px 0 2px; }
+    .brand img{ max-width:220px; width:60%; height:auto; opacity:.95; }
+    .card{ background:var(--card); border:1px solid var(--border); border-radius:16px; padding:16px; }
+    h1{ font-size:22px; margin:0 0 6px 0; letter-spacing:.2px; }
+    .subtitle{ margin:0; color:var(--muted); font-size:14px; line-height:1.35; }
+    .meta{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:14px; }
+    .pill{ border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-size:13px; color:var(--muted); }
+    .pill b{ color:#fff; font-weight:600; }
+    .tips{ margin:0; padding-left:18px; color:var(--muted); font-size:14px; line-height:1.45; }
     .tips li{ margin:8px 0; }
-    .cta{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
+    .cta{ display:flex; flex-direction:column; gap:10px; }
     .btn{
-      width:100%;
-      border:0;
-      border-radius:14px;
-      padding:14px 14px;
-      font-size:16px;
-      font-weight:800;
-      background:var(--btn);
-      color:var(--btnText);
-      cursor:pointer;
+      width:100%; border:0; border-radius:14px; padding:14px 14px;
+      font-size:16px; font-weight:800; background:var(--btn); color:var(--btnText); cursor:pointer;
     }
-    .small{
-      text-align:center;
-      color:var(--muted2);
-      font-size:12px;
-      margin:0;
-    }
+    .small{ text-align:center; color:var(--muted2); font-size:12px; margin:0; }
     #loaderOverlay{
-      position:fixed;
-      inset:0;
-      background:#000;
-      display:none;
-      align-items:center;
-      justify-content:center;
-      z-index:9999;
-      color:#fff;
+      position:fixed; inset:0; background:#000; display:none; align-items:center; justify-content:center;
+      z-index:9999; color:#fff;
     }
-    .loader{
-      text-align:center;
-      padding:24px;
-    }
+    .loader{ text-align:center; padding:24px; }
     .spinner{
-      width:48px;
-      height:48px;
-      border:4px solid rgba(255,255,255,0.2);
-      border-top:4px solid #fff;
-      border-radius:50%;
-      animation:spin 1s linear infinite;
-      margin:0 auto 16px;
+      width:48px; height:48px; border:4px solid rgba(255,255,255,0.2); border-top:4px solid #fff;
+      border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 16px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .loaderText{
-      font-size:14px;
-      opacity:.85;
-    }
+    .loaderText{ font-size:14px; opacity:.85; }
   </style>
 </head>
 
@@ -185,7 +78,6 @@
       <a class="back" id="backLink" href="#">
         ← <span data-i18n="back">Volver al menú</span>
       </a>
-
       <div class="lang" aria-label="Idioma">
         <button type="button" id="btnES" class="active">ES</button>
         <button type="button" id="btnEN">EN</button>
@@ -204,7 +96,6 @@
       <p class="subtitle" data-i18n="desc">
         Bizcocho tierno con banana y chips de chocolate. Dulce, suave y perfecto para acompañar un café.
       </p>
-
       <div class="meta">
         <div class="pill"><b data-i18n="priceLabel">Precio:</b> <span data-i18n="priceValue">—</span></div>
         <div class="pill"><b data-i18n="timeLabel">Tiempo:</b> <span data-i18n="timeValue">8–12 min</span></div>
@@ -238,14 +129,12 @@
   <script>
     const MENU_URL = "https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view?utm_content=DAG8SYy2DPc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5c7aa53580";
 
-    // IMPORTANT: estas URLs YA tienen %20, así que NO las vuelvas a encodear.
     const GLB_URL  = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/Pastel%20Banana%20Chip.glb";
     const USDZ_URL = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/Pastel%20Banana%20Chip.usdz";
 
     const ua = navigator.userAgent;
     const isiOS = /iPad|iPhone|iPod/.test(ua);
     const isAndroid = /Android/.test(ua);
-
     const isInApp = /Instagram|FBAN|FBAV|TikTok|Twitter|Line|Snapchat/i.test(ua);
 
     const overlay = document.getElementById("loaderOverlay");
@@ -335,16 +224,21 @@
       setTimeout(() => {
         if (isiOS) {
           window.location.href = USDZ_URL;
-        } else if (isAndroid) {
-          // ✅ NO encodeURIComponent aquí (evita %2520)
+          return;
+        }
+
+        if (isAndroid) {
+          // ✅ Truco: Scene Viewer suele ir mejor sin %20 (usamos + solo para el parámetro file)
+          const glbForSceneViewer = GLB_URL.replace(/%20/g, "+");
+
           const sceneViewerUrl =
             "https://arvr.google.com/scene-viewer/1.0" +
-            "?file=" + GLB_URL +
+            "?file=" + glbForSceneViewer +
             "&mode=ar_only";
 
           const intent =
             "intent://arvr.google.com/scene-viewer/1.0" +
-            "?file=" + GLB_URL +
+            "?file=" + glbForSceneViewer +
             "&mode=ar_only" +
             "#Intent;scheme=https;package=com.google.android.googlequicksearchbox;" +
             "action=android.intent.action.VIEW;" +
@@ -357,9 +251,10 @@
             window.location.href = sceneViewerUrl;
           }, 1200);
 
-        } else {
-          window.location.href = GLB_URL;
+          return;
         }
+
+        window.location.href = GLB_URL;
       }, 250);
     });
   </script>
