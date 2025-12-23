@@ -80,6 +80,19 @@
       opacity:1;
     }
 
+    /* Logo */
+    .brand{
+      display:flex;
+      justify-content:center;
+      padding:8px 0 2px;
+    }
+    .brand img{
+      max-width:220px;
+      width:60%;
+      height:auto;
+      opacity:.95;
+    }
+
     .card{
       background:var(--card);
       border:1px solid var(--border);
@@ -195,6 +208,14 @@
       </div>
     </div>
 
+    <!-- ✅ Logo (solo en la ficha previa) -->
+    <div class="brand">
+      <img
+        src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png"
+        alt="Go Scale Marketing"
+      />
+    </div>
+
     <div class="card">
       <h1 data-i18n="title">English Breakfast</h1>
       <p class="subtitle" data-i18n="desc">
@@ -233,17 +254,20 @@
   </div>
 
   <script>
-    // ✅ Menú al que queremos volver SIEMPRE al cerrar AR
+    // ✅ Menú Canva
     const MENU_URL = "https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view?utm_content=DAG8SYy2DPc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5c7aa53580";
 
     // ✅ Modelos
     const GLB_URL  = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.glb";
     const USDZ_URL = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.usdz";
 
-    // Dispositivo
     const ua = navigator.userAgent;
     const isiOS = /iPad|iPhone|iPod/.test(ua);
     const isAndroid = /Android/.test(ua);
+
+    const overlay = document.getElementById("loaderOverlay");
+    const backLink = document.getElementById("backLink");
+    backLink.href = MENU_URL;
 
     // i18n
     const strings = {
@@ -289,14 +313,9 @@
       }
     };
 
-    const overlay = document.getElementById("loaderOverlay");
-    const backLink = document.getElementById("backLink");
-    backLink.href = MENU_URL;
-
     const setLang = (lang) => {
       document.getElementById("btnES").classList.toggle("active", lang === "es");
       document.getElementById("btnEN").classList.toggle("active", lang === "en");
-
       document.querySelectorAll("[data-i18n]").forEach(el => {
         const key = el.getAttribute("data-i18n");
         if (strings[lang][key] !== undefined) el.innerHTML = strings[lang][key];
@@ -310,16 +329,20 @@
     const navLang = (navigator.language || "").toLowerCase();
     setLang(navLang.startsWith("en") ? "en" : "es");
 
-    // ✅ Auto-redirect al volver desde AR
-    window.addEventListener("pageshow", () => {
-      // Si el navegador restaura la página, ocultamos el loader sí o sí
+    // ✅ Función única: al volver desde AR -> ocultar loader + ir al menú
+    const resumeHandler = () => {
       overlay.style.display = "none";
-
-      // Si venimos de abrir AR, mandamos al menú automáticamente
       if (sessionStorage.getItem("fromAR") === "1") {
         sessionStorage.removeItem("fromAR");
         window.location.href = MENU_URL;
       }
+    };
+
+    // Estos eventos cubren Safari, Chrome, y muchos in-app browsers
+    window.addEventListener("pageshow", resumeHandler);
+    window.addEventListener("focus", resumeHandler);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) resumeHandler();
     });
 
     // Abrir AR
