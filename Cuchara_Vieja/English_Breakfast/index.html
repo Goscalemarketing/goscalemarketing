@@ -1,107 +1,328 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AR directo</title>
-
-  <!-- Preload de modelos -->
-  <link
-    rel="preload"
-    href="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.glb"
-    as="fetch"
-    crossorigin
-  />
-  <link
-    rel="preload"
-    href="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.usdz"
-    as="fetch"
-  />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Menú AR</title>
 
   <style>
-    body {
-      margin: 0;
-      background: #000;
+    :root{
+      --bg:#0b0b0b;
+      --card:#121212;
+      --muted: rgba(255,255,255,.75);
+      --muted2: rgba(255,255,255,.55);
+      --border: rgba(255,255,255,.10);
+      --btn:#ffffff;
+      --btnText:#000000;
     }
 
-    /* Loader */
-    #loader {
-      position: fixed;
-      inset: 0;
-      background: #000;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      color: #fff;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    body{
+      margin:0;
+      background:var(--bg);
+      color:#fff;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      padding:18px;
+      box-sizing:border-box;
     }
 
-    .logo {
-      width: 160px;
-      margin-bottom: 20px;
+    .wrap{
+      width:100%;
+      max-width:520px;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
     }
 
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid rgba(255, 255, 255, 0.25);
-      border-top: 4px solid #ffffff;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 14px;
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
     }
 
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
+    .back{
+      color:#fff;
+      text-decoration:none;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:10px 12px;
+      font-size:14px;
+      opacity:.9;
     }
 
-    .text {
-      font-size: 14px;
-      opacity: 0.85;
-      letter-spacing: 0.2px;
+    .lang{
+      display:flex;
+      border:1px solid var(--border);
+      border-radius:12px;
+      overflow:hidden;
+    }
+
+    .lang button{
+      background:transparent;
+      border:0;
+      color:#fff;
+      padding:10px 12px;
+      font-size:14px;
+      opacity:.7;
+    }
+    .lang button.active{
+      background:rgba(255,255,255,.10);
+      opacity:1;
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:16px;
+    }
+
+    h1{
+      font-size:22px;
+      margin:0 0 6px 0;
+      letter-spacing:.2px;
+    }
+    .subtitle{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.35;
+    }
+
+    .meta{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-top:14px;
+    }
+    .pill{
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:10px 12px;
+      font-size:13px;
+      color:var(--muted);
+    }
+    .pill b{
+      color:#fff;
+      font-weight:600;
+    }
+
+    .tips{
+      margin:0;
+      padding-left:18px;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.45;
+    }
+    .tips li{ margin:8px 0; }
+
+    .cta{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .btn{
+      width:100%;
+      border:0;
+      border-radius:14px;
+      padding:14px 14px;
+      font-size:16px;
+      font-weight:700;
+      background:var(--btn);
+      color:var(--btnText);
+      cursor:pointer;
+    }
+    .small{
+      text-align:center;
+      color:var(--muted2);
+      font-size:12px;
+      margin:0;
+    }
+
+    /* Loader overlay */
+    #loaderOverlay{
+      position:fixed;
+      inset:0;
+      background:#000;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      color:#fff;
+    }
+    .loader{
+      text-align:center;
+      padding:24px;
+    }
+    .spinner{
+      width:48px;
+      height:48px;
+      border:4px solid rgba(255,255,255,0.2);
+      border-top:4px solid #fff;
+      border-radius:50%;
+      animation:spin 1s linear infinite;
+      margin:0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loaderText{
+      font-size:14px;
+      opacity:.85;
     }
   </style>
 </head>
 
 <body>
+  <div class="wrap">
 
-  <!-- Loader con logo -->
-  <div id="loader">
-    <img
-      src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png"
-      alt="Go Scale Marketing"
-      class="logo"
-    />
-    <div class="spinner"></div>
-    <div class="text">Cargando experiencia AR…</div>
+    <div class="topbar">
+      <!-- 4) Volver al menú (cambia la URL a tu menú real) -->
+      <a class="back" id="backLink" href="../index.html">← <span data-i18n="back">Volver al menú</span></a>
+
+      <!-- 2) Idiomas -->
+      <div class="lang" aria-label="Idioma">
+        <button type="button" id="btnES" class="active">ES</button>
+        <button type="button" id="btnEN">EN</button>
+      </div>
+    </div>
+
+    <!-- 1) Ficha del plato -->
+    <div class="card">
+      <h1 data-i18n="title">English Breakfast</h1>
+      <p class="subtitle" data-i18n="desc">
+        Desayuno completo con huevo, bacon, salchichas, judías y tostadas. Ideal para empezar fuerte.
+      </p>
+
+      <div class="meta">
+        <div class="pill"><b data-i18n="priceLabel">Precio:</b> <span data-i18n="priceValue">—</span></div>
+        <div class="pill"><b data-i18n="timeLabel">Tiempo:</b> <span data-i18n="timeValue">10–15 min</span></div>
+        <div class="pill"><b data-i18n="allergensLabel">Alérgenos:</b> <span data-i18n="allergensValue">Huevo, gluten</span></div>
+        <div class="pill"><b data-i18n="noteLabel">Nota:</b> <span data-i18n="noteValue">Tamaño orientativo</span></div>
+      </div>
+    </div>
+
+    <!-- 3) Indicaciones -->
+    <div class="card">
+      <h1 style="font-size:18px; margin-bottom:10px;" data-i18n="tipsTitle">Cómo verlo en AR</h1>
+      <ul class="tips">
+        <li data-i18n="tip1">Pulsa <b>Ver en AR</b> y acepta el permiso de cámara.</li>
+        <li data-i18n="tip2">Apunta a una superficie plana (mesa o suelo) con buena luz.</li>
+        <li data-i18n="tip3">Mueve el móvil suavemente para que detecte el espacio.</li>
+      </ul>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta">
+      <button class="btn" id="openARBtn" type="button" data-i18n="openBtn">Ver en AR</button>
+      <p class="small" data-i18n="smallNote">Si no se abre, prueba desde Chrome/Safari (evita navegadores dentro de apps).</p>
+    </div>
+
   </div>
 
-  <!-- Redirección AR -->
+  <!-- Loader solo al abrir AR -->
+  <div id="loaderOverlay">
+    <div class="loader">
+      <div class="spinner"></div>
+      <div class="loaderText" data-i18n="loading">Abriendo cámara…</div>
+    </div>
+  </div>
+
   <script>
+    // URLs del modelo
+    const GLB_URL  = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.glb";
+    const USDZ_URL = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.usdz";
+
     const ua = navigator.userAgent;
     const isiOS = /iPad|iPhone|iPod/.test(ua);
     const isAndroid = /Android/.test(ua);
 
-    if (isiOS) {
-      // iOS → Quick Look
-      window.location.href =
-        "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.usdz";
-    } else if (isAndroid) {
-      // Android → Scene Viewer
-      window.location.href =
-        "intent://arvr.google.com/scene-viewer/1.0" +
-        "?file=https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.glb" +
-        "&mode=ar_only" +
-        "#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end;";
-    } else {
-      // Fallback (PC, otros dispositivos)
-      document.querySelector(".text").innerText =
-        "Este dispositivo no es compatible con AR.";
-    }
+    // i18n simple
+    const strings = {
+      es: {
+        back: "Volver al menú",
+        title: "English Breakfast",
+        desc: "Desayuno completo con huevo, bacon, salchichas, judías y tostadas. Ideal para empezar fuerte.",
+        priceLabel: "Precio:",
+        priceValue: "—",
+        timeLabel: "Tiempo:",
+        timeValue: "10–15 min",
+        allergensLabel: "Alérgenos:",
+        allergensValue: "Huevo, gluten",
+        noteLabel: "Nota:",
+        noteValue: "Tamaño orientativo",
+        tipsTitle: "Cómo verlo en AR",
+        tip1: "Pulsa Ver en AR y acepta el permiso de cámara.",
+        tip2: "Apunta a una superficie plana (mesa o suelo) con buena luz.",
+        tip3: "Mueve el móvil suavemente para que detecte el espacio.",
+        openBtn: "Ver en AR",
+        smallNote: "Si no se abre, prueba desde Chrome/Safari (evita navegadores dentro de apps).",
+        loading: "Abriendo cámara…"
+      },
+      en: {
+        back: "Back to menu",
+        title: "English Breakfast",
+        desc: "A full breakfast with egg, bacon, sausage, beans and toast. Perfect to start strong.",
+        priceLabel: "Price:",
+        priceValue: "—",
+        timeLabel: "Prep time:",
+        timeValue: "10–15 min",
+        allergensLabel: "Allergens:",
+        allergensValue: "Egg, gluten",
+        noteLabel: "Note:",
+        noteValue: "Approx. size",
+        tipsTitle: "How to view in AR",
+        tip1: "Tap View in AR and allow camera permissions.",
+        tip2: "Point to a flat surface (table or floor) with good light.",
+        tip3: "Move your phone slowly so it can detect the space.",
+        openBtn: "View in AR",
+        smallNote: "If it doesn’t open, try Chrome/Safari (avoid in-app browsers).",
+        loading: "Opening camera…"
+      }
+    };
+
+    let currentLang = "es";
+    const setLang = (lang) => {
+      currentLang = lang;
+      document.getElementById("btnES").classList.toggle("active", lang === "es");
+      document.getElementById("btnEN").classList.toggle("active", lang === "en");
+
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        if (strings[lang][key] !== undefined) el.innerHTML = strings[lang][key];
+      });
+    };
+
+    document.getElementById("btnES").addEventListener("click", () => setLang("es"));
+    document.getElementById("btnEN").addEventListener("click", () => setLang("en"));
+
+    // Mostrar loader y abrir AR al pulsar
+    const overlay = document.getElementById("loaderOverlay");
+    document.getElementById("openARBtn").addEventListener("click", () => {
+      overlay.style.display = "flex";
+
+      // Pequeño delay para que se pinte el overlay antes de redirigir
+      setTimeout(() => {
+        if (isiOS) {
+          window.location.replace(USDZ_URL);
+        } else if (isAndroid) {
+          const intent =
+            "intent://arvr.google.com/scene-viewer/1.0" +
+            "?file=" + encodeURIComponent(GLB_URL) +
+            "&mode=ar_only" +
+            "#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end;";
+          window.location.replace(intent);
+        } else {
+          window.location.replace(GLB_URL);
+        }
+      }, 250);
+    });
+
+    // Inicializa idioma por navegador (opcional)
+    const navLang = (navigator.language || "").toLowerCase();
+    if (navLang.startsWith("en")) setLang("en");
+    else setLang("es");
   </script>
 
 </body>
