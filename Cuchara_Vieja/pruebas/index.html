@@ -253,8 +253,10 @@
   </div>
 
   <script>
+    // ✅ Menú Canva
     const MENU_URL = "https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view?utm_content=DAG8SYy2DPc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5c7aa53580";
 
+    // ✅ Modelos (Pastel Banana Chip)
     const GLB_URL  = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/Pastel%20Banana%20Chip.glb";
     const USDZ_URL = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/Pastel%20Banana%20Chip.usdz";
 
@@ -262,18 +264,18 @@
     const isiOS = /iPad|iPhone|iPod/.test(ua);
     const isAndroid = /Android/.test(ua);
 
-    // ✅ NUEVO: detectar navegadores dentro de apps (Instagram/TikTok/etc)
+    // ✅ Aviso in-app (Instagram/TikTok/etc) — mantiene calidad en Android
     const isInApp = /Instagram|FBAN|FBAV|TikTok|Twitter|Line|Snapchat/i.test(ua);
 
     const overlay = document.getElementById("loaderOverlay");
     const backLink = document.getElementById("backLink");
     backLink.href = MENU_URL;
 
-    // ✅ NUEVO: aviso solo si es Android + in-app browser
     if (isAndroid && isInApp) {
       alert("Para mejor calidad en Android, abre este enlace en Chrome (menú ⋮ → Abrir en Chrome).");
     }
 
+    // i18n
     const strings = {
       es: {
         back: "Volver al menú",
@@ -329,9 +331,11 @@
     document.getElementById("btnES").addEventListener("click", () => setLang("es"));
     document.getElementById("btnEN").addEventListener("click", () => setLang("en"));
 
+    // Idioma inicial
     const navLang = (navigator.language || "").toLowerCase();
     setLang(navLang.startsWith("en") ? "en" : "es");
 
+    // ✅ Al volver desde AR -> ocultar loader + ir al menú
     const resumeHandler = () => {
       overlay.style.display = "none";
       if (sessionStorage.getItem("fromAR") === "1") {
@@ -346,6 +350,7 @@
       if (!document.hidden) resumeHandler();
     });
 
+    // Abrir AR
     document.getElementById("openARBtn").addEventListener("click", () => {
       overlay.style.display = "flex";
       sessionStorage.setItem("fromAR", "1");
@@ -354,13 +359,28 @@
         if (isiOS) {
           window.location.href = USDZ_URL;
         } else if (isAndroid) {
-          // ✅ CAMBIO: forzar Scene Viewer a abrir vía Chrome
+          // ✅ Intent (Google App) + fallback URL (evita "Not found")
+          const sceneViewerUrl =
+            "https://arvr.google.com/scene-viewer/1.0" +
+            "?file=" + encodeURIComponent(GLB_URL) +
+            "&mode=ar_only";
+
           const intent =
             "intent://arvr.google.com/scene-viewer/1.0" +
             "?file=" + encodeURIComponent(GLB_URL) +
             "&mode=ar_only" +
-            "#Intent;scheme=https;package=com.android.chrome;end;";
+            "#Intent;scheme=https;package=com.google.android.googlequicksearchbox;" +
+            "action=android.intent.action.VIEW;" +
+            "S.browser_fallback_url=" + encodeURIComponent(sceneViewerUrl) + ";" +
+            "end;";
+
           window.location.href = intent;
+
+          // Fallback por si el intent no lo coge
+          setTimeout(() => {
+            window.location.href = sceneViewerUrl;
+          }, 1200);
+
         } else {
           window.location.href = GLB_URL;
         }
