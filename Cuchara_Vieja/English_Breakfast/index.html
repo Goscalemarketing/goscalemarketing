@@ -3,41 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AR directo</title>
-
-  <!-- Preload del modelo (ayuda en Android y caché) -->
-  <link rel="preload" href="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.glb" as="fetch" crossorigin>
-  <link rel="preload" href="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.usdz" as="fetch">
+  <title>Cargando AR…</title>
 
   <style>
     body {
       margin: 0;
       background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .loader {
+      text-align: center;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(255,255,255,0.2);
+      border-top: 4px solid #fff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .text {
+      font-size: 14px;
+      opacity: 0.85;
     }
   </style>
 </head>
 <body>
 
+<div class="loader">
+  <div class="spinner"></div>
+  <div class="text">Cargando experiencia AR…</div>
+</div>
+
 <script>
+  const GLB_URL  = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.glb";
+  const USDZ_URL = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.usdz";
+
   const ua = navigator.userAgent;
   const isiOS = /iPad|iPhone|iPod/.test(ua);
   const isAndroid = /Android/.test(ua);
 
-  if (isiOS) {
-    // iOS → Quick Look (permiso + carga simultánea)
-    window.location.href = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.usdz";
-  }
-
-  else if (isAndroid) {
-    // Android → Scene Viewer (permiso + carga simultánea)
-    window.location.href = "intent://arvr.google.com/scene-viewer/1.0" +
-  "?file=https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.glb" +
-  "&mode=ar_only" +
-  "#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end;";
-  }
-
+  // Pequeño delay para que el loader se renderice
+  setTimeout(() => {
+    if (isiOS) {
+      window.location.replace(USDZ_URL);
+    } else if (isAndroid) {
+      const intent =
+        "intent://arvr.google.com/scene-viewer/1.0" +
+        "?file=" + encodeURIComponent(GLB_URL) +
+        "&mode=ar_only" +
+        "#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end;";
+      window.location.replace(intent);
+    } else {
+      window.location.replace(GLB_URL);
+    }
+  }, 300);
 </script>
 
 </body>
 </html>
-
