@@ -1,263 +1,65 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Menú AR</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AR Test</title>
+
+  <!-- model-viewer -->
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <style>
-    :root{
-      --bg:#0b0b0b;
-      --card:#121212;
-      --muted: rgba(255,255,255,.75);
-      --muted2: rgba(255,255,255,.55);
-      --border: rgba(255,255,255,.10);
-      --btn:#ffffff;
-      --btnText:#000000;
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #000;
     }
-    body{
-      margin:0;
-      background:var(--bg);
-      color:#fff;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      min-height:100vh;
-      display:flex;
-      justify-content:center;
-      padding:18px;
-      box-sizing:border-box;
+    model-viewer {
+      width: 100%;
+      height: 100%;
+      background: #000;
     }
-    .wrap{ width:100%; max-width:520px; display:flex; flex-direction:column; gap:14px; }
-    .topbar{
-      display:flex; justify-content:space-between; align-items:center; gap:12px;
-      position: sticky; top: 0; padding-top: 6px;
-      background: linear-gradient(to bottom, rgba(11,11,11,1), rgba(11,11,11,0.92), rgba(11,11,11,0));
-      z-index: 10;
-    }
-    .back{
-      color:#fff; text-decoration:none; border:1px solid var(--border);
-      border-radius:12px; padding:10px 12px; font-size:14px; opacity:.9; white-space: nowrap;
-    }
-    .lang{
-      display:flex; border:1px solid var(--border); border-radius:12px; overflow:hidden; white-space: nowrap;
-    }
-    .lang button{ background:transparent; border:0; color:#fff; padding:10px 12px; font-size:14px; opacity:.7; }
-    .lang button.active{ background:rgba(255,255,255,.10); opacity:1; }
-    .brand{ display:flex; justify-content:center; padding:8px 0 2px; }
-    .brand img{ max-width:220px; width:60%; height:auto; opacity:.95; }
-    .card{ background:var(--card); border:1px solid var(--border); border-radius:16px; padding:16px; }
-    h1{ font-size:22px; margin:0 0 6px 0; letter-spacing:.2px; }
-    .subtitle{ margin:0; color:var(--muted); font-size:14px; line-height:1.35; }
-    .meta{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:14px; }
-    .pill{ border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-size:13px; color:var(--muted); }
-    .pill b{ color:#fff; font-weight:600; }
-    .tips{ margin:0; padding-left:18px; color:var(--muted); font-size:14px; line-height:1.45; }
-    .tips li{ margin:8px 0; }
-    .cta{ display:flex; flex-direction:column; gap:10px; }
-    .btn{
-      width:100%; border:0; border-radius:14px; padding:14px 14px;
-      font-size:16px; font-weight:800; background:var(--btn); color:var(--btnText); cursor:pointer;
-    }
-    .small{ text-align:center; color:var(--muted2); font-size:12px; margin:0; }
-    #loaderOverlay{
-      position:fixed; inset:0; background:#000; display:none; align-items:center; justify-content:center;
-      z-index:9999; color:#fff;
-    }
-    .loader{ text-align:center; padding:24px; }
-    .spinner{
-      width:48px; height:48px; border:4px solid rgba(255,255,255,0.2); border-top:4px solid #fff;
-      border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 16px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loaderText{ font-size:14px; opacity:.85; }
   </style>
 </head>
 
 <body>
-  <div class="wrap">
-    <div class="topbar">
-      <a class="back" id="backLink" href="#">
-        ← <span data-i18n="back">Volver al menú</span>
-      </a>
-      <div class="lang" aria-label="Idioma">
-        <button type="button" id="btnES" class="active">ES</button>
-        <button type="button" id="btnEN">EN</button>
-      </div>
-    </div>
 
-    <div class="brand">
-      <img
-        src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png"
-        alt="Go Scale Marketing"
-      />
-    </div>
+<model-viewer
+  id="mv"
+  ar
+  ar-modes="webxr"
+  camera-controls
+  autoplay
+  exposure="1.15"
+  shadow-intensity="0.7">
+</model-viewer>
 
-    <div class="card">
-      <h1 data-i18n="title">Pastel Banana Chip</h1>
-      <p class="subtitle" data-i18n="desc">
-        Bizcocho tierno con banana y chips de chocolate. Dulce, suave y perfecto para acompañar un café.
-      </p>
-      <div class="meta">
-        <div class="pill"><b data-i18n="priceLabel">Precio:</b> <span data-i18n="priceValue">—</span></div>
-        <div class="pill"><b data-i18n="timeLabel">Tiempo:</b> <span data-i18n="timeValue">8–12 min</span></div>
-        <div class="pill"><b data-i18n="allergensLabel">Alérgenos:</b> <span data-i18n="allergensValue">Gluten, huevo, lácteos</span></div>
-        <div class="pill"><b data-i18n="noteLabel">Nota:</b> <span data-i18n="noteValue">Tamaño orientativo</span></div>
-      </div>
-    </div>
+<script>
+  const GLB_URL  = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb";
+  const USDZ_URL = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz";
 
-    <div class="card">
-      <h1 style="font-size:18px; margin-bottom:10px;" data-i18n="tipsTitle">Cómo verlo en AR</h1>
-      <ul class="tips">
-        <li data-i18n="tip1">Pulsa Ver en AR y acepta el permiso de cámara.</li>
-        <li data-i18n="tip2">Apunta a una superficie plana (mesa o suelo) con buena luz.</li>
-        <li data-i18n="tip3">Mueve el móvil suavemente para que detecte el espacio.</li>
-      </ul>
-    </div>
+  const ua = navigator.userAgent;
+  const isiOS = /iPhone|iPad|iPod/i.test(ua);
+  const isAndroid = /Android/i.test(ua);
 
-    <div class="cta">
-      <button class="btn" id="openARBtn" type="button" data-i18n="openBtn">Ver en AR</button>
-      <p class="small" data-i18n="smallNote">Si no se abre, prueba desde Chrome/Safari (evita navegadores dentro de apps).</p>
-    </div>
-  </div>
+  if (isiOS) {
+    // iOS → Quick Look directo
+    window.location.href = USDZ_URL;
+  }
 
-  <div id="loaderOverlay">
-    <div class="loader">
-      <div class="spinner"></div>
-      <div class="loaderText" data-i18n="loading">Abriendo cámara…</div>
-    </div>
-  </div>
+  if (isAndroid) {
+    // Android → WebAR con model-viewer
+    const mv = document.getElementById("mv");
+    mv.src = GLB_URL;
 
-  <script>
-    const MENU_URL = "https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view?utm_content=DAG8SYy2DPc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5c7aa53580";
-
-    const GLB_URL  = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb";
-    const USDZ_URL = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz";
-
-    const ua = navigator.userAgent;
-    const isiOS = /iPad|iPhone|iPod/.test(ua);
-    const isAndroid = /Android/.test(ua);
-    const isInApp = /Instagram|FBAN|FBAV|TikTok|Twitter|Line|Snapchat/i.test(ua);
-
-    const overlay = document.getElementById("loaderOverlay");
-    const backLink = document.getElementById("backLink");
-    backLink.href = MENU_URL;
-
-    if (isAndroid && isInApp) {
-      alert("Para mejor calidad en Android, abre este enlace en Chrome (menú ⋮ → Abrir en Chrome).");
-    }
-
-    const strings = {
-      es: {
-        back: "Volver al menú",
-        title: "Pastel Banana Chip",
-        desc: "Bizcocho tierno con banana y chips de chocolate. Dulce, suave y perfecto para acompañar un café.",
-        priceLabel: "Precio:",
-        priceValue: "—",
-        timeLabel: "Tiempo:",
-        timeValue: "8–12 min",
-        allergensLabel: "Alérgenos:",
-        allergensValue: "Gluten, huevo, lácteos",
-        noteLabel: "Nota:",
-        noteValue: "Tamaño orientativo",
-        tipsTitle: "Cómo verlo en AR",
-        tip1: "Pulsa Ver en AR y acepta el permiso de cámara.",
-        tip2: "Apunta a una superficie plana (mesa o suelo) con buena luz.",
-        tip3: "Mueve el móvil suavemente para que detecte el espacio.",
-        openBtn: "Ver en AR",
-        smallNote: "Si no se abre, prueba desde Chrome/Safari (evita navegadores dentro de apps).",
-        loading: "Abriendo cámara…"
-      },
-      en: {
-        back: "Back to menu",
-        title: "Banana Chip Cake",
-        desc: "A soft banana cake with chocolate chips. Sweet, fluffy, and perfect with coffee.",
-        priceLabel: "Price:",
-        priceValue: "—",
-        timeLabel: "Prep time:",
-        timeValue: "8–12 min",
-        allergensLabel: "Allergens:",
-        allergensValue: "Gluten, egg, dairy",
-        noteLabel: "Note:",
-        noteValue: "Approx. size",
-        tipsTitle: "How to view in AR",
-        tip1: "Tap View in AR and allow camera permissions.",
-        tip2: "Point to a flat surface (table or floor) with good light.",
-        tip3: "Move your phone slowly so it can detect the space.",
-        openBtn: "View in AR",
-        smallNote: "If it doesn’t open, try Chrome/Safari (avoid in-app browsers).",
-        loading: "Opening camera…"
-      }
-    };
-
-    const setLang = (lang) => {
-      document.getElementById("btnES").classList.toggle("active", lang === "es");
-      document.getElementById("btnEN").classList.toggle("active", lang === "en");
-      document.querySelectorAll("[data-i18n]").forEach(el => {
-        const key = el.getAttribute("data-i18n");
-        if (strings[lang][key] !== undefined) el.innerHTML = strings[lang][key];
-      });
-    };
-
-    document.getElementById("btnES").addEventListener("click", () => setLang("es"));
-    document.getElementById("btnEN").addEventListener("click", () => setLang("en"));
-
-    const navLang = (navigator.language || "").toLowerCase();
-    setLang(navLang.startsWith("en") ? "en" : "es");
-
-    const resumeHandler = () => {
-      overlay.style.display = "none";
-      if (sessionStorage.getItem("fromAR") === "1") {
-        sessionStorage.removeItem("fromAR");
-        window.location.href = MENU_URL;
-      }
-    };
-
-    window.addEventListener("pageshow", resumeHandler);
-    window.addEventListener("focus", resumeHandler);
-    document.addEventListener("visibilitychange", () => {
-      if (!document.hidden) resumeHandler();
-    });
-
-    document.getElementById("openARBtn").addEventListener("click", () => {
-      overlay.style.display = "flex";
-      sessionStorage.setItem("fromAR", "1");
-
-      setTimeout(() => {
-        if (isiOS) {
-          window.location.href = USDZ_URL;
-          return;
-        }
-
-        if (isAndroid) {
-          // ✅ Truco: Scene Viewer suele ir mejor sin %20 (usamos + solo para el parámetro file)
-          const glbForSceneViewer = GLB_URL.replace(/%20/g, "+");
-
-          const sceneViewerUrl =
-            "https://arvr.google.com/scene-viewer/1.0" +
-            "?file=" + glbForSceneViewer +
-            "&mode=ar_only";
-
-          const intent =
-            "intent://arvr.google.com/scene-viewer/1.0" +
-            "?file=" + glbForSceneViewer +
-            "&mode=ar_only" +
-            "#Intent;scheme=https;package=com.google.android.googlequicksearchbox;" +
-            "action=android.intent.action.VIEW;" +
-            "S.browser_fallback_url=" + encodeURIComponent(sceneViewerUrl) + ";" +
-            "end;";
-
-          window.location.href = intent;
-
-          setTimeout(() => {
-            window.location.href = sceneViewerUrl;
-          }, 1200);
-
-          return;
-        }
-
-        window.location.href = GLB_URL;
-      }, 250);
-    });
-  </script>
+    // intentar lanzar AR automáticamente
+    setTimeout(() => {
+      const btn = mv.shadowRoot?.querySelector('button[part="ar-button"]');
+      if (btn) btn.click();
+    }, 700);
+  }
+</script>
 
 </body>
 </html>
