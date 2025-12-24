@@ -8,158 +8,95 @@
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <style>
-    html, body { margin:0; height:100%; background:#000; overflow:hidden; }
-    model-viewer { width:100%; height:100%; background:#000; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
 
-    /* Overlay de carga */
+    model-viewer {
+      width: 100%;
+      height: 100%;
+      background: #000;
+    }
+
+    /* Overlay de carga simple */
     #loading {
-      position: fixed; inset: 0;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 14px;
+      position: fixed;
+      inset: 0;
       background: #000;
       color: #fff;
-      font: 14px system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      font-size: 14px;
       z-index: 9999;
     }
-    .spinner {
-      width: 44px; height: 44px;
-      border: 4px solid rgba(255,255,255,.18);
-      border-top-color: rgba(255,255,255,.9);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    #loading .hint { opacity:.85; text-align:center; padding: 0 22px; line-height:1.35; }
-
-    /* Botón claro de AR */
-    #ctaWrap {
-      position: fixed;
-      left: 0; right: 0; bottom: 18px;
-      display: none;
-      justify-content: center;
-      z-index: 9998;
-      pointer-events: none; /* solo el botón recibe clicks */
-    }
-    #openAR {
-      pointer-events: auto;
-      width: min(520px, calc(100% - 36px));
-      border: 0;
-      border-radius: 16px;
-      padding: 14px 16px;
-      font: 800 16px system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      background: #fff;
-      color: #000;
-    }
-
-    /* Oculta el botón AR nativo (el icono/cubo) */
-    model-viewer::part(ar-button) { display: none !important; }
   </style>
 </head>
 
 <body>
-  <div id="loading">
-    <div class="spinner"></div>
-    <div class="hint" id="loadingText">Cargando el plato en 3D…</div>
-  </div>
 
-  <div id="ctaWrap">
-    <button id="openAR" type="button">Ver en AR</button>
-  </div>
+<div id="loading">Cargando modelo…</div>
 
-  <model-viewer
-    id="mv"
-    ar
-    ar-modes="webxr quick-look"
-    camera-controls
-    autoplay
-    loading="eager"
-    reveal="auto"
-    ar-placement="floor"
-    ar-scale="fixed"
-    scale="1 1 1"
-    exposure="1.25"
-    tone-mapping="aces"
-    shadow-intensity="0.8"
-    environment-image="neutral">
-  </model-viewer>
+<model-viewer
+  id="mv"
+  ar
+  ar-modes="webxr quick-look"
+  camera-controls
+  autoplay
+  loading="eager"
+  reveal="auto"
+  exposure="1.25"
+  tone-mapping="aces"
+  shadow-intensity="0.8"
+  environment-image="neutral">
+</model-viewer>
 
-  <script>
-    // ✅ URLs desde Worker
-    const BASE =
-      "https://cucharavieja-ar.rough-meadow-c2c6.workers.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/";
-    const GLB  = BASE + "pastelbananachip.glb";
-    const USDZ = BASE + "pastelbananachip.usdz";
+<script>
+  const BASE =
+    "https://cucharavieja-ar.rough-meadow-c2c6.workers.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/";
+  const GLB  = BASE + "pastelbananachip.glb";
+  const USDZ = BASE + "pastelbananachip.usdz";
 
-    const ua = navigator.userAgent;
-    const isiOS = /iPhone|iPad|iPod/i.test(ua);
-    const isAndroid = /Android/i.test(ua);
+  const ua = navigator.userAgent;
+  const isiOS = /iPhone|iPad|iPod/i.test(ua);
+  const isAndroid = /Android/i.test(ua);
 
-    const mv = document.getElementById("mv");
-    const loading = document.getElementById("loading");
-    const loadingText = document.getElementById("loadingText");
-    const ctaWrap = document.getElementById("ctaWrap");
-    const openAR = document.getElementById("openAR");
+  const mv = document.getElementById("mv");
+  const loading = document.getElementById("loading");
 
-    const showLoading = (text) => {
-      if (text) loadingText.textContent = text;
-      loading.style.display = "flex";
-    };
-    const hideLoading = () => { loading.style.display = "none"; };
+  if (isiOS) {
+    // iOS → Quick Look directo
+    window.location.href = USDZ;
+  }
 
-    // iOS: Quick Look directo
-    if (isiOS) {
-      showLoading("Abriendo AR…");
-      window.location.href = USDZ;
-    }
+  else if (isAndroid) {
+    // Android → WebXR (MISMA LÓGICA QUE ANTES)
+    mv.src = GLB;
 
-    // Android/otros: cargar el 3D y mostrar CTA claro
-    else {
-      showLoading("Cargando el plato en 3D…");
-      mv.src = GLB;
+    // Cuando el modelo carga, quitamos el loading
+    mv.addEventListener("load", () => {
+      loading.style.display = "none";
+    });
 
-      mv.addEventListener("load", () => {
-        // Modelo listo
-        hideLoading();
+    // Intentar abrir AR automáticamente (como antes)
+    setTimeout(() => {
+      const btn = mv.shadowRoot?.querySelector('button[part="ar-button"]');
+      if (btn) btn.click();
+    }, 800);
+  }
 
-        if (isAndroid) {
-          // Mostrar CTA claro (en vez del icono)
-          ctaWrap.style.display = "flex";
+  else {
+    // Desktop → 3D
+    mv.src = GLB;
+    mv.addEventListener("load", () => {
+      loading.style.display = "none";
+    });
+  }
+</script>
 
-          // Intentar auto-abrir AR una vez
-          setTimeout(() => {
-            tryOpenAR();
-          }, 500);
-        }
-      });
-
-      mv.addEventListener("error", () => {
-        showLoading("No se pudo cargar el modelo. Revisa tu conexión e inténtalo de nuevo.");
-      });
-
-      // Click del CTA
-      openAR.addEventListener("click", () => {
-        showLoading("Abriendo cámara…");
-        tryOpenAR(true);
-      });
-
-      function tryOpenAR(userInitiated=false) {
-        // botón AR interno de model-viewer (aunque lo ocultemos)
-        const arBtn = mv.shadowRoot?.querySelector('button[part="ar-button"]');
-        if (arBtn) {
-          arBtn.click();
-
-          // Si el usuario lo inició, quitamos el loader al volver/si no abre
-          if (userInitiated) {
-            setTimeout(() => hideLoading(), 2500);
-          }
-        } else {
-          // Si no hay AR disponible, avisamos
-          showLoading("AR no disponible en este dispositivo/navegador. Prueba en Chrome y con ARCore instalado.");
-          setTimeout(() => hideLoading(), 3500);
-        }
-      }
-    }
-  </script>
 </body>
 </html>
