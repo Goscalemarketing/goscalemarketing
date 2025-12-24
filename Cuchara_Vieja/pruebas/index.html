@@ -5,61 +5,75 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>AR Test</title>
 
-  <!-- model-viewer -->
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      background: #000;
+    html, body { margin:0; padding:0; height:100%; background:#000; }
+    #msg {
+      position: fixed; left: 12px; right: 12px; top: 12px;
+      color: #fff; font: 14px system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.15);
+      padding: 10px 12px; border-radius: 12px; z-index: 9999;
     }
-    model-viewer {
-      width: 100%;
-      height: 100%;
-      background: #000;
-    }
+    model-viewer { width:100%; height:100%; background:#000; }
   </style>
 </head>
 
 <body>
+  <div id="msg">Cargando…</div>
 
-<model-viewer
-  id="mv"
-  ar
-  ar-modes="webxr"
-  camera-controls
-  autoplay
-  exposure="1.15"
-  shadow-intensity="0.7">
-</model-viewer>
+  <model-viewer
+    id="mv"
+    ar
+    ar-modes="webxr"
+    camera-controls
+    autoplay
+    exposure="1.15"
+    shadow-intensity="0.7">
+  </model-viewer>
 
-<script>
-  const GLB_URL  = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb";
-  const USDZ_URL = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz";
+  <script>
+    const GLB_URL  = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb";
+    const USDZ_URL = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz";
 
-  const ua = navigator.userAgent;
-  const isiOS = /iPhone|iPad|iPod/i.test(ua);
-  const isAndroid = /Android/i.test(ua);
+    const ua = navigator.userAgent;
+    const isiOS = /iPhone|iPad|iPod/i.test(ua);
+    const isAndroid = /Android/i.test(ua);
 
-  if (isiOS) {
-    // iOS → Quick Look directo
-    window.location.href = USDZ_URL;
-  }
-
-  if (isAndroid) {
-    // Android → WebAR con model-viewer
+    const msg = document.getElementById("msg");
     const mv = document.getElementById("mv");
-    mv.src = GLB_URL;
 
-    // intentar lanzar AR automáticamente
-    setTimeout(() => {
-      const btn = mv.shadowRoot?.querySelector('button[part="ar-button"]');
-      if (btn) btn.click();
-    }, 700);
-  }
-</script>
+    if (isiOS) {
+      msg.textContent = "iOS detectado → abriendo Quick Look…";
+      window.location.href = USDZ_URL;
+    } else if (isAndroid) {
+      msg.textContent = "Android detectado → cargando modelo…";
+      mv.src = GLB_URL;
 
+      // Cuando el modelo esté listo, intentamos abrir AR
+      mv.addEventListener("load", async () => {
+        msg.textContent = "Modelo cargado. Intentando abrir AR…";
+
+        // Espera a que model-viewer tenga el botón AR interno disponible
+        setTimeout(() => {
+          const arBtn = mv.shadowRoot?.querySelector('button[part="ar-button"]');
+          if (arBtn) {
+            arBtn.click();
+            msg.textContent = "Si no entra a AR, revisa permisos/ARCore y prueba en Chrome.";
+          } else {
+            msg.textContent = "AR no disponible en este navegador/dispositivo. (El modelo 3D debería verse.)";
+          }
+        }, 600);
+      });
+
+      mv.addEventListener("error", () => {
+        msg.textContent = "Error cargando el modelo. Revisa que el GLB sea accesible desde el móvil.";
+      });
+
+    } else {
+      msg.textContent = "Dispositivo no compatible → abriendo modelo 3D…";
+      window.location.href = GLB_URL;
+    }
+  </script>
 </body>
 </html>
