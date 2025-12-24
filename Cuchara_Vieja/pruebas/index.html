@@ -8,121 +8,160 @@
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <style>
-    html, body {
-      margin: 0;
-      height: 100%;
-      background: #000;
-      overflow: hidden;
-    }
+    html, body { margin:0; height:100%; background:#000; overflow:hidden; }
+    model-viewer { width:100%; height:100%; background:#000; }
 
-    model-viewer {
-      width: 100%;
-      height: 100%;
-      background: #000;
-    }
-
-    /* Loader simple */
+    /* Loader */
     #loading {
-      position: fixed;
-      inset: 0;
-      background: #000;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      position: fixed; inset: 0;
+      background: #000; color:#fff;
+      display:flex; align-items:center; justify-content:center;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
       font-size: 14px;
       z-index: 9999;
+    }
+
+    /* Hint (no interfiere con clicks) */
+    #hint {
+      position: fixed;
+      left: 12px; right: 12px; bottom: 16px;
+      display: none;
+      z-index: 9998;
+      pointer-events: none;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    }
+    .hintBox{
+      width: min(520px, 100%);
+      margin: 0 auto;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(0,0,0,.55);
+      border: 1px solid rgba(255,255,255,.18);
+      color:#fff;
+      font-size: 14px;
+      line-height: 1.3;
+      text-align: center;
+      backdrop-filter: blur(6px);
+    }
+    .hintBox b { font-weight: 800; }
+
+    #arrow {
+      position: fixed;
+      top: 58px;
+      right: 18px;
+      display: none;
+      z-index: 9998;
+      pointer-events: none;
+      color: #fff;
+      opacity: .9;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      font-weight: 800;
+      text-shadow: 0 2px 10px rgba(0,0,0,.7);
     }
   </style>
 </head>
 
 <body>
+  <div id="loading">Cargando modelo…</div>
 
-<div id="loading">Cargando modelo…</div>
+  <div id="arrow">⬆️</div>
+  <div id="hint">
+    <div class="hintBox">
+      Pulsa el icono del <b>cubo</b> para verlo en <b>AR</b>.
+    </div>
+  </div>
 
-<model-viewer
-  id="mv"
-  ar
-  ar-modes="webxr quick-look"
-  camera-controls
-  autoplay
-  loading="eager"
-  reveal="auto"
-  exposure="1.25"
-  tone-mapping="aces"
-  shadow-intensity="0.8"
-  environment-image="neutral">
-</model-viewer>
+  <model-viewer
+    id="mv"
+    ar
+    ar-modes="webxr quick-look"
+    camera-controls
+    autoplay
+    loading="eager"
+    reveal="auto"
+    exposure="1.25"
+    tone-mapping="aces"
+    shadow-intensity="0.8"
+    environment-image="neutral">
+  </model-viewer>
 
-<script>
-  // 🔗 URLs
-  const MENU_URL =
-    "https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view?utm_content=DAG8SYy2DPc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5c7aa53580";
+  <script>
+    const MENU_URL =
+      "https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view?utm_content=DAG8SYy2DPc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5c7aa53580";
 
-  const BASE =
-    "https://cucharavieja-ar.rough-meadow-c2c6.workers.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/";
-  const GLB  = BASE + "pastelbananachip.glb";
-  const USDZ = BASE + "pastelbananachip.usdz";
+    const BASE =
+      "https://cucharavieja-ar.rough-meadow-c2c6.workers.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/";
+    const GLB  = BASE + "pastelbananachip.glb";
+    const USDZ = BASE + "pastelbananachip.usdz";
 
-  const ua = navigator.userAgent;
-  const isiOS = /iPhone|iPad|iPod/i.test(ua);
-  const isAndroid = /Android/i.test(ua);
+    const ua = navigator.userAgent;
+    const isiOS = /iPhone|iPad|iPod/i.test(ua);
+    const isAndroid = /Android/i.test(ua);
 
-  const mv = document.getElementById("mv");
-  const loading = document.getElementById("loading");
+    const mv = document.getElementById("mv");
+    const loading = document.getElementById("loading");
+    const hint = document.getElementById("hint");
+    const arrow = document.getElementById("arrow");
 
-  /* =========================
-     1) Detectar vuelta desde AR
-     ========================= */
-  const handleResume = () => {
-    if (sessionStorage.getItem("fromAR") === "1") {
-      sessionStorage.removeItem("fromAR");
+    // Flags fiables para “volver del AR”
+    let hasEnteredAR = false; // se pone true cuando status=presenting
+
+    function goMenu() {
       window.location.href = MENU_URL;
     }
-  };
 
-  window.addEventListener("pageshow", handleResume);
-  window.addEventListener("focus", handleResume);
-  document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) handleResume();
-  });
-
-  /* =========================
-     2) Flujos por dispositivo
-     ========================= */
-  if (isiOS) {
-    // iOS → Quick Look directo
-    sessionStorage.setItem("fromAR", "1");
-    window.location.href = USDZ;
-  }
-
-  else if (isAndroid) {
-    // Android → WebXR (como ya funcionaba)
-    mv.src = GLB;
-
-    mv.addEventListener("load", () => {
-      loading.style.display = "none";
-    });
-
-    // Guardamos que vamos a entrar en AR
-    setTimeout(() => {
-      const btn = mv.shadowRoot?.querySelector('button[part="ar-button"]');
-      if (btn) {
-        sessionStorage.setItem("fromAR", "1");
-        btn.click();
+    // Fallback: si la pestaña vuelve a estar visible tras AR
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden && hasEnteredAR) {
+        // Cuando vuelves del AR, a veces no llega ar-status, así que esto ayuda
+        goMenu();
       }
-    }, 800);
-  }
-
-  else {
-    // Desktop → solo 3D
-    mv.src = GLB;
-    mv.addEventListener("load", () => {
-      loading.style.display = "none";
     });
-  }
-</script>
 
+    if (isiOS) {
+      // iOS: Quick Look directo
+      // Al cerrar, normalmente vuelve al navegador y ya redirige bien con pageshow/focus,
+      // pero aquí vamos a lo simple: si vuelve, el usuario ya está en MENU_URL porque Quick Look “regresa”.
+      // Para asegurar: marcamos que entra en AR y al volver visible redirige.
+      hasEnteredAR = true;
+      window.location.href = USDZ;
+    } else {
+      // Android/Desktop: cargar GLB en model-viewer
+      mv.src = GLB;
+
+      mv.addEventListener("load", () => {
+        loading.style.display = "none";
+
+        if (isAndroid) {
+          // Mostrar hint 5s (no toca el botón interno)
+          hint.style.display = "block";
+          arrow.style.display = "block";
+          setTimeout(() => {
+            hint.style.display = "none";
+            arrow.style.display = "none";
+          }, 5000);
+        }
+      });
+
+      // Evento clave: model-viewer avisa si está presentando AR o no
+      mv.addEventListener("ar-status", (e) => {
+        const status = e.detail.status; // "presenting", "not-presenting", "failed"
+        if (status === "presenting") {
+          hasEnteredAR = true;
+        } else if (status === "not-presenting" && hasEnteredAR) {
+          // El usuario cerró AR -> menú
+          goMenu();
+        }
+      });
+
+      // Mantengo tu auto-AR que ya funcionaba (solo Android)
+      if (isAndroid) {
+        setTimeout(() => {
+          const btn = mv.shadowRoot?.querySelector('button[part="ar-button"]');
+          if (btn) btn.click();
+        }, 800);
+      }
+    }
+  </script>
 </body>
 </html>
