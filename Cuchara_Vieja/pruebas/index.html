@@ -21,7 +21,7 @@
       background: #000;
     }
 
-    /* Overlay de carga simple */
+    /* Loader simple */
     #loading {
       position: fixed;
       inset: 0;
@@ -56,6 +56,10 @@
 </model-viewer>
 
 <script>
+  // 🔗 URLs
+  const MENU_URL =
+    "https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view?utm_content=DAG8SYy2DPc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5c7aa53580";
+
   const BASE =
     "https://cucharavieja-ar.rough-meadow-c2c6.workers.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/";
   const GLB  = BASE + "pastelbananachip.glb";
@@ -68,29 +72,51 @@
   const mv = document.getElementById("mv");
   const loading = document.getElementById("loading");
 
+  /* =========================
+     1) Detectar vuelta desde AR
+     ========================= */
+  const handleResume = () => {
+    if (sessionStorage.getItem("fromAR") === "1") {
+      sessionStorage.removeItem("fromAR");
+      window.location.href = MENU_URL;
+    }
+  };
+
+  window.addEventListener("pageshow", handleResume);
+  window.addEventListener("focus", handleResume);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) handleResume();
+  });
+
+  /* =========================
+     2) Flujos por dispositivo
+     ========================= */
   if (isiOS) {
     // iOS → Quick Look directo
+    sessionStorage.setItem("fromAR", "1");
     window.location.href = USDZ;
   }
 
   else if (isAndroid) {
-    // Android → WebXR (MISMA LÓGICA QUE ANTES)
+    // Android → WebXR (como ya funcionaba)
     mv.src = GLB;
 
-    // Cuando el modelo carga, quitamos el loading
     mv.addEventListener("load", () => {
       loading.style.display = "none";
     });
 
-    // Intentar abrir AR automáticamente (como antes)
+    // Guardamos que vamos a entrar en AR
     setTimeout(() => {
       const btn = mv.shadowRoot?.querySelector('button[part="ar-button"]');
-      if (btn) btn.click();
+      if (btn) {
+        sessionStorage.setItem("fromAR", "1");
+        btn.click();
+      }
     }, 800);
   }
 
   else {
-    // Desktop → 3D
+    // Desktop → solo 3D
     mv.src = GLB;
     mv.addEventListener("load", () => {
       loading.style.display = "none";
