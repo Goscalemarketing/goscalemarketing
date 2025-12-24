@@ -1,79 +1,77 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AR Test</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AR</title>
 
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <style>
-    html, body { margin:0; padding:0; height:100%; background:#000; }
-    #msg {
-      position: fixed; left: 12px; right: 12px; top: 12px;
-      color: #fff; font: 14px system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.15);
-      padding: 10px 12px; border-radius: 12px; z-index: 9999;
+    html,body{margin:0;height:100%;background:#000;}
+    #btn{
+      position:fixed; left:16px; right:16px; bottom:16px;
+      padding:16px; border-radius:14px; border:0;
+      font:800 16px system-ui; background:#fff; color:#000;
+      z-index:10;
     }
-    model-viewer { width:100%; height:100%; background:#000; }
+    model-viewer{width:100%;height:100%;background:#000;}
   </style>
 </head>
 
 <body>
-  <div id="msg">Cargando…</div>
 
-  <model-viewer
-    id="mv"
-    ar
-    ar-modes="webxr"
-    camera-controls
-    autoplay
-    exposure="1.15"
-    shadow-intensity="0.7">
-  </model-viewer>
+<model-viewer
+  id="mv"
+  ar
+  ar-modes="webxr"
+  camera-controls
+  autoplay
 
-  <script>
-    const GLB_URL  = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb";
-    const USDZ_URL = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz";
+  /* ✅ Mejora “apagado” en Android (sin tocar modelado) */
+  exposure="1.35"
+  tone-mapping="aces"
+  shadow-intensity="0.6"
 
-    const ua = navigator.userAgent;
-    const isiOS = /iPhone|iPad|iPod/i.test(ua);
-    const isAndroid = /Android/i.test(ua);
+  /* ✅ Fondo/iluminación agradable (HDRI ligero) */
+  environment-image="https://modelviewer.dev/shared-assets/environments/neutral.hdr">
+</model-viewer>
 
-    const msg = document.getElementById("msg");
-    const mv = document.getElementById("mv");
+<button id="btn">Abrir AR</button>
 
+<script>
+  // ✅ Usa tu WORKER (para evitar CORS)
+  const GLB_URL  = "https://cucharavieja-ar.rough-meadow-c2c6.workers.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb";
+  const USDZ_URL = "https://cucharavieja-ar.rough-meadow-c2c6.workers.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz";
+
+  const ua = navigator.userAgent;
+  const isiOS = /iPhone|iPad|iPod/i.test(ua);
+  const isAndroid = /Android/i.test(ua);
+
+  const mv = document.getElementById("mv");
+  mv.src = GLB_URL;
+
+  document.getElementById("btn").onclick = async () => {
     if (isiOS) {
-      msg.textContent = "iOS detectado → abriendo Quick Look…";
+      // iOS: Quick Look
       window.location.href = USDZ_URL;
-    } else if (isAndroid) {
-      msg.textContent = "Android detectado → cargando modelo…";
-      mv.src = GLB_URL;
-
-      // Cuando el modelo esté listo, intentamos abrir AR
-      mv.addEventListener("load", async () => {
-        msg.textContent = "Modelo cargado. Intentando abrir AR…";
-
-        // Espera a que model-viewer tenga el botón AR interno disponible
-        setTimeout(() => {
-          const arBtn = mv.shadowRoot?.querySelector('button[part="ar-button"]');
-          if (arBtn) {
-            arBtn.click();
-            msg.textContent = "Si no entra a AR, revisa permisos/ARCore y prueba en Chrome.";
-          } else {
-            msg.textContent = "AR no disponible en este navegador/dispositivo. (El modelo 3D debería verse.)";
-          }
-        }, 600);
-      });
-
-      mv.addEventListener("error", () => {
-        msg.textContent = "Error cargando el modelo. Revisa que el GLB sea accesible desde el móvil.";
-      });
-
-    } else {
-      msg.textContent = "Dispositivo no compatible → abriendo modelo 3D…";
-      window.location.href = GLB_URL;
+      return;
     }
-  </script>
+
+    if (isAndroid) {
+      // Android: WebXR (model-viewer)
+      try {
+        await mv.activateAR();
+      } catch (e) {
+        alert("No se pudo abrir AR. Prueba desde Chrome y revisa Google Play Services for AR (ARCore).");
+      }
+      return;
+    }
+
+    // Otros: abre el modelo
+    window.location.href = GLB_URL;
+  };
+</script>
+
 </body>
 </html>
