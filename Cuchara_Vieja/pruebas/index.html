@@ -11,49 +11,41 @@
     html, body { margin:0; height:100%; background:#000; overflow:hidden; }
     model-viewer { width:100%; height:100%; background:#000; }
 
-    /* Loader simple */
-    #loading {
-      position: fixed;
-      inset: 0;
-      background: #000;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      font-size: 14px;
-      z-index: 9999;
+    #loading{
+      position:fixed; inset:0;
+      background:#000; color:#fff;
+      display:flex; align-items:center; justify-content:center;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      font-size:14px;
+      z-index:9999;
     }
   </style>
 </head>
 
 <body>
+  <div id="loading">Cargando modelo…</div>
 
-<div id="loading">Cargando modelo…</div>
-
-<model-viewer
-  id="mv"
-  ar
-  ar-modes="webxr quick-look"
-  camera-controls
-  autoplay
-  loading="eager"
-  reveal="auto"
-  ar-placement="floor"
-  ar-scale="fixed"
-  scale="1 1 1"
-  exposure="1.25"
-  tone-mapping="aces"
-  shadow-intensity="0.8"
-  environment-image="neutral">
-</model-viewer>
+  <model-viewer
+    id="mv"
+    ar
+    ar-modes="webxr quick-look"
+    camera-controls
+    autoplay
+    loading="eager"
+    reveal="auto"
+    ar-placement="floor"
+    ar-scale="fixed"
+    scale="1 1 1"
+    exposure="1.25"
+    tone-mapping="aces"
+    shadow-intensity="0.8"
+    environment-image="neutral">
+  </model-viewer>
 
 <script>
-  // ✅ Menú Canva
   const MENU_URL =
     "https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view?utm_content=DAG8SYy2DPc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5c7aa53580";
 
-  // ✅ Modelos desde WORKER
   const BASE =
     "https://cucharavieja-ar.rough-meadow-c2c6.workers.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/";
   const GLB_URL  = BASE + "pastelbananachip.glb";
@@ -66,59 +58,76 @@
   const mv = document.getElementById("mv");
   const loading = document.getElementById("loading");
 
-  // 🔁 Igual que tu código “bueno”: al volver, si venimos de AR → menú
+  const goMenu = () => { window.location.href = MENU_URL; };
+
+  // (Backup) Si algún navegador sí recupera foco/visibilidad al salir
   const resumeHandler = () => {
     if (sessionStorage.getItem("fromAR") === "1") {
       sessionStorage.removeItem("fromAR");
-      window.location.href = MENU_URL;
+      goMenu();
     }
   };
-
   window.addEventListener("pageshow", resumeHandler);
   window.addEventListener("focus", resumeHandler);
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) resumeHandler();
   });
 
-  // ✅ EXTRA para WebXR: detectar salir del AR dentro del navegador
-  // (Esto es lo que faltaba)
-  let enteredAR = false;
-  mv.addEventListener("ar-status", (e) => {
-    const s = e.detail.status; // "presenting" | "not-presenting" | "failed"
-    if (s === "presenting") {
-      enteredAR = true;
-      sessionStorage.setItem("fromAR", "1");
-    }
-    if (s === "not-presenting" && enteredAR) {
-      // Salió del AR -> redirige
-      resumeHandler();
-    }
-  });
+  // ✅ Polling robusto para WebXR:
+  // mira el atributo ar-status del <model-viewer>
+  let poll = null;
+  let sawPresenting = false;
+
+  function startArExitWatcher() {
+    if (poll) clearInterval(poll);
+    sawPresenting = false;
+
+    poll = setInterval(() => {
+      // En muchas versiones model-viewer añade ar-status="presenting"/"not-presenting"
+      const s = mv.getAttribute("ar-status");
+
+      if (s === "presenting") {
+        sawPresenting = true;
+        sessionStorage.setItem("fromAR", "1");
+      }
+
+      // Si ya vimos presenting y ahora no lo está -> ha salido
+      if (sawPresenting && s !== "presenting") {
+        clearInterval(poll);
+        poll = null;
+        // Limpia y redirige
+        sessionStorage.removeItem("fromAR");
+        goMenu();
+      }
+    }, 350);
+  }
 
   if (isiOS) {
-    // iOS → Quick Look (al cerrar vuelve al navegador y saltan eventos)
+    // iOS Quick Look
     sessionStorage.setItem("fromAR", "1");
     window.location.href = USDZ_URL;
   } else if (isAndroid) {
-    // Android → WebXR
     mv.src = GLB_URL;
 
     mv.addEventListener("load", () => {
       loading.style.display = "none";
     });
 
-    // Intenta abrir AR automáticamente (como ya te funciona)
+    // Mantengo tu auto-AR (funciona en tu Android)
     setTimeout(() => {
       const btn = mv.shadowRoot?.querySelector('button[part="ar-button"]');
-      if (btn) btn.click();
+      if (btn) {
+        // arrancamos watcher justo antes de entrar
+        startArExitWatcher();
+        btn.click();
+      }
     }, 800);
+
   } else {
+    // Desktop
     mv.src = GLB_URL;
-    mv.addEventListener("load", () => {
-      loading.style.display = "none";
-    });
+    mv.addEventListener("load", () => { loading.style.display = "none"; });
   }
 </script>
-
 </body>
 </html>
