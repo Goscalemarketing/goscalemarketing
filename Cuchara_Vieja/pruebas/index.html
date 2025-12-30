@@ -3,12 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Pruebas AR</title>
+  <title>Pastel Banana Chip · AR</title>
 
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <style>
     html, body { margin:0; height:100%; background:#0b0b0b; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+
     header{
       position:fixed; inset:0 0 auto 0; height:56px;
       display:flex; align-items:center; justify-content:space-between;
@@ -40,6 +41,48 @@
       white-space:nowrap;
     }
     button.arBtn:disabled{ opacity:.5; cursor:not-allowed; }
+
+    /* Info del plato (overlay, NO entra en la cámara) */
+    #dishInfo{
+      position:fixed;
+      top:56px;
+      left:0; right:0;
+      padding:14px 16px 10px;
+      background:linear-gradient(
+        to bottom,
+        rgba(11,11,11,.92),
+        rgba(11,11,11,.75),
+        rgba(11,11,11,0)
+      );
+      z-index:9;
+      pointer-events:none; /* para no interferir con controles del viewer */
+    }
+    #dishInfo h1{
+      margin:0;
+      font-size:18px;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    #dishInfo p{
+      margin:6px 0 8px;
+      font-size:14px;
+      line-height:1.35;
+      color:rgba(255,255,255,.75);
+      max-width:520px;
+    }
+    #dishInfo .by{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-size:12px;
+      color:rgba(255,255,255,.55);
+    }
+    #dishInfo .by img{
+      height:16px;
+      width:auto;
+      opacity:.9;
+    }
+
     main{ position:fixed; inset:56px 0 0 0; }
     model-viewer{ width:100%; height:100%; background:#0b0b0b; }
   </style>
@@ -53,6 +96,22 @@
     </div>
     <button id="arBtn" class="arBtn" disabled>Ver en AR</button>
   </header>
+
+  <!-- ✅ Nombre + ingredientes + by logo -->
+  <section id="dishInfo">
+    <h1 id="dishTitle">Pastel Banana Chip</h1>
+    <p id="dishDesc">
+      Bizcocho de banana con chips de chocolate. Tamaño orientativo.
+      <br/>Alérgenos: gluten, huevo (según receta).
+    </p>
+    <div class="by">
+      <span>by</span>
+      <img
+        src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png"
+        alt="GoScaleMarketing"
+      />
+    </div>
+  </section>
 
   <main>
     <model-viewer
@@ -87,6 +146,8 @@
     const arBtn = document.getElementById('arBtn');
     const mode = document.getElementById('mode');
     const menuLink = document.getElementById('menuLink');
+    const dishInfo = document.getElementById('dishInfo');
+
     menuLink.href = MENU_URL;
 
     const ua = navigator.userAgent || '';
@@ -95,7 +156,7 @@
 
     // Look estable del viewer
     const VIEWER = { exposure: 1.6, shadow: 1.0, tone: 'neutral' };
-    // Look SOLO para WebXR AR (para evitar lavado en algunos Android)
+    // Look SOLO para WebXR AR (evita lavado en algunos Android)
     const WEBXR_AR = { exposure: 0.85, shadow: 0.15, tone: 'neutral' };
 
     function applyViewerLook(){
@@ -149,10 +210,16 @@
       }
     });
 
-    // Solo afecta a WebXR (no redirige a ningún sitio)
+    // WebXR: al entrar/salir, ajusta look y oculta/enseña la ficha
     mv.addEventListener('ar-status', (ev) => {
-      if (ev.detail.status === 'session-started') applyWebxrArLook();
-      if (ev.detail.status === 'not-presenting') applyViewerLook();
+      if (ev.detail.status === 'session-started') {
+        applyWebxrArLook();
+        dishInfo.style.display = 'none';   // ✅ no overlays en cámara
+      }
+      if (ev.detail.status === 'not-presenting') {
+        applyViewerLook();
+        dishInfo.style.display = 'block';
+      }
     });
   </script>
 </body>
