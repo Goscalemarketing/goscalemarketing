@@ -19,6 +19,10 @@
     header .badge{
       font-size:12px; padding:4px 8px; border-radius:999px;
       background:rgba(255,255,255,.12);
+      max-width: 55%;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     header button{
       border:0; border-radius:10px;
@@ -65,7 +69,6 @@
       ar
       ar-placement="floor"
       ar-scale="fixed"
-
       ar-modes="webxr scene-viewer quick-look">
     </model-viewer>
   </main>
@@ -89,41 +92,51 @@
     const isIOS = /iPhone|iPad|iPod/i.test(ua);
     const isAndroid = /Android/i.test(ua);
 
-    // Decide modo preferido:
-    // - iOS: Quick Look (no WebXR)
-    // - Android: intentar WebXR si existe, si no Scene Viewer
-    async function decideMode(){
+    let chosen = null; // 'webxr' | 'scene-viewer' | 'quick-look'
+
+    async function chooseAndForceARModes() {
       if (isIOS) {
-        mode.textContent = 'iOS (Quick Look)';
+        chosen = 'quick-look';
+        // Forzamos SOLO quick-look
+        mv.setAttribute('ar-modes', 'quick-look');
+        mode.textContent = 'iOS → Quick Look';
         arBtn.disabled = false;
         return;
       }
 
       if (isAndroid) {
-        // intenta WebXR
         try {
-          const ok = !!(navigator.xr && await navigator.xr.isSessionSupported('immersive-ar'));
-          if (ok) {
-            mode.textContent = 'Android (WebXR)';
-            arBtn.disabled = false;
+          const webxrOk = !!(navigator.xr && await navigator.xr.isSessionSupported('immersive-ar'));
+          if (webxrOk) {
+            chosen = 'webxr';
+            // Forzamos SOLO webxr (evita que caiga a Scene Viewer)
+            mv.setAttribute('ar-modes', 'webxr');
+            mode.textContent = 'Android → WebXR (forzado)';
           } else {
-            mode.textContent = 'Android (Scene Viewer)';
-            arBtn.disabled = false;
+            chosen = 'scene-viewer';
+            // Forzamos SOLO scene-viewer
+            mv.setAttribute('ar-modes', 'scene-viewer');
+            mode.textContent = 'Android → Scene Viewer (fallback)';
           }
-        } catch (e) {
-          mode.textContent = 'Android (Scene Viewer)';
           arBtn.disabled = false;
+          return;
+        } catch (e) {
+          chosen = 'scene-viewer';
+          mv.setAttribute('ar-modes', 'scene-viewer');
+          mode.textContent = 'Android → Scene Viewer (fallback)';
+          arBtn.disabled = false;
+          return;
         }
-        return;
       }
 
+      chosen = null;
       mode.textContent = 'AR no disponible';
       arBtn.disabled = true;
     }
 
-    mv.addEventListener('load', () => {
+    mv.addEventListener('load', async () => {
       show('Modelo cargado');
-      decideMode();
+      await chooseAndForceARModes();
     });
 
     mv.addEventListener('error', () => {
@@ -134,20 +147,24 @@
 
     arBtn.addEventListener('click', async () => {
       try {
-        show('Abriendo AR…');
-
-        // Si iOS, model-viewer usará quick-look (ios-src)
-        // Si Android, model-viewer intentará WebXR primero si está disponible; si no, Scene Viewer.
+        show(`Abriendo AR (${chosen || 'auto'})…`);
         await mv.activateAR();
-
       } catch (e) {
         show('No se pudo abrir AR');
       }
     });
 
-    // Al volver de AR (Scene Viewer / Quick Look)
+    // Al volver desde Scene Viewer / Quick Look
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) show('De vuelta al viewer');
+    });
+
+    // Debug: si es WebXR y entra/sale sesión
+    mv.addEventListener('ar-status', (ev) => {
+      const s = ev.detail.status;
+      if (s === 'session-started') show('WebXR iniciado');
+      if (s === 'not-presenting') show('WebXR cerrado');
+      if (s === 'failed') show('WebXR falló (fallback no se usa porque forzamos modo)');
     });
   </script>
 </body>
