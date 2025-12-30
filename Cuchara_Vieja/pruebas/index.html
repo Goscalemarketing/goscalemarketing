@@ -1,178 +1,41 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AR</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pastel Banana Chip AR</title>
 
+  <!-- Model Viewer -->
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <style>
-    html, body { margin:0; height:100%; background:#000; overflow:hidden; }
-    model-viewer { width:100%; height:100%; background:#000; }
-
-    #loading{
-      position:fixed; inset:0;
-      background:#000; color:#fff;
-      display:flex; align-items:center; justify-content:center;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-      font-size:14px;
-      z-index:9999;
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #000;
     }
-
-    /* CTA */
-    #ctaWrap{
-      position:fixed; left:0; right:0; bottom:16px;
-      display:flex; justify-content:center;
-      z-index:9998;
-      pointer-events:none;
-    }
-    .btn{
-      pointer-events:auto;
-      width:min(520px, calc(100% - 32px));
-      border:0;
-      border-radius:16px;
-      padding:14px 16px;
-      font:800 16px system-ui,-apple-system,Segoe UI,Roboto,Arial;
-      background:#fff;
-      color:#000;
-    }
-    .btn.secondary{
-      background: rgba(255,255,255,.12);
-      color:#fff;
-      border: 1px solid rgba(255,255,255,.22);
-      backdrop-filter: blur(6px);
-    }
-
-    /* Barra superior en modo AR */
-    #topbar{
-      position:fixed; left:0; right:0; top:0;
-      display:none;
-      padding:12px;
-      z-index:9998;
-      pointer-events:none;
-    }
-    #topbar .inner{
-      pointer-events:auto;
-      width:min(520px, calc(100% - 24px));
-      margin:0 auto;
-      display:flex;
-      justify-content:flex-end;
+    model-viewer {
+      width: 100%;
+      height: 100%;
     }
   </style>
 </head>
 
 <body>
 
-<div id="loading">Cargando modelo…</div>
-
-<!-- Botón volver (solo en modo ?ar=1) -->
-<div id="topbar">
-  <div class="inner">
-    <button id="backBtn" class="btn secondary" type="button">Volver al menú</button>
-  </div>
-</div>
-
-<!-- Botón Ver en AR (solo en modo normal) -->
-<div id="ctaWrap">
-  <button id="openBtn" class="btn" type="button">Ver en AR</button>
-</div>
-
-<model-viewer
-  id="mv"
-  ar
-  ar-modes="webxr quick-look"
-  camera-controls
-  autoplay
-  loading="eager"
-  reveal="auto"
-  ar-placement="floor"
-  ar-scale="fixed"
-  scale="1 1 1"
-  exposure="1.25"
-  tone-mapping="aces"
-  shadow-intensity="0.8"
-  environment-image="neutral">
-</model-viewer>
-
-<script>
-  const MENU_URL =
-    "https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view?utm_content=DAG8SYy2DPc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5c7aa53580";
-
-  const BASE =
-    "https://cucharavieja-ar.rough-meadow-c2c6.workers.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/";
-  const GLB  = BASE + "pastelbananachip.glb";
-  const USDZ = BASE + "pastelbananachip.usdz";
-
-  const ua = navigator.userAgent;
-  const isiOS = /iPad|iPhone|iPod/i.test(ua);
-  const isAndroid = /Android/i.test(ua);
-
-  const mv = document.getElementById("mv");
-  const loading = document.getElementById("loading");
-  const openBtn = document.getElementById("openBtn");
-  const backBtn = document.getElementById("backBtn");
-  const topbar = document.getElementById("topbar");
-  const ctaWrap = document.getElementById("ctaWrap");
-
-  const params = new URLSearchParams(location.search);
-  const isARMode = params.get("ar") === "1";
-
-  function showLoading(text){
-    if (text) loading.textContent = text;
-    loading.style.display = "flex";
-  }
-  function hideLoading(){ loading.style.display = "none"; }
-
-  // Cargar modelo siempre en Android/Desktop para que haya vista previa
-  mv.src = GLB;
-  mv.addEventListener("load", () => hideLoading());
-
-  // Botón volver
-  backBtn.addEventListener("click", () => {
-    window.location.href = MENU_URL;
-  });
-
-  // Modo normal (sin ?ar=1): enseña botón "Ver en AR"
-  if (!isARMode) {
-    topbar.style.display = "none";
-    ctaWrap.style.display = "flex";
-
-    openBtn.addEventListener("click", () => {
-      // iOS: Quick Look directo
-      if (isiOS) {
-        window.location.href = USDZ;
-        return;
-      }
-      // Android: recarga misma página en modo AR
-      const url = new URL(location.href);
-      url.searchParams.set("ar", "1");
-      window.location.href = url.toString();
-    });
-  }
-
-  // Modo AR (?ar=1): intentamos abrir AR y mostramos "Volver"
-  if (isARMode) {
-    ctaWrap.style.display = "none";
-    topbar.style.display = "block";
-    showLoading("Abriendo cámara…");
-
-    // iOS: Quick Look
-    if (isiOS) {
-      window.location.href = USDZ;
-    } else if (isAndroid) {
-      // Android: abrir AR con el botón interno de model-viewer
-      setTimeout(() => {
-        const btn = mv.shadowRoot?.querySelector('button[part="ar-button"]');
-        if (btn) btn.click();
-        // quitamos loader tras un rato aunque el navegador no avise
-        setTimeout(() => hideLoading(), 2500);
-      }, 700);
-    } else {
-      hideLoading();
-    }
-  }
-</script>
+  <model-viewer
+    src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb"
+    ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz"
+    ar
+    ar-modes="scene-viewer quick-look webxr"
+    camera-controls
+    auto-rotate
+    loading="eager"
+    exposure="1"
+    shadow-intensity="1"
+    alt="Pastel Banana Chip en AR">
+  </model-viewer>
 
 </body>
 </html>
