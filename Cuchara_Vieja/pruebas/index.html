@@ -1,136 +1,178 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Viewer - Pastel Banana</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pastel Banana Chip</title>
 
-  <!-- Model Viewer -->
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <script type="module"
+    src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
+  </script>
 
   <style>
-    html, body { margin:0; padding:0; width:100%; height:100%; background:#f2f2f2; }
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
-    model-viewer { width:100%; height:100%; background:#f2f2f2; }
-
-    .bar {
-      position: fixed; top:0; left:0; right:0;
-      padding: 10px 12px;
-      display:flex; gap:10px; align-items:center; justify-content:space-between;
-      background: rgba(0,0,0,.72);
-      color:#fff; z-index: 10;
-      font-size: 13px;
-    }
-    .pill {
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.14);
-      white-space: nowrap;
-    }
-
-    #panel {
-      position: fixed;
-      inset: 52px 12px 12px 12px;
-      max-width: 520px;
-      margin: 0 auto;
-      display:none;
-      background: rgba(0,0,0,.78);
-      color:#fff;
-      border-radius: 14px;
-      padding: 14px;
-      z-index: 20;
-      line-height: 1.35;
-      font-size: 14px;
-    }
-    #panel a { color:#fff; }
-    #panel button {
-      margin-top: 10px;
+    html, body {
+      margin: 0;
+      padding: 0;
       width: 100%;
-      padding: 12px;
+      height: 100%;
+      background: #f2f2f2;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    /* Barra superior */
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(10px);
+      z-index: 10;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .brand {
+      font-weight: 600;
+      font-size: 14px;
+      color: #111;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 55%;
+    }
+
+    .btn {
       border: 0;
-      border-radius: 12px;
-      font-weight: 800;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-weight: 600;
+      font-size: 14px;
       cursor: pointer;
+      background: #111;
+      color: #fff;
+    }
+
+    .btn:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    /* El viewer ocupa todo, dejando hueco para la barra */
+    model-viewer {
+      width: 100%;
+      height: 100%;
+      background: white;
+    }
+
+    .viewer-wrap {
+      position: absolute;
+      top: 56px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    /* Mensajes */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 16px;
+      transform: translateX(-50%);
+      background: rgba(17,17,17,0.9);
+      color: white;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      z-index: 20;
+      display: none;
+      max-width: 92%;
+      text-align: center;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="bar">
-    <div class="pill" id="status">Cargando viewer…</div>
-    <div class="pill">Solo viewer (sin AR)</div>
+  <div class="topbar">
+    <div class="brand">GoScale Marketing · Pastel Banana Chip</div>
+    <button id="arBtn" class="btn" disabled>Ver en AR</button>
   </div>
 
-  <!-- Panel de errores / diagnóstico -->
-  <div id="panel">
-    <div id="panelText"></div>
-    <button id="retry">Reintentar</button>
+  <div class="viewer-wrap">
+    <model-viewer
+      id="mv"
+      src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb"
+      ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz"
+
+      camera-controls
+      auto-rotate
+
+      exposure="1.6"
+      tone-mapping="neutral"
+      shadow-intensity="1"
+
+      environment-image="https://modelviewer.dev/shared-assets/environments/neutral.hdr"
+
+      ar
+      ar-modes="scene-viewer quick-look webxr"
+
+      loading="eager"
+      reveal="auto">
+    </model-viewer>
   </div>
 
-  <model-viewer
-    id="mv"
-    src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb"
-    camera-controls
-    auto-rotate
-    loading="eager"
-    reveal="auto"
-
-    poster="https://modelviewer.dev/shared-assets/models/Astronaut.webp"
-    environment-image="https://modelviewer.dev/shared-assets/environments/neutral.hdr"
-
-    exposure="1.2"
-    shadow-intensity="0.8"
-
-    camera-orbit="45deg 65deg 2.2m"
-    camera-target="0m 0.15m 0m"
-    field-of-view="30deg"
-
-    alt="Pastel Banana Chip">
-  </model-viewer>
+  <div id="toast" class="toast"></div>
 
   <script>
-    const mv = document.getElementById("mv");
-    const status = document.getElementById("status");
-    const panel = document.getElementById("panel");
-    const panelText = document.getElementById("panelText");
-    document.getElementById("retry").onclick = () => location.reload();
+    const mv = document.getElementById('mv');
+    const arBtn = document.getElementById('arBtn');
+    const toast = document.getElementById('toast');
 
-    // 1) Detectar si el script de model-viewer cargó
-    setTimeout(() => {
-      if (!customElements.get("model-viewer")) {
-        status.textContent = "No cargó model-viewer ❌";
-        panel.style.display = "block";
-        panelText.innerHTML =
-          "El componente <b>model-viewer</b> no se ha cargado (script bloqueado o red).<br><br>" +
-          "Prueba:\n<ul>" +
-          "<li>En iOS: abre en <b>Safari</b></li>" +
-          "<li>En Android: abre en <b>Chrome</b></li>" +
-          "<li>Evita navegadores dentro de apps (Instagram/WhatsApp)</li>" +
-          "</ul>";
+    function showToast(msg, ms = 2200) {
+      toast.textContent = msg;
+      toast.style.display = 'block';
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.style.display = 'none', ms);
+    }
+
+    // Activamos el botón cuando el modelo esté listo
+    mv.addEventListener('load', () => {
+      arBtn.disabled = !mv.canActivateAR;
+      if (!mv.canActivateAR) showToast('AR no disponible en este dispositivo/navegador.');
+    });
+
+    // Si hay error cargando el modelo
+    mv.addEventListener('error', () => {
+      showToast('Error cargando el modelo. Revisa URLs y CORS.');
+    });
+
+    // Botón AR manual (para que NO tape el viewer)
+    arBtn.addEventListener('click', async () => {
+      try {
+        if (!mv.canActivateAR) {
+          showToast('AR no disponible aquí.');
+          return;
+        }
+        showToast('Abriendo AR...');
+        await mv.activateAR();
+      } catch (e) {
+        showToast('No se pudo abrir AR.');
       }
-    }, 2500);
-
-    // 2) Eventos de carga del modelo
-    mv.addEventListener("load", () => {
-      status.textContent = "Modelo cargado ✅";
-      panel.style.display = "none";
     });
 
-    mv.addEventListener("error", (e) => {
-      status.textContent = "Error cargando modelo ❌";
-      panel.style.display = "block";
-      panelText.innerHTML =
-        "No se pudo cargar el <b>GLB</b>. Suele ser CORS/red.<br><br>" +
-        "Prueba abrir el GLB directo (debería mostrarse/descargarse):<br>" +
-        '<a href="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb" target="_blank">Abrir GLB</a><br><br>' +
-        "Si al abrirlo se descarga, está bien. Si da error, revisa permisos/CORS en R2.";
-    });
-
-    // 3) Mostrar progreso si tarda
-    mv.addEventListener("progress", (ev) => {
-      const p = Math.round((ev.detail.totalProgress || 0) * 100);
-      if (p > 0 && p < 100) status.textContent = `Cargando modelo… ${p}%`;
+    // Al volver de la cámara (Android/iOS), forzamos repintado suave del viewer
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        // Pequeño “kick” para asegurar que el canvas se redibuja
+        mv.requestUpdate && mv.requestUpdate();
+        showToast('Viewer listo.');
+      }
     });
   </script>
 
