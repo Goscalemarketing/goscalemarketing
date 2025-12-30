@@ -1,195 +1,47 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>AR Viewer</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Viewer</title>
 
-  <!-- model-viewer -->
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <style>
-    html, body { margin:0; padding:0; height:100%; background:#0b0b0b; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
-    #wrap { position:fixed; inset:0; display:flex; flex-direction:column; }
-    header {
-      height:54px; min-height:54px;
-      display:flex; align-items:center; justify-content:space-between;
-      padding:0 12px;
-      background:rgba(15,15,15,.72);
-      backdrop-filter: blur(10px);
-      color:#fff;
-      z-index:10;
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #0b0b0b;
     }
-    header .left { display:flex; align-items:center; gap:10px; }
-    header .badge {
-      font-size:12px; padding:4px 8px; border-radius:999px;
-      background:rgba(255,255,255,.12); color:#fff;
-    }
-    header button {
-      appearance:none; border:0; border-radius:10px;
-      padding:10px 12px; font-weight:600;
-      background:#ffffff; color:#111;
-      cursor:pointer;
-    }
-    header button:disabled { opacity:.5; cursor:not-allowed; }
-    main { position:relative; flex:1; }
-    model-viewer { width:100%; height:100%; background:#0b0b0b; }
-
-    /* Mensajes */
-    #toast {
-      position:absolute; left:12px; right:12px; bottom:12px;
-      padding:10px 12px; border-radius:12px;
-      background:rgba(0,0,0,.65); color:#fff; font-size:14px;
-      display:none;
-    }
-    #hint {
-      position:absolute; left:12px; right:12px; top:66px;
-      padding:10px 12px; border-radius:12px;
-      background:rgba(0,0,0,.45); color:#fff; font-size:13px;
-      display:none;
+    model-viewer {
+      width: 100%;
+      height: 100%;
     }
   </style>
 </head>
 
 <body>
-  <div id="wrap">
-    <header>
-      <div class="left">
-        <div style="font-weight:700;">Viewer</div>
-        <div id="mode" class="badge">Cargando…</div>
-      </div>
-      <button id="arBtn" disabled>Ver en AR</button>
-    </header>
 
-    <main>
-      <model-viewer
-        id="mv"
-        src="GLB_URL"
-        ios-src="USDZ_URL"
-        alt="Modelo 3D"
-        camera-controls
-        touch-action="pan-y"
-        interaction-prompt="none"
-        shadow-intensity="0.7"
-        exposure="1.5"
-        environment-image="neutral"
-        loading="eager"
-        reveal="auto"
-        ar
-        ar-placement="floor"
-        ar-modes="webxr scene-viewer quick-look">
-      </model-viewer>
+<model-viewer
+  src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb"
+  ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz"
 
-      <div id="hint">Si no abre AR, prueba en Chrome y revisa permisos de cámara.</div>
-      <div id="toast"></div>
-    </main>
-  </div>
+  camera-controls
+  touch-action="pan-y"
+  interaction-prompt="none"
 
-  <script>
-    // ====== CONFIG: pega aquí tus URLs ======
-    const GLB_URL  = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb";
-    const USDZ_URL = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz";
+  ar
+  ar-modes="webxr scene-viewer quick-look"
+  ar-placement="floor"
 
-    const mv = document.getElementById('mv');
-    const arBtn = document.getElementById('arBtn');
-    const mode = document.getElementById('mode');
-    const toast = document.getElementById('toast');
-    const hint = document.getElementById('hint');
+  environment-image="https://modelviewer.dev/shared-assets/environments/aircraft_workshop_01_1k.hdr"
+  exposure="1.05"
+  shadow-intensity="0.9"
 
-    function showToast(msg, ms=2500) {
-      toast.textContent = msg;
-      toast.style.display = 'block';
-      clearTimeout(showToast._t);
-      showToast._t = setTimeout(() => toast.style.display = 'none', ms);
-    }
+  loading="eager"
+  reveal="auto"
+>
+</model-viewer>
 
-    // Set URLs
-    mv.src = GLB_URL;
-    mv.setAttribute('ios-src', USDZ_URL);
-
-    // Detect básico de plataforma
-    const ua = navigator.userAgent || '';
-    const isIOS = /iPhone|iPad|iPod/i.test(ua);
-    const isAndroid = /Android/i.test(ua);
-
-    // Estado inicial
-    mode.textContent = isIOS ? 'iOS' : (isAndroid ? 'Android' : 'Desktop');
-
-    // Cuando carga el modelo
-    mv.addEventListener('load', () => {
-      arBtn.disabled = false;
-      hint.style.display = 'none';
-      showToast('Modelo cargado');
-    });
-
-    // Si falla el modelo
-    mv.addEventListener('error', (e) => {
-      arBtn.disabled = true;
-      hint.style.display = 'block';
-      showToast('Error cargando modelo. Revisa URL/CORS.');
-      console.log('model-viewer error:', e);
-    });
-
-    // Cuando el modelo está listo para render
-    mv.addEventListener('render-scale', () => {
-      // no-op, pero útil para debug
-    });
-
-    // “Boost” para WebXR (no afecta a Scene Viewer porque abre otra app)
-    function applyWebxrBoost() {
-      mv.exposure = 2.0;          // sube brillo del render
-      mv.shadowIntensity = 0.5;   // sombras algo más suaves
-      mv.environmentImage = "neutral";
-    }
-    function resetViewerLook() {
-      mv.exposure = 1.5;
-      mv.shadowIntensity = 0.7;
-      mv.environmentImage = "neutral";
-    }
-
-    // Intentar AR: con ar-modes="webxr scene-viewer quick-look"
-    // model-viewer intentará el primero disponible (WebXR primero).
-    arBtn.addEventListener('click', async () => {
-      try {
-        applyWebxrBoost();
-        showToast('Abriendo AR…');
-        await mv.activateAR();
-        // Si abre WebXR, seguimos en la misma página.
-        // Si abre Scene Viewer / Quick Look, se irá a otra app y volverá.
-      } catch (err) {
-        resetViewerLook();
-        hint.style.display = 'block';
-        showToast('No se pudo abrir AR en este dispositivo.');
-        console.log(err);
-      }
-    });
-
-    // Al volver al tab (típico al cerrar Scene Viewer / Quick Look)
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
-        resetViewerLook();
-        // Forzar un “refresh” visual suave
-        showToast('De vuelta al viewer');
-      }
-    });
-
-    // Si WebXR se cierra (cuando vuelve a modo viewer)
-    mv.addEventListener('ar-status', (ev) => {
-      // Valores típicos: "not-presenting", "session-started", "failed"
-      const s = ev.detail.status;
-      if (s === 'session-started') {
-        mode.textContent = 'AR (WebXR)';
-      }
-      if (s === 'not-presenting') {
-        mode.textContent = isIOS ? 'iOS' : (isAndroid ? 'Android' : 'Desktop');
-        resetViewerLook();
-      }
-      if (s === 'failed') {
-        resetViewerLook();
-        hint.style.display = 'block';
-        showToast('AR falló. Usará fallback si existe.');
-      }
-    });
-  </script>
 </body>
 </html>
