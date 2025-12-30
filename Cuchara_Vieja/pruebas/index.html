@@ -1,180 +1,195 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Pastel Banana Chip</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>AR Viewer</title>
 
-  <script type="module"
-    src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
-  </script>
+  <!-- model-viewer -->
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      background: #f2f2f2;
-      overflow: hidden;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    }
-
-    /* Barra superior */
-    .topbar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 56px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 12px;
-      background: rgba(255,255,255,0.92);
+    html, body { margin:0; padding:0; height:100%; background:#0b0b0b; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    #wrap { position:fixed; inset:0; display:flex; flex-direction:column; }
+    header {
+      height:54px; min-height:54px;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 12px;
+      background:rgba(15,15,15,.72);
       backdrop-filter: blur(10px);
-      z-index: 10;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      color:#fff;
+      z-index:10;
     }
-
-    .brand {
-      font-weight: 600;
-      font-size: 14px;
-      color: #111;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 55%;
+    header .left { display:flex; align-items:center; gap:10px; }
+    header .badge {
+      font-size:12px; padding:4px 8px; border-radius:999px;
+      background:rgba(255,255,255,.12); color:#fff;
     }
-
-    .btn {
-      border: 0;
-      border-radius: 10px;
-      padding: 10px 12px;
-      font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-      background: #111;
-      color: #fff;
+    header button {
+      appearance:none; border:0; border-radius:10px;
+      padding:10px 12px; font-weight:600;
+      background:#ffffff; color:#111;
+      cursor:pointer;
     }
-
-    .btn:disabled {
-      opacity: .5;
-      cursor: not-allowed;
-    }
-
-    /* El viewer ocupa todo, dejando hueco para la barra */
-    model-viewer {
-      width: 100%;
-      height: 100%;
-      background: white;
-    }
-
-    .viewer-wrap {
-      position: absolute;
-      top: 56px;
-      left: 0;
-      right: 0;
-      bottom: 0;
-    }
+    header button:disabled { opacity:.5; cursor:not-allowed; }
+    main { position:relative; flex:1; }
+    model-viewer { width:100%; height:100%; background:#0b0b0b; }
 
     /* Mensajes */
-    .toast {
-      position: fixed;
-      left: 50%;
-      bottom: 16px;
-      transform: translateX(-50%);
-      background: rgba(17,17,17,0.9);
-      color: white;
-      padding: 10px 12px;
-      border-radius: 10px;
-      font-size: 13px;
-      z-index: 20;
-      display: none;
-      max-width: 92%;
-      text-align: center;
+    #toast {
+      position:absolute; left:12px; right:12px; bottom:12px;
+      padding:10px 12px; border-radius:12px;
+      background:rgba(0,0,0,.65); color:#fff; font-size:14px;
+      display:none;
+    }
+    #hint {
+      position:absolute; left:12px; right:12px; top:66px;
+      padding:10px 12px; border-radius:12px;
+      background:rgba(0,0,0,.45); color:#fff; font-size:13px;
+      display:none;
     }
   </style>
 </head>
 
 <body>
+  <div id="wrap">
+    <header>
+      <div class="left">
+        <div style="font-weight:700;">Viewer</div>
+        <div id="mode" class="badge">Cargando…</div>
+      </div>
+      <button id="arBtn" disabled>Ver en AR</button>
+    </header>
 
-  <div class="topbar">
-    <div class="brand">GoScale Marketing · Pastel Banana Chip</div>
-    <button id="arBtn" class="btn" disabled>Ver en AR</button>
+    <main>
+      <model-viewer
+        id="mv"
+        src="GLB_URL"
+        ios-src="USDZ_URL"
+        alt="Modelo 3D"
+        camera-controls
+        touch-action="pan-y"
+        interaction-prompt="none"
+        shadow-intensity="0.7"
+        exposure="1.5"
+        environment-image="neutral"
+        loading="eager"
+        reveal="auto"
+        ar
+        ar-placement="floor"
+        ar-modes="webxr scene-viewer quick-look">
+      </model-viewer>
+
+      <div id="hint">Si no abre AR, prueba en Chrome y revisa permisos de cámara.</div>
+      <div id="toast"></div>
+    </main>
   </div>
-
-  <div class="viewer-wrap">
-    <model-viewer
-      id="mv"
-      src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb"
-      ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz"
-
-      camera-controls
-      auto-rotate
-
-      exposure="1.6"
-      tone-mapping="neutral"
-      shadow-intensity="1"
-
-      environment-image="https://modelviewer.dev/shared-assets/environments/neutral.hdr"
-
-      ar
-      ar-modes="scene-viewer quick-look webxr"
-
-      loading="eager"
-      reveal="auto">
-    </model-viewer>
-  </div>
-
-  <div id="toast" class="toast"></div>
 
   <script>
+    // ====== CONFIG: pega aquí tus URLs ======
+    const GLB_URL  = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb";
+    const USDZ_URL = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz";
+
     const mv = document.getElementById('mv');
     const arBtn = document.getElementById('arBtn');
+    const mode = document.getElementById('mode');
     const toast = document.getElementById('toast');
+    const hint = document.getElementById('hint');
 
-    function showToast(msg, ms = 2200) {
+    function showToast(msg, ms=2500) {
       toast.textContent = msg;
       toast.style.display = 'block';
       clearTimeout(showToast._t);
       showToast._t = setTimeout(() => toast.style.display = 'none', ms);
     }
 
-    // Activamos el botón cuando el modelo esté listo
+    // Set URLs
+    mv.src = GLB_URL;
+    mv.setAttribute('ios-src', USDZ_URL);
+
+    // Detect básico de plataforma
+    const ua = navigator.userAgent || '';
+    const isIOS = /iPhone|iPad|iPod/i.test(ua);
+    const isAndroid = /Android/i.test(ua);
+
+    // Estado inicial
+    mode.textContent = isIOS ? 'iOS' : (isAndroid ? 'Android' : 'Desktop');
+
+    // Cuando carga el modelo
     mv.addEventListener('load', () => {
-      arBtn.disabled = !mv.canActivateAR;
-      if (!mv.canActivateAR) showToast('AR no disponible en este dispositivo/navegador.');
+      arBtn.disabled = false;
+      hint.style.display = 'none';
+      showToast('Modelo cargado');
     });
 
-    // Si hay error cargando el modelo
-    mv.addEventListener('error', () => {
-      showToast('Error cargando el modelo. Revisa URLs y CORS.');
+    // Si falla el modelo
+    mv.addEventListener('error', (e) => {
+      arBtn.disabled = true;
+      hint.style.display = 'block';
+      showToast('Error cargando modelo. Revisa URL/CORS.');
+      console.log('model-viewer error:', e);
     });
 
-    // Botón AR manual (para que NO tape el viewer)
+    // Cuando el modelo está listo para render
+    mv.addEventListener('render-scale', () => {
+      // no-op, pero útil para debug
+    });
+
+    // “Boost” para WebXR (no afecta a Scene Viewer porque abre otra app)
+    function applyWebxrBoost() {
+      mv.exposure = 2.0;          // sube brillo del render
+      mv.shadowIntensity = 0.5;   // sombras algo más suaves
+      mv.environmentImage = "neutral";
+    }
+    function resetViewerLook() {
+      mv.exposure = 1.5;
+      mv.shadowIntensity = 0.7;
+      mv.environmentImage = "neutral";
+    }
+
+    // Intentar AR: con ar-modes="webxr scene-viewer quick-look"
+    // model-viewer intentará el primero disponible (WebXR primero).
     arBtn.addEventListener('click', async () => {
       try {
-        if (!mv.canActivateAR) {
-          showToast('AR no disponible aquí.');
-          return;
-        }
-        showToast('Abriendo AR...');
+        applyWebxrBoost();
+        showToast('Abriendo AR…');
         await mv.activateAR();
-      } catch (e) {
-        showToast('No se pudo abrir AR.');
+        // Si abre WebXR, seguimos en la misma página.
+        // Si abre Scene Viewer / Quick Look, se irá a otra app y volverá.
+      } catch (err) {
+        resetViewerLook();
+        hint.style.display = 'block';
+        showToast('No se pudo abrir AR en este dispositivo.');
+        console.log(err);
       }
     });
 
-    // Al volver de la cámara (Android/iOS), forzamos repintado suave del viewer
+    // Al volver al tab (típico al cerrar Scene Viewer / Quick Look)
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
-        // Pequeño “kick” para asegurar que el canvas se redibuja
-        mv.requestUpdate && mv.requestUpdate();
-        showToast('Viewer listo.');
+        resetViewerLook();
+        // Forzar un “refresh” visual suave
+        showToast('De vuelta al viewer');
+      }
+    });
+
+    // Si WebXR se cierra (cuando vuelve a modo viewer)
+    mv.addEventListener('ar-status', (ev) => {
+      // Valores típicos: "not-presenting", "session-started", "failed"
+      const s = ev.detail.status;
+      if (s === 'session-started') {
+        mode.textContent = 'AR (WebXR)';
+      }
+      if (s === 'not-presenting') {
+        mode.textContent = isIOS ? 'iOS' : (isAndroid ? 'Android' : 'Desktop');
+        resetViewerLook();
+      }
+      if (s === 'failed') {
+        resetViewerLook();
+        hint.style.display = 'block';
+        showToast('AR falló. Usará fallback si existe.');
       }
     });
   </script>
-
 </body>
 </html>
