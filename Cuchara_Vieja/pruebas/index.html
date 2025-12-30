@@ -1,84 +1,154 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Viewer + WebXR</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Plato en AR</title>
 
-  <script type="module"
-    src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
-  </script>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <style>
-    html, body {
-      margin: 0;
-      height: 100%;
-      background: #0b0b0b;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    html, body { margin:0; height:100%; background:#0b0b0b; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    header{
+      position:fixed; inset:0 0 auto 0; height:56px;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 12px;
+      background:rgba(15,15,15,.72); backdrop-filter: blur(10px);
+      color:#fff; z-index:10;
     }
-    model-viewer {
-      width: 100%;
-      height: 100%;
-      background: #0b0b0b;
+    header .badge{
+      font-size:12px; padding:4px 8px; border-radius:999px;
+      background:rgba(255,255,255,.12);
+    }
+    header button{
+      border:0; border-radius:10px;
+      padding:10px 12px; font-weight:700;
+      background:#fff; color:#111; cursor:pointer;
+    }
+    header button:disabled{ opacity:.5; cursor:not-allowed; }
+    main{ position:fixed; inset:56px 0 0 0; }
+    model-viewer{ width:100%; height:100%; background:#0b0b0b; }
+    #toast{
+      position:fixed; left:12px; right:12px; bottom:12px;
+      padding:10px 12px; border-radius:12px;
+      background:rgba(0,0,0,.6); color:#fff; font-size:14px;
+      display:none; z-index:20;
     }
   </style>
 </head>
 
 <body>
+  <header>
+    <div style="font-weight:700">AR</div>
+    <div id="mode" class="badge">Cargando…</div>
+    <button id="arBtn" disabled>Ver en AR</button>
+  </header>
 
-<model-viewer
-  id="mv"
-  src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb"
+  <main>
+    <model-viewer
+      id="mv"
+      src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb"
+      ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz"
 
-  camera-controls
-  interaction-prompt="none"
-  touch-action="pan-y"
+      camera-controls
+      interaction-prompt="none"
+      touch-action="pan-y"
 
-  ar
-  ar-modes="webxr"
-  ar-placement="floor"
-  ar-scale="fixed"
+      loading="eager"
+      reveal="auto"
 
-  environment-image="neutral"
-  tone-mapping="neutral"
-  exposure="1.1"
-  shadow-intensity="0.2"
+      environment-image="neutral"
+      tone-mapping="neutral"
+      exposure="1.1"
+      shadow-intensity="0.2"
 
-  loading="eager"
-  reveal="auto"
->
-  <button slot="ar-button"
-    style="
-      position:absolute;
-      top:16px;
-      right:16px;
-      padding:10px 14px;
-      border-radius:12px;
-      border:0;
-      background:white;
-      color:black;
-      font-weight:700;
-      box-shadow:0 8px 20px rgba(0,0,0,.35);
-    ">
-    Ver en AR
-  </button>
-</model-viewer>
+      ar
+      ar-placement="floor"
+      ar-scale="fixed"
 
-<script>
-  const mv = document.getElementById('mv');
+      ar-modes="webxr scene-viewer quick-look">
+    </model-viewer>
+  </main>
 
-  // Comprobación WebXR (opcional, solo info)
-  (async () => {
-    if (!navigator.xr) {
-      alert('Este navegador no soporta WebXR');
-      return;
+  <div id="toast"></div>
+
+  <script>
+    const mv = document.getElementById('mv');
+    const arBtn = document.getElementById('arBtn');
+    const mode = document.getElementById('mode');
+    const toast = document.getElementById('toast');
+
+    function show(msg, ms=2600){
+      toast.textContent = msg;
+      toast.style.display = 'block';
+      clearTimeout(show._t);
+      show._t = setTimeout(()=>toast.style.display='none', ms);
     }
-    const ok = await navigator.xr.isSessionSupported('immersive-ar');
-    if (!ok) {
-      alert('Este dispositivo NO soporta WebXR AR');
-    }
-  })();
-</script>
 
+    const ua = navigator.userAgent || '';
+    const isIOS = /iPhone|iPad|iPod/i.test(ua);
+    const isAndroid = /Android/i.test(ua);
+
+    // Decide modo preferido:
+    // - iOS: Quick Look (no WebXR)
+    // - Android: intentar WebXR si existe, si no Scene Viewer
+    async function decideMode(){
+      if (isIOS) {
+        mode.textContent = 'iOS (Quick Look)';
+        arBtn.disabled = false;
+        return;
+      }
+
+      if (isAndroid) {
+        // intenta WebXR
+        try {
+          const ok = !!(navigator.xr && await navigator.xr.isSessionSupported('immersive-ar'));
+          if (ok) {
+            mode.textContent = 'Android (WebXR)';
+            arBtn.disabled = false;
+          } else {
+            mode.textContent = 'Android (Scene Viewer)';
+            arBtn.disabled = false;
+          }
+        } catch (e) {
+          mode.textContent = 'Android (Scene Viewer)';
+          arBtn.disabled = false;
+        }
+        return;
+      }
+
+      mode.textContent = 'AR no disponible';
+      arBtn.disabled = true;
+    }
+
+    mv.addEventListener('load', () => {
+      show('Modelo cargado');
+      decideMode();
+    });
+
+    mv.addEventListener('error', () => {
+      mode.textContent = 'Error modelo';
+      show('Error cargando el modelo (URL/CORS)');
+      arBtn.disabled = true;
+    });
+
+    arBtn.addEventListener('click', async () => {
+      try {
+        show('Abriendo AR…');
+
+        // Si iOS, model-viewer usará quick-look (ios-src)
+        // Si Android, model-viewer intentará WebXR primero si está disponible; si no, Scene Viewer.
+        await mv.activateAR();
+
+      } catch (e) {
+        show('No se pudo abrir AR');
+      }
+    });
+
+    // Al volver de AR (Scene Viewer / Quick Look)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) show('De vuelta al viewer');
+    });
+  </script>
 </body>
 </html>
