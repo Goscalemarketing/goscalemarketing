@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Plato en AR</title>
+  <title>Pruebas AR</title>
 
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
@@ -15,35 +15,43 @@
       padding:0 12px;
       background:rgba(15,15,15,.72); backdrop-filter: blur(10px);
       color:#fff; z-index:10;
+      gap:10px;
     }
+    header .left{ display:flex; align-items:center; gap:10px; min-width:0; }
     header .badge{
       font-size:12px; padding:4px 8px; border-radius:999px;
       background:rgba(255,255,255,.12);
-      max-width:60%;
-      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+      max-width: 52vw;
+      overflow:hidden; text-overflow: ellipsis; white-space: nowrap;
     }
-    header button{
+    a.menuBtn{
+      color:#fff; text-decoration:none;
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:10px;
+      padding:8px 10px;
+      font-weight:600;
+      font-size:14px;
+      white-space:nowrap;
+    }
+    button.arBtn{
       border:0; border-radius:10px;
-      padding:10px 12px; font-weight:700;
+      padding:10px 12px; font-weight:800;
       background:#fff; color:#111; cursor:pointer;
+      white-space:nowrap;
     }
-    header button:disabled{ opacity:.5; cursor:not-allowed; }
+    button.arBtn:disabled{ opacity:.5; cursor:not-allowed; }
     main{ position:fixed; inset:56px 0 0 0; }
     model-viewer{ width:100%; height:100%; background:#0b0b0b; }
-    #toast{
-      position:fixed; left:12px; right:12px; bottom:12px;
-      padding:10px 12px; border-radius:12px;
-      background:rgba(0,0,0,.6); color:#fff; font-size:14px;
-      display:none; z-index:20;
-    }
   </style>
 </head>
 
 <body>
   <header>
-    <div style="font-weight:700">AR</div>
-    <div id="mode" class="badge">Cargando…</div>
-    <button id="arBtn" disabled>Ver en AR</button>
+    <div class="left">
+      <a class="menuBtn" id="menuLink" href="#" target="_self">← Menú</a>
+      <div id="mode" class="badge">Cargando…</div>
+    </div>
+    <button id="arBtn" class="arBtn" disabled>Ver en AR</button>
   </header>
 
   <main>
@@ -72,63 +80,41 @@
     </model-viewer>
   </main>
 
-  <div id="toast"></div>
-
   <script>
+    const MENU_URL = "https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view?utm_content=DAG8SYy2DPc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5c7aa53580";
+
     const mv = document.getElementById('mv');
     const arBtn = document.getElementById('arBtn');
     const mode = document.getElementById('mode');
-    const toast = document.getElementById('toast');
+    const menuLink = document.getElementById('menuLink');
+    menuLink.href = MENU_URL;
 
     const ua = navigator.userAgent || '';
     const isIOS = /iPhone|iPad|iPod/i.test(ua);
     const isAndroid = /Android/i.test(ua);
 
-    function show(msg, ms=2400){
-      toast.textContent = msg;
-      toast.style.display = 'block';
-      clearTimeout(show._t);
-      show._t = setTimeout(()=>toast.style.display='none', ms);
-    }
-
-    // ✅ Look del VIEWER (el que te funcionaba igual en Android+iOS)
-    const VIEWER = {
-      exposure: 1.6,
-      shadow: 1.0,
-      tone: 'neutral',
-      env: "https://modelviewer.dev/shared-assets/environments/neutral.hdr"
-    };
-
-    // ✅ Look SOLO para AR WebXR (anti-lavado)
-    // Ajusta exposure aquí si el AR sale lavado: 0.9 → 0.8 → 0.7
-    const WEBXR_AR = {
-      exposure: 0.85,
-      shadow: 0.15,
-      tone: 'neutral'
-    };
-
-    let chosen = null;
+    // Look estable del viewer
+    const VIEWER = { exposure: 1.6, shadow: 1.0, tone: 'neutral' };
+    // Look SOLO para WebXR AR (para evitar lavado en algunos Android)
+    const WEBXR_AR = { exposure: 0.85, shadow: 0.15, tone: 'neutral' };
 
     function applyViewerLook(){
-      mv.environmentImage = VIEWER.env;
       mv.toneMapping = VIEWER.tone;
       mv.exposure = VIEWER.exposure;
       mv.shadowIntensity = VIEWER.shadow;
     }
-
     function applyWebxrArLook(){
       mv.toneMapping = WEBXR_AR.tone;
       mv.exposure = WEBXR_AR.exposure;
       mv.shadowIntensity = WEBXR_AR.shadow;
     }
 
-    async function chooseModeAndForce(){
-      applyViewerLook(); // 🔒 SIEMPRE dejamos el viewer como debe
+    async function chooseMode(){
+      applyViewerLook();
 
       if (isIOS) {
-        chosen = 'quick-look';
         mv.setAttribute('ar-modes', 'quick-look');
-        mode.textContent = 'iOS → Quick Look';
+        mode.textContent = 'iOS · AR';
         arBtn.disabled = false;
         return;
       }
@@ -137,72 +123,36 @@
         try {
           const webxrOk = !!(navigator.xr && await navigator.xr.isSessionSupported('immersive-ar'));
           if (webxrOk) {
-            chosen = 'webxr';
-            mv.setAttribute('ar-modes', 'webxr'); // forzamos WebXR
-            mode.textContent = 'Android → WebXR (forzado)';
+            mv.setAttribute('ar-modes', 'webxr');
+            mode.textContent = 'Android · WebXR';
           } else {
-            chosen = 'scene-viewer';
             mv.setAttribute('ar-modes', 'scene-viewer');
-            mode.textContent = 'Android → Scene Viewer (fallback)';
+            mode.textContent = 'Android · Scene Viewer';
           }
           arBtn.disabled = false;
           return;
-        } catch (e) {
-          chosen = 'scene-viewer';
+        } catch {
           mv.setAttribute('ar-modes', 'scene-viewer');
-          mode.textContent = 'Android → Scene Viewer (fallback)';
+          mode.textContent = 'Android · Scene Viewer';
           arBtn.disabled = false;
-          return;
         }
       }
-
-      chosen = null;
-      mode.textContent = 'AR no disponible';
-      arBtn.disabled = true;
     }
 
-    mv.addEventListener('load', async () => {
-      show('Modelo cargado');
-      await chooseModeAndForce();
-    });
-
-    mv.addEventListener('error', () => {
-      mode.textContent = 'Error modelo';
-      show('Error cargando el modelo (URL/CORS)');
-      arBtn.disabled = true;
-    });
+    mv.addEventListener('load', chooseMode);
 
     arBtn.addEventListener('click', async () => {
       try {
-        show(`Abriendo AR (${chosen || 'auto'})…`);
-        // ❗ NO tocamos look aquí → así el viewer nunca se “blanquea”
         await mv.activateAR();
-      } catch (e) {
+      } catch {
         applyViewerLook();
-        show('No se pudo abrir AR');
       }
     });
 
-    // ✅ Aquí es donde aplicamos el look AR SOLO si realmente entra en WebXR
+    // Solo afecta a WebXR (no redirige a ningún sitio)
     mv.addEventListener('ar-status', (ev) => {
-      const s = ev.detail.status;
-      if (s === 'session-started') {
-        show('WebXR iniciado');
-        applyWebxrArLook();
-      }
-      if (s === 'not-presenting') {
-        show('De vuelta al viewer');
-        applyViewerLook();
-      }
-      if (s === 'failed') {
-        show('WebXR falló');
-        applyViewerLook();
-      }
-    });
-
-    // Al volver desde Quick Look / Scene Viewer (otra app)
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) applyViewerLook();
+      if (ev.detail.status === 'session-started') applyWebxrArLook();
+      if (ev.detail.status === 'not-presenting') applyViewerLook();
     });
   </script>
 </body>
