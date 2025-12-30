@@ -19,10 +19,8 @@
     header .badge{
       font-size:12px; padding:4px 8px; border-radius:999px;
       background:rgba(255,255,255,.12);
-      max-width: 55%;
-      overflow:hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      max-width:60%;
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
     }
     header button{
       border:0; border-radius:10px;
@@ -61,15 +59,16 @@
       loading="eager"
       reveal="auto"
 
-      environment-image="neutral"
+      environment-image="https://modelviewer.dev/shared-assets/environments/neutral.hdr"
       tone-mapping="neutral"
-      exposure="1.1"
-      shadow-intensity="0.2"
+      exposure="1.6"
+      shadow-intensity="1"
 
       ar
       ar-placement="floor"
       ar-scale="fixed"
-      ar-modes="webxr scene-viewer quick-look">
+      ar-modes="webxr scene-viewer quick-look"
+      ar-light-estimation>
     </model-viewer>
   </main>
 
@@ -81,23 +80,53 @@
     const mode = document.getElementById('mode');
     const toast = document.getElementById('toast');
 
-    function show(msg, ms=2600){
+    const ua = navigator.userAgent || '';
+    const isIOS = /iPhone|iPad|iPod/i.test(ua);
+    const isAndroid = /Android/i.test(ua);
+
+    function show(msg, ms=2400){
       toast.textContent = msg;
       toast.style.display = 'block';
       clearTimeout(show._t);
       show._t = setTimeout(()=>toast.style.display='none', ms);
     }
 
-    const ua = navigator.userAgent || '';
-    const isIOS = /iPhone|iPad|iPod/i.test(ua);
-    const isAndroid = /Android/i.test(ua);
+    // ✅ Look del VIEWER (el que te funcionaba igual en Android+iOS)
+    const VIEWER = {
+      exposure: 1.6,
+      shadow: 1.0,
+      tone: 'neutral',
+      env: "https://modelviewer.dev/shared-assets/environments/neutral.hdr"
+    };
 
-    let chosen = null; // 'webxr' | 'scene-viewer' | 'quick-look'
+    // ✅ Look SOLO para AR WebXR (anti-lavado)
+    // Ajusta exposure aquí si el AR sale lavado: 0.9 → 0.8 → 0.7
+    const WEBXR_AR = {
+      exposure: 0.85,
+      shadow: 0.15,
+      tone: 'neutral'
+    };
 
-    async function chooseAndForceARModes() {
+    let chosen = null;
+
+    function applyViewerLook(){
+      mv.environmentImage = VIEWER.env;
+      mv.toneMapping = VIEWER.tone;
+      mv.exposure = VIEWER.exposure;
+      mv.shadowIntensity = VIEWER.shadow;
+    }
+
+    function applyWebxrArLook(){
+      mv.toneMapping = WEBXR_AR.tone;
+      mv.exposure = WEBXR_AR.exposure;
+      mv.shadowIntensity = WEBXR_AR.shadow;
+    }
+
+    async function chooseModeAndForce(){
+      applyViewerLook(); // 🔒 SIEMPRE dejamos el viewer como debe
+
       if (isIOS) {
         chosen = 'quick-look';
-        // Forzamos SOLO quick-look
         mv.setAttribute('ar-modes', 'quick-look');
         mode.textContent = 'iOS → Quick Look';
         arBtn.disabled = false;
@@ -109,12 +138,10 @@
           const webxrOk = !!(navigator.xr && await navigator.xr.isSessionSupported('immersive-ar'));
           if (webxrOk) {
             chosen = 'webxr';
-            // Forzamos SOLO webxr (evita que caiga a Scene Viewer)
-            mv.setAttribute('ar-modes', 'webxr');
+            mv.setAttribute('ar-modes', 'webxr'); // forzamos WebXR
             mode.textContent = 'Android → WebXR (forzado)';
           } else {
             chosen = 'scene-viewer';
-            // Forzamos SOLO scene-viewer
             mv.setAttribute('ar-modes', 'scene-viewer');
             mode.textContent = 'Android → Scene Viewer (fallback)';
           }
@@ -136,7 +163,7 @@
 
     mv.addEventListener('load', async () => {
       show('Modelo cargado');
-      await chooseAndForceARModes();
+      await chooseModeAndForce();
     });
 
     mv.addEventListener('error', () => {
@@ -148,23 +175,34 @@
     arBtn.addEventListener('click', async () => {
       try {
         show(`Abriendo AR (${chosen || 'auto'})…`);
+        // ❗ NO tocamos look aquí → así el viewer nunca se “blanquea”
         await mv.activateAR();
       } catch (e) {
+        applyViewerLook();
         show('No se pudo abrir AR');
       }
     });
 
-    // Al volver desde Scene Viewer / Quick Look
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) show('De vuelta al viewer');
-    });
-
-    // Debug: si es WebXR y entra/sale sesión
+    // ✅ Aquí es donde aplicamos el look AR SOLO si realmente entra en WebXR
     mv.addEventListener('ar-status', (ev) => {
       const s = ev.detail.status;
-      if (s === 'session-started') show('WebXR iniciado');
-      if (s === 'not-presenting') show('WebXR cerrado');
-      if (s === 'failed') show('WebXR falló (fallback no se usa porque forzamos modo)');
+      if (s === 'session-started') {
+        show('WebXR iniciado');
+        applyWebxrArLook();
+      }
+      if (s === 'not-presenting') {
+        show('De vuelta al viewer');
+        applyViewerLook();
+      }
+      if (s === 'failed') {
+        show('WebXR falló');
+        applyViewerLook();
+      }
+    });
+
+    // Al volver desde Quick Look / Scene Viewer (otra app)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) applyViewerLook();
     });
   </script>
 </body>
