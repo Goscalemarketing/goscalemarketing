@@ -3,207 +3,274 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Plato en AR</title>
+  <title>Pastel Banana Chip · AR</title>
 
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <style>
-    html, body { margin:0; height:100%; background:#0b0b0b; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    html, body {
+      margin:0;
+      height:100%;
+      background:#0b0b0b;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    }
+
+    /* HEADER */
     header{
-      position:fixed; inset:0 0 auto 0; height:56px;
-      display:flex; align-items:center; justify-content:space-between;
+      position:fixed;
+      inset:0 0 auto 0;
+      height:56px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
       padding:0 12px;
-      background:rgba(15,15,15,.72); backdrop-filter: blur(10px);
-      color:#fff; z-index:10;
+      background:rgba(15,15,15,.72);
+      backdrop-filter: blur(10px);
+      z-index:30;
     }
-    header .badge{
-      font-size:12px; padding:4px 8px; border-radius:999px;
-      background:rgba(255,255,255,.12);
-      max-width:60%;
-      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+
+    a.menuBtn{
+      color:#fff;
+      text-decoration:none;
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:10px;
+      padding:8px 10px;
+      font-weight:600;
+      font-size:14px;
     }
-    header button{
-      border:0; border-radius:10px;
-      padding:10px 12px; font-weight:700;
-      background:#fff; color:#111; cursor:pointer;
+
+    a.byGoscale{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      text-decoration:none;
+      color:#fff;
+      font-size:12px;
+      font-weight:700;
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:12px;
+      padding:8px 10px;
+      background:rgba(255,255,255,.06);
     }
-    header button:disabled{ opacity:.5; cursor:not-allowed; }
-    main{ position:fixed; inset:56px 0 0 0; }
-    model-viewer{ width:100%; height:100%; background:#0b0b0b; }
-    #toast{
-      position:fixed; left:12px; right:12px; bottom:12px;
-      padding:10px 12px; border-radius:12px;
-      background:rgba(0,0,0,.6); color:#fff; font-size:14px;
-      display:none; z-index:20;
+
+    a.byGoscale img{
+      height:20px;
+      width:auto;
+      opacity:.95;
+    }
+
+    /* LAYOUT */
+    main{
+      position:fixed;
+      inset:56px 0 0 0;
+      display:flex;
+      flex-direction:column;
+    }
+
+    /* INFO PLATO */
+    #dishInfo{
+      padding:14px 16px 10px;
+      background:linear-gradient(
+        to bottom,
+        rgba(11,11,11,.92),
+        rgba(11,11,11,.75),
+        rgba(11,11,11,0)
+      );
+      z-index:10;
+    }
+
+    #dishTitle{
+      margin:0;
+      font-size:22px;
+      font-weight:900;
+      color:#fff;
+      text-shadow:0 2px 14px rgba(0,0,0,.6);
+    }
+
+    #dishDesc{
+      margin:8px 0 0;
+      font-size:14px;
+      color:rgba(255,255,255,.75);
+      max-width:520px;
+    }
+
+    /* VIEWER */
+    .viewerWrap{
+      position:relative;
+      flex:1;
+      min-height:0;
+    }
+
+    model-viewer{
+      width:100%;
+      height:100%;
+      background:#0b0b0b;
+      display:block;
+    }
+
+    /* BOTÓN AR – debajo del modelo */
+    .arBtn{
+      position:absolute;
+      bottom:16px;
+      left:50%;
+      transform:translateX(-50%);
+      border:0;
+      border-radius:16px;
+      padding:14px 22px;
+      font-weight:900;
+      font-size:16px;
+      background:#ffffff;
+      color:#111;
+      cursor:pointer;
+      box-shadow:0 12px 28px rgba(0,0,0,.45);
+      z-index:25;
+    }
+
+    .arBtn[disabled]{
+      opacity:.55;
+      cursor:not-allowed;
+    }
+
+    /* LOGO ABAJO */
+    .brandBottom{
+      padding:14px 16px 18px;
+      display:flex;
+      justify-content:center;
+      border-top:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.12);
+    }
+
+    .brandBottom img{
+      height:34px;
+      width:auto;
+      opacity:.95;
+    }
+
+    /* LOADING */
+    #loading{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      gap:14px;
+      background:rgba(0,0,0,.75);
+      z-index:24;
+      color:#fff;
+      text-align:center;
+    }
+
+    .spinner{
+      width:42px;
+      height:42px;
+      border:4px solid rgba(255,255,255,.2);
+      border-top:4px solid #fff;
+      border-radius:50%;
+      animation:spin 1s linear infinite;
+    }
+
+    @keyframes spin{
+      to{ transform:rotate(360deg); }
+    }
+
+    #loading p{
+      font-size:14px;
+      opacity:.85;
+      margin:0;
     }
   </style>
 </head>
 
 <body>
+
   <header>
-    <div style="font-weight:700">AR</div>
-    <div id="mode" class="badge">Cargando…</div>
-    <button id="arBtn" disabled>Ver en AR</button>
+    <a class="menuBtn"
+       href="https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view?utm_content=DAG8SYy2DPc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5c7aa53580">
+      ← Menú
+    </a>
+
+    <a class="byGoscale"
+       href="https://goscalemarketing.com"
+       target="_blank"
+       rel="noopener">
+      <span>by</span>
+      <img
+        src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png"
+        alt="GoScaleMarketing">
+    </a>
   </header>
 
   <main>
-    <model-viewer
-      id="mv"
-      src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb"
-      ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz"
+    <section id="dishInfo">
+      <h1 id="dishTitle">Pastel Banana Chip</h1>
+      <p id="dishDesc">
+        Ingredientes: banana, harina, azúcar, huevos, mantequilla, chips de chocolate.
+      </p>
+    </section>
 
-      camera-controls
-      interaction-prompt="none"
-      touch-action="pan-y"
+    <div class="viewerWrap">
+      <!-- LOADING -->
+      <div id="loading">
+        <div class="spinner"></div>
+        <p>Cargando modelo…</p>
+      </div>
 
-      loading="eager"
-      reveal="auto"
+      <model-viewer
+        id="mv"
+        src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb"
+        ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz"
 
-      environment-image="https://modelviewer.dev/shared-assets/environments/neutral.hdr"
-      tone-mapping="neutral"
-      exposure="1.6"
-      shadow-intensity="1"
+        camera-controls
+        interaction-prompt="none"
+        touch-action="pan-y"
 
-      ar
-      ar-placement="floor"
-      ar-scale="fixed"
-      ar-modes="webxr scene-viewer quick-look"
-      ar-light-estimation>
-    </model-viewer>
+        loading="eager"
+        reveal="auto"
+
+        environment-image="https://modelviewer.dev/shared-assets/environments/neutral.hdr"
+        tone-mapping="neutral"
+        exposure="1.6"
+        shadow-intensity="1"
+
+        ar
+        ar-placement="floor"
+        ar-scale="fixed"
+        ar-modes="webxr scene-viewer quick-look"
+        ar-light-estimation
+      >
+        <!-- BOTÓN AR NATIVO -->
+        <button
+          id="arBtn"
+          class="arBtn"
+          slot="ar-button"
+          disabled>
+          Ver en AR
+        </button>
+      </model-viewer>
+    </div>
+
+    <div class="brandBottom">
+      <img
+        src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png"
+        alt="GoScaleMarketing">
+    </div>
   </main>
-
-  <div id="toast"></div>
 
   <script>
     const mv = document.getElementById('mv');
     const arBtn = document.getElementById('arBtn');
-    const mode = document.getElementById('mode');
-    const toast = document.getElementById('toast');
+    const loading = document.getElementById('loading');
 
-    const ua = navigator.userAgent || '';
-    const isIOS = /iPhone|iPad|iPod/i.test(ua);
-    const isAndroid = /Android/i.test(ua);
-
-    function show(msg, ms=2400){
-      toast.textContent = msg;
-      toast.style.display = 'block';
-      clearTimeout(show._t);
-      show._t = setTimeout(()=>toast.style.display='none', ms);
-    }
-
-    // ✅ Look del VIEWER (el que te funcionaba igual en Android+iOS)
-    const VIEWER = {
-      exposure: 1.6,
-      shadow: 1.0,
-      tone: 'neutral',
-      env: "https://modelviewer.dev/shared-assets/environments/neutral.hdr"
-    };
-
-    // ✅ Look SOLO para AR WebXR (anti-lavado)
-    // Ajusta exposure aquí si el AR sale lavado: 0.9 → 0.8 → 0.7
-    const WEBXR_AR = {
-      exposure: 0.85,
-      shadow: 0.15,
-      tone: 'neutral'
-    };
-
-    let chosen = null;
-
-    function applyViewerLook(){
-      mv.environmentImage = VIEWER.env;
-      mv.toneMapping = VIEWER.tone;
-      mv.exposure = VIEWER.exposure;
-      mv.shadowIntensity = VIEWER.shadow;
-    }
-
-    function applyWebxrArLook(){
-      mv.toneMapping = WEBXR_AR.tone;
-      mv.exposure = WEBXR_AR.exposure;
-      mv.shadowIntensity = WEBXR_AR.shadow;
-    }
-
-    async function chooseModeAndForce(){
-      applyViewerLook(); // 🔒 SIEMPRE dejamos el viewer como debe
-
-      if (isIOS) {
-        chosen = 'quick-look';
-        mv.setAttribute('ar-modes', 'quick-look');
-        mode.textContent = 'iOS → Quick Look';
-        arBtn.disabled = false;
-        return;
-      }
-
-      if (isAndroid) {
-        try {
-          const webxrOk = !!(navigator.xr && await navigator.xr.isSessionSupported('immersive-ar'));
-          if (webxrOk) {
-            chosen = 'webxr';
-            mv.setAttribute('ar-modes', 'webxr'); // forzamos WebXR
-            mode.textContent = 'Android → WebXR (forzado)';
-          } else {
-            chosen = 'scene-viewer';
-            mv.setAttribute('ar-modes', 'scene-viewer');
-            mode.textContent = 'Android → Scene Viewer (fallback)';
-          }
-          arBtn.disabled = false;
-          return;
-        } catch (e) {
-          chosen = 'scene-viewer';
-          mv.setAttribute('ar-modes', 'scene-viewer');
-          mode.textContent = 'Android → Scene Viewer (fallback)';
-          arBtn.disabled = false;
-          return;
-        }
-      }
-
-      chosen = null;
-      mode.textContent = 'AR no disponible';
-      arBtn.disabled = true;
-    }
-
-    mv.addEventListener('load', async () => {
-      show('Modelo cargado');
-      await chooseModeAndForce();
+    mv.addEventListener('load', () => {
+      loading.style.display = 'none';
+      arBtn.disabled = false;
     });
 
     mv.addEventListener('error', () => {
-      mode.textContent = 'Error modelo';
-      show('Error cargando el modelo (URL/CORS)');
-      arBtn.disabled = true;
-    });
-
-    arBtn.addEventListener('click', async () => {
-      try {
-        show(`Abriendo AR (${chosen || 'auto'})…`);
-        // ❗ NO tocamos look aquí → así el viewer nunca se “blanquea”
-        await mv.activateAR();
-      } catch (e) {
-        applyViewerLook();
-        show('No se pudo abrir AR');
-      }
-    });
-
-    // ✅ Aquí es donde aplicamos el look AR SOLO si realmente entra en WebXR
-    mv.addEventListener('ar-status', (ev) => {
-      const s = ev.detail.status;
-      if (s === 'session-started') {
-        show('WebXR iniciado');
-        applyWebxrArLook();
-      }
-      if (s === 'not-presenting') {
-        show('De vuelta al viewer');
-        applyViewerLook();
-      }
-      if (s === 'failed') {
-        show('WebXR falló');
-        applyViewerLook();
-      }
-    });
-
-    // Al volver desde Quick Look / Scene Viewer (otra app)
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) applyViewerLook();
+      loading.querySelector('p').textContent = 'Error cargando el modelo';
     });
   </script>
+
 </body>
 </html>
