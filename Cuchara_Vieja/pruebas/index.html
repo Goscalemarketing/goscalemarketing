@@ -10,192 +10,160 @@
   <style>
     html, body { margin:0; height:100%; background:#0b0b0b; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
 
-    /* Header */
     header{
       position:fixed; inset:0 0 auto 0; height:56px;
       display:flex; align-items:center; justify-content:space-between;
       padding:0 12px;
       background:rgba(15,15,15,.72); backdrop-filter: blur(10px);
-      color:#fff; z-index:30;
-      gap:10px;
+      color:#fff; z-index:30; gap:10px;
     }
     a.menuBtn{
       color:#fff; text-decoration:none;
       border:1px solid rgba(255,255,255,.18);
-      border-radius:10px;
-      padding:8px 10px;
-      font-weight:600;
-      font-size:14px;
+      border-radius:10px; padding:8px 10px;
+      font-weight:600; font-size:14px;
     }
     a.byGoscale{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      text-decoration:none;
-      color:#fff;
-      font-size:12px;
-      font-weight:700;
+      display:flex; align-items:center; gap:8px;
+      text-decoration:none; color:#fff;
+      font-size:12px; font-weight:700;
       border:1px solid rgba(255,255,255,.16);
-      border-radius:12px;
-      padding:8px 10px;
+      border-radius:12px; padding:8px 10px;
       background:rgba(255,255,255,.06);
+      white-space:nowrap;
     }
-    a.byGoscale img{ height:20px; }
+    a.byGoscale img{ height:20px; width:auto; opacity:.95; }
 
     main{ position:fixed; inset:56px 0 0 0; display:flex; flex-direction:column; }
 
-    /* Info plato */
     #dishInfo{
       padding:14px 16px 10px;
-      background:linear-gradient(
-        to bottom,
-        rgba(11,11,11,.92),
-        rgba(11,11,11,.75),
-        rgba(11,11,11,0)
-      );
+      background:linear-gradient(to bottom, rgba(11,11,11,.92), rgba(11,11,11,.75), rgba(11,11,11,0));
       z-index:10;
     }
     #dishTitle{
-      margin:0;
-      font-size:22px;
-      font-weight:900;
-      color:#fff;
-      text-shadow:0 2px 14px rgba(0,0,0,.6);
+      margin:0; font-size:22px; font-weight:900;
+      color:#fff; text-shadow:0 2px 14px rgba(0,0,0,.6);
     }
     #dishDesc{
-      margin:8px 0 0;
-      font-size:14px;
-      color:rgba(255,255,255,.75);
-      max-width:520px;
+      margin:8px 0 0; font-size:14px;
+      color:rgba(255,255,255,.75); max-width:520px;
     }
 
-    /* Viewer */
-    .viewerWrap{
-      position:relative;
-      flex:1;
-      min-height:0;
-    }
-    model-viewer{
-      width:100%;
-      height:100%;
-      background:#0b0b0b;
-    }
+    .viewerWrap{ position:relative; flex:1; min-height:0; }
+    model-viewer{ width:100%; height:100%; background:#0b0b0b; display:block; }
 
-    /* Botón AR */
-    button.arBtn{
-      position:absolute;
-      top:12px;
-      right:12px;
-      border:0;
-      border-radius:12px;
-      padding:12px 14px;
-      font-weight:900;
-      background:#fff;
-      color:#111;
-      cursor:pointer;
+    /* Nuestro botón AR (ahora es el ar-button real de model-viewer) */
+    .arBtn{
+      position:absolute; top:12px; right:12px;
+      border:0; border-radius:12px;
+      padding:12px 14px; font-weight:900;
+      background:#fff; color:#111; cursor:pointer;
       box-shadow:0 10px 26px rgba(0,0,0,.35);
-      z-index:20;
+      z-index:25;
     }
-    button.arBtn:disabled{ opacity:.5; cursor:not-allowed; }
+    .arBtn[disabled]{ opacity:.5; cursor:not-allowed; }
 
-    /* Logo abajo */
     .brandBottom{
       padding:14px 16px 18px;
-      display:flex;
-      justify-content:center;
+      display:flex; justify-content:center;
       border-top:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.12);
     }
-    .brandBottom img{ height:34px; }
+    .brandBottom img{ height:34px; width:auto; opacity:.95; }
 
-    /* 🔥 LOADING OVERLAY */
+    /* Loading overlay */
     #loading{
-      position:absolute;
-      inset:0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      flex-direction:column;
-      gap:14px;
+      position:absolute; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      flex-direction:column; gap:14px;
       background:rgba(0,0,0,.75);
-      z-index:25;
-      color:#fff;
-      text-align:center;
+      z-index:24; color:#fff; text-align:center;
     }
     .spinner{
-      width:42px;
-      height:42px;
+      width:42px; height:42px;
       border:4px solid rgba(255,255,255,.2);
       border-top:4px solid #fff;
       border-radius:50%;
       animation:spin 1s linear infinite;
     }
     @keyframes spin{ to{ transform:rotate(360deg); } }
-    #loading p{
-      font-size:14px;
-      opacity:.85;
-    }
+    #loading p{ font-size:14px; opacity:.85; margin:0; }
   </style>
 </head>
 
 <body>
   <header>
-    <a class="menuBtn" href="https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view?utm_content=DAG8SYy2DPc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5c7aa53580">← Menú</a>
+    <a class="menuBtn" id="menuLink" href="#" target="_self">← Menú</a>
 
     <a class="byGoscale" href="https://goscalemarketing.com" target="_blank" rel="noopener">
       <span>by</span>
-      <img src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png" />
+      <img src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png" alt="GoScaleMarketing">
     </a>
   </header>
 
   <main>
     <section id="dishInfo">
       <h1 id="dishTitle">Pastel Banana Chip</h1>
-      <p id="dishDesc">
-        Ingredientes: banana, harina, azúcar, huevos, mantequilla, chips de chocolate.
-      </p>
+      <p id="dishDesc">Ingredientes: banana, harina, azúcar, huevos, mantequilla, chips de chocolate.</p>
     </section>
 
     <div class="viewerWrap">
-      <!-- Loading -->
       <div id="loading">
         <div class="spinner"></div>
         <p>Cargando modelo…</p>
       </div>
 
-      <button id="arBtn" class="arBtn" disabled>Ver en AR</button>
-
       <model-viewer
         id="mv"
         src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb"
         ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz"
+
         camera-controls
         interaction-prompt="none"
+        touch-action="pan-y"
+
         loading="eager"
         reveal="auto"
+
         environment-image="https://modelviewer.dev/shared-assets/environments/neutral.hdr"
+        tone-mapping="neutral"
         exposure="1.6"
         shadow-intensity="1"
+
         ar
         ar-placement="floor"
         ar-scale="fixed"
         ar-modes="webxr scene-viewer quick-look"
-        ar-light-estimation>
+        ar-light-estimation
+      >
+        <!-- ✅ Este botón YA ES el botón AR real (reemplaza el cubo) -->
+        <button id="arBtn" class="arBtn" slot="ar-button" disabled>Ver en AR</button>
       </model-viewer>
     </div>
 
     <div class="brandBottom">
-      <img src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png" />
+      <img src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png" alt="GoScaleMarketing">
     </div>
   </main>
 
   <script>
+    const MENU_URL = "https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view?utm_content=DAG8SYy2DPc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5c7aa53580";
+    document.getElementById('menuLink').href = MENU_URL;
+
     const mv = document.getElementById('mv');
     const arBtn = document.getElementById('arBtn');
     const loading = document.getElementById('loading');
 
+    // Activa el botón cuando el modelo está listo
     mv.addEventListener('load', () => {
       loading.style.display = 'none';
       arBtn.disabled = false;
+    });
+
+    // Si hubiera error de carga
+    mv.addEventListener('error', () => {
+      loading.querySelector('p').textContent = 'Error cargando el modelo';
     });
   </script>
 </body>
