@@ -10,21 +10,17 @@
   <style>
     html, body { margin:0; height:100%; background:#0b0b0b; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
 
+    /* Header fijo */
     header{
       position:fixed; inset:0 0 auto 0; height:56px;
       display:flex; align-items:center; justify-content:space-between;
       padding:0 12px;
       background:rgba(15,15,15,.72); backdrop-filter: blur(10px);
-      color:#fff; z-index:10;
+      color:#fff; z-index:20;
       gap:10px;
     }
     header .left{ display:flex; align-items:center; gap:10px; min-width:0; }
-    header .badge{
-      font-size:12px; padding:4px 8px; border-radius:999px;
-      background:rgba(255,255,255,.12);
-      max-width: 52vw;
-      overflow:hidden; text-overflow: ellipsis; white-space: nowrap;
-    }
+
     a.menuBtn{
       color:#fff; text-decoration:none;
       border:1px solid rgba(255,255,255,.18);
@@ -34,19 +30,33 @@
       font-size:14px;
       white-space:nowrap;
     }
-    button.arBtn{
-      border:0; border-radius:10px;
-      padding:10px 12px; font-weight:800;
-      background:#fff; color:#111; cursor:pointer;
+
+    /* “by goscale” arriba derecha */
+    a.byGoscale{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      text-decoration:none;
+      color:rgba(255,255,255,.85);
+      font-size:12px;
+      font-weight:700;
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:12px;
+      padding:8px 10px;
+      background:rgba(255,255,255,.06);
       white-space:nowrap;
     }
-    button.arBtn:disabled{ opacity:.5; cursor:not-allowed; }
+    a.byGoscale img{
+      height:20px; /* más grande que antes */
+      width:auto;
+      opacity:.95;
+    }
 
-    /* Info del plato (overlay, NO entra en la cámara) */
+    /* Zona principal: dejamos espacio para header */
+    main{ position:fixed; inset:56px 0 0 0; display:flex; flex-direction:column; }
+
+    /* Bloque info arriba del viewer */
     #dishInfo{
-      position:fixed;
-      top:56px;
-      left:0; right:0;
       padding:14px 16px 10px;
       background:linear-gradient(
         to bottom,
@@ -54,37 +64,68 @@
         rgba(11,11,11,.75),
         rgba(11,11,11,0)
       );
-      z-index:9;
-      pointer-events:none; /* para no interferir con controles del viewer */
+      z-index:5;
     }
-    #dishInfo h1{
+    #dishTitle{
       margin:0;
-      font-size:18px;
-      font-weight:800;
+      font-size:22px;
+      font-weight:900;
+      color:#fff;           /* ✅ bien visible */
       letter-spacing:.2px;
+      text-shadow: 0 2px 14px rgba(0,0,0,.55);
     }
-    #dishInfo p{
-      margin:6px 0 8px;
+    #dishDesc{
+      margin:8px 0 0;
       font-size:14px;
       line-height:1.35;
       color:rgba(255,255,255,.75);
       max-width:520px;
     }
-    #dishInfo .by{
-      display:flex;
-      align-items:center;
-      gap:6px;
-      font-size:12px;
-      color:rgba(255,255,255,.55);
+
+    /* Contenedor del viewer */
+    .viewerWrap{
+      position:relative;
+      flex:1;
+      min-height: 0;
     }
-    #dishInfo .by img{
-      height:16px;
-      width:auto;
-      opacity:.9;
+    model-viewer{
+      width:100%;
+      height:100%;
+      background:#0b0b0b;
+      display:block;
     }
 
-    main{ position:fixed; inset:56px 0 0 0; }
-    model-viewer{ width:100%; height:100%; background:#0b0b0b; }
+    /* Botón AR dentro del viewer (arriba derecha sobre el 3D) */
+    button.arBtn{
+      position:absolute;
+      top:12px;
+      right:12px;
+      border:0;
+      border-radius:12px;
+      padding:12px 14px;
+      font-weight:900;
+      background:#fff;
+      color:#111;
+      cursor:pointer;
+      box-shadow:0 10px 26px rgba(0,0,0,.35);
+      z-index:10;
+    }
+    button.arBtn:disabled{ opacity:.55; cursor:not-allowed; }
+
+    /* Logo grande debajo del viewer */
+    .brandBottom{
+      padding:14px 16px 18px;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      border-top:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.15);
+    }
+    .brandBottom img{
+      height:34px; /* ✅ visible */
+      width:auto;
+      opacity:.95;
+    }
   </style>
 </head>
 
@@ -92,51 +133,63 @@
   <header>
     <div class="left">
       <a class="menuBtn" id="menuLink" href="#" target="_self">← Menú</a>
-      <div id="mode" class="badge">Cargando…</div>
     </div>
-    <button id="arBtn" class="arBtn" disabled>Ver en AR</button>
-  </header>
 
-  <!-- ✅ Nombre + ingredientes + by logo -->
-  <section id="dishInfo">
-    <h1 id="dishTitle">Pastel Banana Chip</h1>
-    <p id="dishDesc">
-      Bizcocho de banana con chips de chocolate. Tamaño orientativo.
-      <br/>Alérgenos: gluten, huevo (según receta).
-    </p>
-    <div class="by">
+    <!-- ✅ By Goscale (clicable a web) -->
+    <a class="byGoscale" href="https://goscalemarketing.com" target="_blank" rel="noopener">
       <span>by</span>
       <img
         src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png"
         alt="GoScaleMarketing"
       />
-    </div>
-  </section>
+    </a>
+  </header>
 
   <main>
-    <model-viewer
-      id="mv"
-      src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb"
-      ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz"
+    <!-- ✅ Info del plato -->
+    <section id="dishInfo">
+      <h1 id="dishTitle">Pastel Banana Chip</h1>
+      <p id="dishDesc">
+        Ingredientes: banana, harina, azúcar, huevos, mantequilla, chips de chocolate.
+      </p>
+    </section>
 
-      camera-controls
-      interaction-prompt="none"
-      touch-action="pan-y"
+    <!-- ✅ Viewer + botón AR dentro del viewer -->
+    <div class="viewerWrap">
+      <button id="arBtn" class="arBtn" disabled>Ver en AR</button>
 
-      loading="eager"
-      reveal="auto"
+      <model-viewer
+        id="mv"
+        src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb"
+        ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz"
 
-      environment-image="https://modelviewer.dev/shared-assets/environments/neutral.hdr"
-      tone-mapping="neutral"
-      exposure="1.6"
-      shadow-intensity="1"
+        camera-controls
+        interaction-prompt="none"
+        touch-action="pan-y"
 
-      ar
-      ar-placement="floor"
-      ar-scale="fixed"
-      ar-modes="webxr scene-viewer quick-look"
-      ar-light-estimation>
-    </model-viewer>
+        loading="eager"
+        reveal="auto"
+
+        environment-image="https://modelviewer.dev/shared-assets/environments/neutral.hdr"
+        tone-mapping="neutral"
+        exposure="1.6"
+        shadow-intensity="1"
+
+        ar
+        ar-placement="floor"
+        ar-scale="fixed"
+        ar-modes="webxr scene-viewer quick-look"
+        ar-light-estimation>
+      </model-viewer>
+    </div>
+
+    <!-- ✅ Logo grande abajo (de momento el vuestro) -->
+    <div class="brandBottom">
+      <img
+        src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png"
+        alt="GoScaleMarketing"
+      />
+    </div>
   </main>
 
   <script>
@@ -144,9 +197,7 @@
 
     const mv = document.getElementById('mv');
     const arBtn = document.getElementById('arBtn');
-    const mode = document.getElementById('mode');
     const menuLink = document.getElementById('menuLink');
-    const dishInfo = document.getElementById('dishInfo');
 
     menuLink.href = MENU_URL;
 
@@ -175,7 +226,6 @@
 
       if (isIOS) {
         mv.setAttribute('ar-modes', 'quick-look');
-        mode.textContent = 'iOS · AR';
         arBtn.disabled = false;
         return;
       }
@@ -185,16 +235,13 @@
           const webxrOk = !!(navigator.xr && await navigator.xr.isSessionSupported('immersive-ar'));
           if (webxrOk) {
             mv.setAttribute('ar-modes', 'webxr');
-            mode.textContent = 'Android · WebXR';
           } else {
             mv.setAttribute('ar-modes', 'scene-viewer');
-            mode.textContent = 'Android · Scene Viewer';
           }
           arBtn.disabled = false;
           return;
         } catch {
           mv.setAttribute('ar-modes', 'scene-viewer');
-          mode.textContent = 'Android · Scene Viewer';
           arBtn.disabled = false;
         }
       }
@@ -210,15 +257,13 @@
       }
     });
 
-    // WebXR: al entrar/salir, ajusta look y oculta/enseña la ficha
+    // WebXR: al entrar/salir, ajusta look (sin redirecciones)
     mv.addEventListener('ar-status', (ev) => {
       if (ev.detail.status === 'session-started') {
         applyWebxrArLook();
-        dishInfo.style.display = 'none';   // ✅ no overlays en cámara
       }
       if (ev.detail.status === 'not-presenting') {
         applyViewerLook();
-        dishInfo.style.display = 'block';
       }
     });
   </script>
