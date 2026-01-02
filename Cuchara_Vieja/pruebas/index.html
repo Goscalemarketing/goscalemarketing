@@ -56,28 +56,24 @@ body{
   padding:8px 12px;
 }
 
-.by img{
-  height:28px;
-}
+.by img{ height:28px; }
 
 /* TITLE */
 h1{
   font-size:28px;
   font-weight:900;
   margin:14px 0 6px;
-  color:#fff;
 }
 
 .desc{
   color:var(--muted);
   font-size:15px;
   line-height:1.45;
-  margin:0 0 14px;
 }
 
 /* VIEWER */
 .viewerWrap{
-  margin:10px 0 10px;
+  margin:14px 0 10px;
   position:relative;
 }
 
@@ -88,7 +84,7 @@ model-viewer{
   border-radius:18px;
 }
 
-/* Loading hint over viewer */
+/* MODEL LOADING OVERLAY */
 .viewerHint{
   position:absolute;
   inset:0;
@@ -97,12 +93,8 @@ model-viewer{
   justify-content:center;
   pointer-events:none;
   border-radius:18px;
-  background: radial-gradient(circle at center, rgba(0,0,0,.18), rgba(0,0,0,.55));
-  opacity:0;
-  transition:opacity .2s ease;
+  background: radial-gradient(circle, rgba(0,0,0,.2), rgba(0,0,0,.6));
 }
-
-.viewerHint.show{ opacity:1; }
 
 .hintBox{
   display:flex;
@@ -113,7 +105,6 @@ model-viewer{
   border:1px solid rgba(255,255,255,.14);
   border-radius:16px;
   background: rgba(0,0,0,.35);
-  backdrop-filter: blur(6px);
 }
 
 .smallSpinner{
@@ -149,32 +140,20 @@ model-viewer{
   cursor:not-allowed;
 }
 
-/* Optional text status */
-.statusLine{
-  margin-top:10px;
-  text-align:center;
-  font-size:12px;
-  color: rgba(255,255,255,.65);
-  min-height:16px;
-}
-
-/* RESTAURANT LOGO BOTTOM */
+/* RESTAURANT LOGO */
 .brandBottom{
   display:flex;
   justify-content:center;
   padding:32px 16px 44px;
-  margin-top:18px;
-  background:linear-gradient(to top, rgba(0,0,0,.45), rgba(0,0,0,0));
 }
 
 .restaurantLogo{
-  height:140px;  /* ✅ MÁS GRANDE */
+  height:140px;
   width:auto;
   max-width:95%;
-  filter: drop-shadow(0 6px 16px rgba(0,0,0,.45));
 }
 
-/* LOADER (opening camera) */
+/* CAMERA LOADER */
 #loader{
   position:fixed;
   inset:0;
@@ -215,20 +194,14 @@ model-viewer{
 <div class="wrap">
 
   <div class="topbar">
-    <a class="back" href="https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view">
-      ← Menú
-    </a>
-
-    <a class="by" href="https://goscalemarketing.com" target="_blank" rel="noopener">
-      by
-      <img src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png" alt="GoScale" />
+    <a class="back" href="https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view">← Menú</a>
+    <a class="by" href="https://goscalemarketing.com" target="_blank">
+      by <img src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png">
     </a>
   </div>
 
   <h1>Pastel Banana Chip</h1>
-  <p class="desc">
-    Ingredientes: banana, harina, azúcar, huevos, mantequilla, chips de chocolate.
-  </p>
+  <p class="desc">Ingredientes: banana, harina, azúcar, huevos, mantequilla, chips de chocolate.</p>
 
   <div class="viewerWrap">
     <model-viewer
@@ -240,33 +213,28 @@ model-viewer{
       camera-controls
       auto-rotate
       exposure="1"
-      shadow-intensity="1"
-      alt="Pastel Banana Chip AR">
+      shadow-intensity="1">
     </model-viewer>
 
-    <!-- ✅ Overlay de cargando del viewer -->
-    <div id="viewerHint" class="viewerHint show" aria-hidden="true">
+    <!-- Loading overlay SOLO para el modelo -->
+    <div id="viewerHint" class="viewerHint">
       <div class="hintBox">
         <div class="smallSpinner"></div>
-        <div class="hintText" id="hintText">Cargando modelo…</div>
+        <div class="hintText">Cargando modelo…</div>
       </div>
     </div>
 
-    <button class="arBtn" id="openAR" type="button" disabled> Cargando modelo… </button>
-    <div class="statusLine" id="statusLine"></div>
+    <!-- Botón siempre dice Ver en AR -->
+    <button class="arBtn" id="openAR" disabled>Ver en AR</button>
   </div>
-
 </div>
 
 <div class="brandBottom">
-  <img
-    class="restaurantLogo"
-    src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/LOGO%20OPC%202_MONOGRAMA%2CLOGOY%20LEMA%20NARANJA-18.png"
-    alt="Restaurante"
-  />
+  <img class="restaurantLogo"
+    src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/LOGO%20OPC%202_MONOGRAMA%2CLOGOY%20LEMA%20NARANJA-18.png">
 </div>
 
-<!-- LOADER (abriendo cámara) -->
+<!-- Loader cámara -->
 <div id="loader">
   <div class="loaderBox">
     <div class="spinner"></div>
@@ -277,54 +245,13 @@ model-viewer{
 <script>
 const mv = document.getElementById("mv");
 const btn = document.getElementById("openAR");
-const loader = document.getElementById("loader");
 const viewerHint = document.getElementById("viewerHint");
-const hintText = document.getElementById("hintText");
-const statusLine = document.getElementById("statusLine");
+const loader = document.getElementById("loader");
 
-function setReady(){
-  viewerHint.classList.remove("show");
-  btn.disabled = false;
-  btn.textContent = "Ver en AR";
-  statusLine.textContent = "";
-}
-
-function setLoading(){
-  viewerHint.classList.add("show");
-  hintText.textContent = "Cargando modelo…";
-  btn.disabled = true;
-  btn.textContent = "Cargando modelo…";
-  statusLine.textContent = "";
-}
-
-function setError(){
-  viewerHint.classList.add("show");
-  hintText.textContent = "Error cargando modelo";
-  btn.disabled = true;
-  btn.textContent = "Error cargando modelo";
-  statusLine.textContent = "Revisa la URL del modelo (GLB/USDZ) y CORS en R2.";
-}
-
-// Estado inicial
-setLoading();
-
-// ✅ Cuando el GLB termina de cargar
+// Cuando el modelo termina de cargar
 mv.addEventListener("load", () => {
-  setReady();
-});
-
-// ✅ Progreso (opcional) para que se note que avanza
-mv.addEventListener("progress", (ev) => {
-  const p = Math.round((ev.detail.totalProgress || 0) * 100);
-  if (btn.disabled) {
-    hintText.textContent = `Cargando modelo… ${p}%`;
-    btn.textContent = `Cargando… ${p}%`;
-  }
-});
-
-// ✅ Si falla la carga
-mv.addEventListener("error", () => {
-  setError();
+  viewerHint.style.display = "none";
+  btn.disabled = false;
 });
 
 // Abrir AR
@@ -334,25 +261,15 @@ btn.addEventListener("click", async () => {
     await mv.activateAR();
   }catch(e){
     loader.style.display = "none";
-    statusLine.textContent = "No se pudo abrir AR en este navegador/dispositivo.";
   }
 });
 
-// ✅ IMPORTANTÍSIMO: al volver de AR, apagar loader SIEMPRE
-function hideLoaderOnReturn(){
-  loader.style.display = "none";
-}
-
-window.addEventListener("pageshow", hideLoaderOnReturn);
-window.addEventListener("focus", hideLoaderOnReturn);
+// Al volver de AR → apagar loader
+function hideLoader(){ loader.style.display = "none"; }
+window.addEventListener("pageshow", hideLoader);
+window.addEventListener("focus", hideLoader);
 document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) hideLoaderOnReturn();
-});
-
-// Extra: si AR se cancela o falla, también apagar loader
-mv.addEventListener("ar-status", (ev) => {
-  const s = ev.detail.status;
-  if (s === "not-presenting" || s === "failed") loader.style.display = "none";
+  if (!document.hidden) hideLoader();
 });
 </script>
 
