@@ -16,7 +16,6 @@
       color:#fff;
     }
 
-    /* HEADER */
     header{
       position:fixed;
       inset:0 0 auto 0;
@@ -66,7 +65,6 @@
       flex-direction:column;
     }
 
-    /* INFO */
     #dishInfo{
       padding:14px 16px 10px;
       background:linear-gradient(
@@ -93,7 +91,6 @@
       line-height:1.45;
     }
 
-    /* VIEWER */
     .viewerWrap{
       position:relative;
       flex:1;
@@ -105,9 +102,10 @@
       height:100%;
       background:#0b0b0b;
       display:block;
+      /* ✅ gestos fluidos (móvil/PC) */
+      touch-action: pan-y;
     }
 
-    /* BOTÓN AR */
     .arBtn{
       position:absolute;
       bottom:18px;
@@ -130,7 +128,6 @@
       cursor:not-allowed;
     }
 
-    /* LOADING */
     #loading{
       position:absolute;
       inset:0;
@@ -154,7 +151,6 @@
 
     @keyframes spin{ to{ transform:rotate(360deg); } }
 
-    /* FOOTER MEJORADO */
     .brandBottom{
       padding:10px 12px 14px;
       display:flex;
@@ -208,7 +204,7 @@
   <section id="dishInfo">
     <h1 id="dishTitle">Pastel Banana Chip</h1>
     <p id="dishDesc">
-      Ingredientes: banana, harina, azúcar, huevos, mantequilla, chips de chocolate.
+      Ingredientes: banana, harina, azúcar, huevos, mantequilla y chips de chocolate.
     </p>
   </section>
 
@@ -234,9 +230,14 @@
       exposure="1.6"
       shadow-intensity="1"
 
+      <!-- ✅ Rotación libre en el visor 3D -->
+      min-camera-orbit="-180deg 5deg auto"
+      max-camera-orbit="180deg 175deg auto"
+
       ar
       ar-placement="floor"
-      ar-scale="fixed"
+      <!-- ✅ MUY IMPORTANTE: permitir escalar en AR -->
+      ar-scale="auto"
       ar-modes="webxr scene-viewer quick-look"
       ar-light-estimation
     >
