@@ -53,7 +53,6 @@
       background:rgba(255,255,255,.06);
     }
 
-    /* ✅ Logo by GoScale más grande */
     a.byGoscale img{
       height:28px;
       width:auto;
@@ -109,7 +108,7 @@
       display:block;
     }
 
-    /* BOTÓN AR – debajo del modelo (NATIVO) */
+    /* BOTÓN AR */
     .arBtn{
       position:absolute;
       bottom:16px;
@@ -132,12 +131,13 @@
       cursor:not-allowed;
     }
 
-    /* ✅ LOGO RESTAURANTE abajo (más protagonista) */
+    /* ✅ FOOTER AJUSTADO */
     .brandBottom{
       display:flex;
       justify-content:center;
-      padding:32px 16px 44px;
-      margin-top:12px;
+      align-items:center;
+      padding:18px 16px 22px;      /* menos alto */
+      margin-top:6px;
       background:linear-gradient(
         to top,
         rgba(0,0,0,.45),
@@ -147,13 +147,13 @@
     }
 
     .restaurantLogo{
-      height:140px;        /* grande y visible */
+      height:96px;                /* logo claramente más grande */
       width:auto;
-      max-width:95%;
+      max-width:90%;
       filter: drop-shadow(0 6px 16px rgba(0,0,0,.45));
     }
 
-    /* LOADING (solo sobre el modelo) */
+    /* LOADING */
     #loading{
       position:absolute;
       inset:0;
@@ -178,7 +178,7 @@
     }
 
     @keyframes spin{
-      to{ transform: rotate(360deg); }
+      to{ transform:rotate(360deg); }
     }
 
     #loading p{
@@ -193,7 +193,7 @@
 
   <header>
     <a class="menuBtn"
-       href="https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view?utm_content=DAG8SYy2DPc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5c7aa53580">
+       href="https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view">
       ← Menú
     </a>
 
@@ -217,7 +217,6 @@
     </section>
 
     <div class="viewerWrap">
-      <!-- LOADING -->
       <div id="loading">
         <div class="spinner"></div>
         <p>Cargando modelo…</p>
@@ -227,26 +226,20 @@
         id="mv"
         src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb"
         ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz"
-
         camera-controls
         interaction-prompt="none"
-        touch-action="pan-y"
-
         loading="eager"
         reveal="auto"
-
         environment-image="https://modelviewer.dev/shared-assets/environments/neutral.hdr"
         tone-mapping="neutral"
         exposure="1.6"
         shadow-intensity="1"
-
         ar
+        ar-modes="webxr scene-viewer quick-look"
         ar-placement="floor"
         ar-scale="fixed"
-        ar-modes="webxr scene-viewer quick-look"
-        ar-light-estimation
-      >
-        <!-- ✅ BOTÓN AR NATIVO: siempre "Ver en AR" y bloqueado hasta cargar -->
+        ar-light-estimation>
+
         <button
           id="arBtn"
           class="arBtn"
@@ -257,7 +250,6 @@
       </model-viewer>
     </div>
 
-    <!-- ✅ LOGO RESTAURANTE -->
     <div class="brandBottom">
       <img
         class="restaurantLogo"
@@ -271,13 +263,11 @@
     const arBtn = document.getElementById('arBtn');
     const loading = document.getElementById('loading');
 
-    // Al cargar el modelo: quitamos overlay y habilitamos AR
     mv.addEventListener('load', () => {
       loading.style.display = 'none';
       arBtn.disabled = false;
     });
 
-    // Si falla: mensaje claro y el botón sigue bloqueado
     mv.addEventListener('error', () => {
       loading.querySelector('p').textContent = 'Error cargando el modelo';
       arBtn.disabled = true;
