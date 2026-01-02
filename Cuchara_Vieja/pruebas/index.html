@@ -11,10 +11,8 @@
 <style>
 :root{
   --bg:#0b0b0b;
-  --card:#121212;
   --text:#ffffff;
   --muted:#cfcfcf;
-  --accent:#ffffff;
 }
 
 body{
@@ -59,7 +57,7 @@ body{
 }
 
 .by img{
-  height:26px; /* 🔥 más grande */
+  height:26px;
 }
 
 /* TITLE */
@@ -107,15 +105,11 @@ model-viewer{
   justify-content:center;
   padding:32px 16px 44px;
   margin-top:16px;
-  background:linear-gradient(
-    to top,
-    rgba(0,0,0,.45),
-    rgba(0,0,0,0)
-  );
+  background:linear-gradient(to top, rgba(0,0,0,.45), rgba(0,0,0,0));
 }
 
 .restaurantLogo{
-  height:120px;        /* 🔥 PROTAGONISTA */
+  height:120px;
   width:auto;
   max-width:95%;
   filter: drop-shadow(0 6px 16px rgba(0,0,0,.45));
@@ -132,6 +126,13 @@ model-viewer{
   z-index:9999;
 }
 
+.loaderBox{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:14px;
+}
+
 .spinner{
   width:48px;
   height:48px;
@@ -139,6 +140,11 @@ model-viewer{
   border-top:4px solid #fff;
   border-radius:50%;
   animation:spin 1s linear infinite;
+}
+
+.loaderText{
+  font-size:14px;
+  opacity:.85;
 }
 
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -149,27 +155,25 @@ model-viewer{
 
 <div class="wrap">
 
-  <!-- TOP -->
   <div class="topbar">
     <a class="back" href="https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view">
       ← Menú
     </a>
 
-    <a class="by" href="https://goscalemarketing.com" target="_blank">
+    <a class="by" href="https://goscalemarketing.com" target="_blank" rel="noopener">
       by
       <img src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png" alt="GoScale" />
     </a>
   </div>
 
-  <!-- INFO -->
   <h1>Pastel Banana Chip</h1>
   <p class="desc">
     Ingredientes: banana, harina, azúcar, huevos, mantequilla, chips de chocolate.
   </p>
 
-  <!-- VIEWER -->
   <div class="viewerWrap">
     <model-viewer
+      id="mv"
       src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb"
       ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz"
       ar
@@ -186,7 +190,6 @@ model-viewer{
 
 </div>
 
-<!-- LOGO RESTAURANTE -->
 <div class="brandBottom">
   <img
     class="restaurantLogo"
@@ -197,16 +200,47 @@ model-viewer{
 
 <!-- LOADER -->
 <div id="loader">
-  <div class="spinner"></div>
+  <div class="loaderBox">
+    <div class="spinner"></div>
+    <div class="loaderText">Abriendo cámara…</div>
+  </div>
 </div>
 
 <script>
+const mv = document.getElementById("mv");
 const btn = document.getElementById("openAR");
 const loader = document.getElementById("loader");
 
-btn.addEventListener("click", () => {
+// Encender loader y abrir AR
+btn.addEventListener("click", async () => {
   loader.style.display = "flex";
-  document.querySelector("model-viewer").activateAR();
+  try {
+    await mv.activateAR(); // abre Scene Viewer / Quick Look / WebXR según dispositivo
+  } catch (e) {
+    // si el navegador bloquea o falla, quitamos loader
+    loader.style.display = "none";
+  }
+});
+
+// ✅ IMPORTANTÍSIMO: al volver de AR, apagar loader SIEMPRE
+function hideLoaderOnReturn(){
+  loader.style.display = "none";
+}
+
+// Vuelve desde apps externas (Scene Viewer) o Quick Look -> estos eventos suelen dispararse
+window.addEventListener("pageshow", hideLoaderOnReturn);
+window.addEventListener("focus", hideLoaderOnReturn);
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) hideLoaderOnReturn();
+});
+
+// Extra: si el usuario cancela o no soporta AR, también apagar loader
+mv.addEventListener("ar-status", (ev) => {
+  const s = ev.detail.status;
+  // statuses típicos: "not-presenting", "session-started", "failed"
+  if (s === "not-presenting" || s === "failed") {
+    loader.style.display = "none";
+  }
 });
 </script>
 
