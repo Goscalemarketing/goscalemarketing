@@ -1,277 +1,288 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Pastel Banana Chip AR</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Pastel Banana Chip · AR</title>
 
-<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
-<style>
-:root{
-  --bg:#0b0b0b;
-  --text:#ffffff;
-  --muted:#cfcfcf;
-  --border: rgba(255,255,255,.18);
-}
+  <style>
+    html, body {
+      margin:0;
+      height:100%;
+      background:#0b0b0b;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    }
 
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
-}
+    /* HEADER */
+    header{
+      position:fixed;
+      inset:0 0 auto 0;
+      height:56px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 12px;
+      background:rgba(15,15,15,.72);
+      backdrop-filter: blur(10px);
+      z-index:30;
+    }
 
-.wrap{
-  max-width:520px;
-  margin:0 auto;
-  padding:18px 16px 0;
-}
+    a.menuBtn{
+      color:#fff;
+      text-decoration:none;
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:10px;
+      padding:8px 10px;
+      font-weight:600;
+      font-size:14px;
+    }
 
-/* TOP BAR */
-.topbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:12px;
-}
+    a.byGoscale{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      text-decoration:none;
+      color:#fff;
+      font-size:12px;
+      font-weight:700;
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:12px;
+      padding:8px 10px;
+      background:rgba(255,255,255,.06);
+    }
 
-.back{
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:10px 14px;
-  color:#fff;
-  text-decoration:none;
-  font-size:14px;
-}
+    /* ✅ Logo by GoScale más grande */
+    a.byGoscale img{
+      height:28px;
+      width:auto;
+      opacity:.95;
+    }
 
-.by{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  text-decoration:none;
-  color:#fff;
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:8px 12px;
-}
+    /* LAYOUT */
+    main{
+      position:fixed;
+      inset:56px 0 0 0;
+      display:flex;
+      flex-direction:column;
+    }
 
-.by img{ height:28px; }
+    /* INFO PLATO */
+    #dishInfo{
+      padding:14px 16px 10px;
+      background:linear-gradient(
+        to bottom,
+        rgba(11,11,11,.92),
+        rgba(11,11,11,.75),
+        rgba(11,11,11,0)
+      );
+      z-index:10;
+    }
 
-/* TITLE */
-h1{
-  font-size:28px;
-  font-weight:900;
-  margin:14px 0 6px;
-}
+    #dishTitle{
+      margin:0;
+      font-size:22px;
+      font-weight:900;
+      color:#fff;
+      text-shadow:0 2px 14px rgba(0,0,0,.6);
+    }
 
-.desc{
-  color:var(--muted);
-  font-size:15px;
-  line-height:1.45;
-}
+    #dishDesc{
+      margin:8px 0 0;
+      font-size:14px;
+      color:rgba(255,255,255,.75);
+      max-width:520px;
+    }
 
-/* VIEWER */
-.viewerWrap{
-  margin:14px 0 10px;
-  position:relative;
-}
+    /* VIEWER */
+    .viewerWrap{
+      position:relative;
+      flex:1;
+      min-height:0;
+    }
 
-model-viewer{
-  width:100%;
-  height:340px;
-  background:#000;
-  border-radius:18px;
-}
+    model-viewer{
+      width:100%;
+      height:100%;
+      background:#0b0b0b;
+      display:block;
+    }
 
-/* MODEL LOADING OVERLAY */
-.viewerHint{
-  position:absolute;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  pointer-events:none;
-  border-radius:18px;
-  background: radial-gradient(circle, rgba(0,0,0,.2), rgba(0,0,0,.6));
-}
+    /* BOTÓN AR – debajo del modelo (NATIVO) */
+    .arBtn{
+      position:absolute;
+      bottom:16px;
+      left:50%;
+      transform:translateX(-50%);
+      border:0;
+      border-radius:16px;
+      padding:14px 22px;
+      font-weight:900;
+      font-size:16px;
+      background:#ffffff;
+      color:#111;
+      cursor:pointer;
+      box-shadow:0 12px 28px rgba(0,0,0,.45);
+      z-index:25;
+    }
 
-.hintBox{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:12px;
-  padding:16px 18px;
-  border:1px solid rgba(255,255,255,.14);
-  border-radius:16px;
-  background: rgba(0,0,0,.35);
-}
+    .arBtn[disabled]{
+      opacity:.55;
+      cursor:not-allowed;
+    }
 
-.smallSpinner{
-  width:34px;
-  height:34px;
-  border:4px solid rgba(255,255,255,.2);
-  border-top:4px solid #fff;
-  border-radius:50%;
-  animation:spin 1s linear infinite;
-}
+    /* ✅ LOGO RESTAURANTE abajo (más protagonista) */
+    .brandBottom{
+      display:flex;
+      justify-content:center;
+      padding:32px 16px 44px;
+      margin-top:12px;
+      background:linear-gradient(
+        to top,
+        rgba(0,0,0,.45),
+        rgba(0,0,0,0)
+      );
+      border-top:1px solid rgba(255,255,255,.10);
+    }
 
-.hintText{
-  font-size:13px;
-  opacity:.9;
-}
+    .restaurantLogo{
+      height:140px;        /* grande y visible */
+      width:auto;
+      max-width:95%;
+      filter: drop-shadow(0 6px 16px rgba(0,0,0,.45));
+    }
 
-/* AR BUTTON */
-.arBtn{
-  width:100%;
-  margin-top:14px;
-  padding:16px;
-  font-size:17px;
-  font-weight:900;
-  border-radius:18px;
-  border:0;
-  cursor:pointer;
-  background:#fff;
-  color:#000;
-}
+    /* LOADING (solo sobre el modelo) */
+    #loading{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      gap:14px;
+      background:rgba(0,0,0,.75);
+      z-index:24;
+      color:#fff;
+      text-align:center;
+    }
 
-.arBtn:disabled{
-  opacity:.45;
-  cursor:not-allowed;
-}
+    .spinner{
+      width:42px;
+      height:42px;
+      border:4px solid rgba(255,255,255,.2);
+      border-top:4px solid #fff;
+      border-radius:50%;
+      animation:spin 1s linear infinite;
+    }
 
-/* RESTAURANT LOGO */
-.brandBottom{
-  display:flex;
-  justify-content:center;
-  padding:32px 16px 44px;
-}
+    @keyframes spin{
+      to{ transform: rotate(360deg); }
+    }
 
-.restaurantLogo{
-  height:140px;
-  width:auto;
-  max-width:95%;
-}
-
-/* CAMERA LOADER */
-#loader{
-  position:fixed;
-  inset:0;
-  background:#000;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:9999;
-}
-
-.loaderBox{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:14px;
-}
-
-.spinner{
-  width:48px;
-  height:48px;
-  border:4px solid rgba(255,255,255,.2);
-  border-top:4px solid #fff;
-  border-radius:50%;
-  animation:spin 1s linear infinite;
-}
-
-.loaderText{
-  font-size:14px;
-  opacity:.85;
-}
-
-@keyframes spin{to{transform:rotate(360deg)}}
-</style>
+    #loading p{
+      font-size:14px;
+      opacity:.85;
+      margin:0;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="wrap">
-
-  <div class="topbar">
-    <a class="back" href="https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view">← Menú</a>
-    <a class="by" href="https://goscalemarketing.com" target="_blank">
-      by <img src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png">
+  <header>
+    <a class="menuBtn"
+       href="https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view?utm_content=DAG8SYy2DPc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5c7aa53580">
+      ← Menú
     </a>
-  </div>
 
-  <h1>Pastel Banana Chip</h1>
-  <p class="desc">Ingredientes: banana, harina, azúcar, huevos, mantequilla, chips de chocolate.</p>
+    <a class="byGoscale"
+       href="https://goscalemarketing.com"
+       target="_blank"
+       rel="noopener">
+      <span>by</span>
+      <img
+        src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png"
+        alt="GoScaleMarketing">
+    </a>
+  </header>
 
-  <div class="viewerWrap">
-    <model-viewer
-      id="mv"
-      src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb"
-      ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz"
-      ar
-      ar-modes="scene-viewer quick-look webxr"
-      camera-controls
-      auto-rotate
-      exposure="1"
-      shadow-intensity="1">
-    </model-viewer>
+  <main>
+    <section id="dishInfo">
+      <h1 id="dishTitle">Pastel Banana Chip</h1>
+      <p id="dishDesc">
+        Ingredientes: banana, harina, azúcar, huevos, mantequilla, chips de chocolate.
+      </p>
+    </section>
 
-    <!-- Loading overlay SOLO para el modelo -->
-    <div id="viewerHint" class="viewerHint">
-      <div class="hintBox">
-        <div class="smallSpinner"></div>
-        <div class="hintText">Cargando modelo…</div>
+    <div class="viewerWrap">
+      <!-- LOADING -->
+      <div id="loading">
+        <div class="spinner"></div>
+        <p>Cargando modelo…</p>
       </div>
+
+      <model-viewer
+        id="mv"
+        src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb"
+        ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz"
+
+        camera-controls
+        interaction-prompt="none"
+        touch-action="pan-y"
+
+        loading="eager"
+        reveal="auto"
+
+        environment-image="https://modelviewer.dev/shared-assets/environments/neutral.hdr"
+        tone-mapping="neutral"
+        exposure="1.6"
+        shadow-intensity="1"
+
+        ar
+        ar-placement="floor"
+        ar-scale="fixed"
+        ar-modes="webxr scene-viewer quick-look"
+        ar-light-estimation
+      >
+        <!-- ✅ BOTÓN AR NATIVO: siempre "Ver en AR" y bloqueado hasta cargar -->
+        <button
+          id="arBtn"
+          class="arBtn"
+          slot="ar-button"
+          disabled>
+          Ver en AR
+        </button>
+      </model-viewer>
     </div>
 
-    <!-- Botón siempre dice Ver en AR -->
-    <button class="arBtn" id="openAR" disabled>Ver en AR</button>
-  </div>
-</div>
+    <!-- ✅ LOGO RESTAURANTE -->
+    <div class="brandBottom">
+      <img
+        class="restaurantLogo"
+        src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/LOGO%20OPC%202_MONOGRAMA%2CLOGOY%20LEMA%20NARANJA-18.png"
+        alt="Restaurante">
+    </div>
+  </main>
 
-<div class="brandBottom">
-  <img class="restaurantLogo"
-    src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/LOGO%20OPC%202_MONOGRAMA%2CLOGOY%20LEMA%20NARANJA-18.png">
-</div>
+  <script>
+    const mv = document.getElementById('mv');
+    const arBtn = document.getElementById('arBtn');
+    const loading = document.getElementById('loading');
 
-<!-- Loader cámara -->
-<div id="loader">
-  <div class="loaderBox">
-    <div class="spinner"></div>
-    <div class="loaderText">Abriendo cámara…</div>
-  </div>
-</div>
+    // Al cargar el modelo: quitamos overlay y habilitamos AR
+    mv.addEventListener('load', () => {
+      loading.style.display = 'none';
+      arBtn.disabled = false;
+    });
 
-<script>
-const mv = document.getElementById("mv");
-const btn = document.getElementById("openAR");
-const viewerHint = document.getElementById("viewerHint");
-const loader = document.getElementById("loader");
-
-// Cuando el modelo termina de cargar
-mv.addEventListener("load", () => {
-  viewerHint.style.display = "none";
-  btn.disabled = false;
-});
-
-// Abrir AR
-btn.addEventListener("click", async () => {
-  loader.style.display = "flex";
-  try{
-    await mv.activateAR();
-  }catch(e){
-    loader.style.display = "none";
-  }
-});
-
-// Al volver de AR → apagar loader
-function hideLoader(){ loader.style.display = "none"; }
-window.addEventListener("pageshow", hideLoader);
-window.addEventListener("focus", hideLoader);
-document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) hideLoader();
-});
-</script>
+    // Si falla: mensaje claro y el botón sigue bloqueado
+    mv.addEventListener('error', () => {
+      loading.querySelector('p').textContent = 'Error cargando el modelo';
+      arBtn.disabled = true;
+    });
+  </script>
 
 </body>
 </html>
