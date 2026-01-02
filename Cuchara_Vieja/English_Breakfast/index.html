@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
@@ -7,414 +7,278 @@
 
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
-  <!-- (Opcional) Preload para acelerar -->
-  <link rel="preload"
-        href="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.glb"
-        as="fetch" crossorigin>
-  <link rel="preload"
-        href="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.usdz"
-        as="fetch">
-
   <style>
-    :root{
-      --bg:#0b0b0b;
-      --card:#121212;
-      --muted: rgba(255,255,255,.75);
-      --muted2: rgba(255,255,255,.55);
-      --border: rgba(255,255,255,.10);
-      --btn:#ffffff;
-      --btnText:#000000;
-    }
-
-    body{
+    html, body{
       margin:0;
-      background:var(--bg);
+      height:100%;
+      background:#0b0b0b;
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial;
       color:#fff;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      min-height:100vh;
-      display:flex;
-      justify-content:center;
-      padding:18px;
-      box-sizing:border-box;
     }
 
-    .wrap{
-      width:100%;
-      max-width:520px;
+    /* HEADER */
+    header{
+      position:fixed;
+      inset:0 0 auto 0;
+      height:56px;
       display:flex;
-      flex-direction:column;
-      gap:14px;
-    }
-
-    .topbar{
-      display:flex;
-      justify-content:space-between;
       align-items:center;
-      gap:12px;
-      position: sticky;
-      top: 0;
-      padding-top: 6px;
-      background: linear-gradient(to bottom, rgba(11,11,11,1), rgba(11,11,11,0.92), rgba(11,11,11,0));
-      z-index: 10;
+      justify-content:space-between;
+      padding:0 12px;
+      background:rgba(15,15,15,.75);
+      backdrop-filter: blur(10px);
+      z-index:30;
     }
 
-    .back{
+    .menuBtn{
       color:#fff;
       text-decoration:none;
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:10px 12px;
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:10px;
+      padding:8px 12px;
       font-size:14px;
-      opacity:.9;
-      white-space: nowrap;
+      font-weight:700;
     }
 
-    .lang{
+    .byGoscale{
       display:flex;
-      border:1px solid var(--border);
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
       border-radius:12px;
-      overflow:hidden;
-      white-space: nowrap;
-    }
-
-    .lang button{
-      background:transparent;
-      border:0;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.16);
+      text-decoration:none;
       color:#fff;
-      padding:10px 12px;
-      font-size:14px;
-      opacity:.7;
-      cursor:pointer;
-    }
-    .lang button.active{
-      background:rgba(255,255,255,.10);
-      opacity:1;
+      font-size:12px;
+      font-weight:700;
     }
 
-    .brand{
-      display:flex;
-      justify-content:center;
-      padding:8px 0 2px;
-    }
-    .brand img{
-      max-width:220px;
-      width:60%;
-      height:auto;
-      opacity:.95;
+    .byGoscale img{
+      height:22px;
+      width:auto;
     }
 
-    .card{
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:16px;
-    }
-
-    h1{
-      font-size:22px;
-      margin:0 0 6px 0;
-      letter-spacing:.2px;
-    }
-    .subtitle{
-      margin:0;
-      color:var(--muted);
-      font-size:14px;
-      line-height:1.35;
-    }
-
-    .meta{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-      margin-top:14px;
-    }
-    .pill{
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:10px 12px;
-      font-size:13px;
-      color:var(--muted);
-    }
-    .pill b{
-      color:#fff;
-      font-weight:600;
-    }
-
-    .tips{
-      margin:0;
-      padding-left:18px;
-      color:var(--muted);
-      font-size:14px;
-      line-height:1.45;
-    }
-    .tips li{ margin:8px 0; }
-
-    .cta{
+    main{
+      position:fixed;
+      inset:56px 0 0 0;
       display:flex;
       flex-direction:column;
-      gap:10px;
-    }
-    .btn{
-      width:100%;
-      border:0;
-      border-radius:14px;
-      padding:14px 14px;
-      font-size:16px;
-      font-weight:800;
-      background:var(--btn);
-      color:var(--btnText);
-      cursor:pointer;
-    }
-    .btn[disabled]{
-      opacity:.6;
-      cursor:not-allowed;
-    }
-    .small{
-      text-align:center;
-      color:var(--muted2);
-      font-size:12px;
-      margin:0;
     }
 
-    /* ✅ Viewer embebido */
-    .viewerCard{
-      padding:0;
-      overflow:hidden;
+    /* INFO */
+    #dishInfo{
+      padding:14px 16px 10px;
+      background:linear-gradient(
+        to bottom,
+        rgba(11,11,11,.95),
+        rgba(11,11,11,.75),
+        rgba(11,11,11,0)
+      );
+      z-index:10;
     }
+
+    #dishTitle{
+      margin:0;
+      font-size:24px;
+      font-weight:900;
+      color:#fff;
+    }
+
+    #dishDesc{
+      margin:8px 0 0;
+      font-size:14px;
+      color:rgba(255,255,255,.75);
+      max-width:520px;
+      line-height:1.45;
+    }
+
+    /* VIEWER */
+    .viewerWrap{
+      position:relative;
+      flex:1;
+      min-height:0;
+    }
+
     model-viewer{
       width:100%;
-      height:360px;
-      display:block;
+      height:100%;
       background:#0b0b0b;
+      display:block;
       touch-action: pan-y;
     }
 
-    /* Loader overlay */
-    #loaderOverlay{
-      position:fixed;
+    /* BOTÓN AR */
+    .arBtn{
+      position:absolute;
+      bottom:18px;
+      left:50%;
+      transform:translateX(-50%);
+      padding:14px 26px;
+      border-radius:18px;
+      font-size:16px;
+      font-weight:900;
+      background:#fff;
+      color:#111;
+      border:0;
+      box-shadow:0 12px 30px rgba(0,0,0,.45);
+      cursor:pointer;
+      z-index:25;
+    }
+
+    .arBtn[disabled]{
+      opacity:.55;
+      cursor:not-allowed;
+    }
+
+    /* LOADING */
+    #loading{
+      position:absolute;
       inset:0;
-      background:#000;
-      display:none;
+      display:flex;
       align-items:center;
       justify-content:center;
-      z-index:9999;
-      color:#fff;
+      flex-direction:column;
+      gap:14px;
+      background:rgba(0,0,0,.75);
+      z-index:24;
     }
-    .loader{
-      text-align:center;
-      padding:24px;
-    }
+
     .spinner{
-      width:48px;
-      height:48px;
-      border:4px solid rgba(255,255,255,0.2);
+      width:44px;
+      height:44px;
+      border:4px solid rgba(255,255,255,.2);
       border-top:4px solid #fff;
       border-radius:50%;
       animation:spin 1s linear infinite;
-      margin:0 auto 16px;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loaderText{
-      font-size:14px;
-      opacity:.85;
+
+    @keyframes spin{ to{ transform:rotate(360deg); } }
+
+    /* FOOTER */
+    .brandBottom{
+      padding:10px 12px 14px;
+      display:flex;
+      justify-content:center;
+      border-top:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.18);
+    }
+
+    .brandWrap{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:6px;
+    }
+
+    .restaurantLogo{
+      height:72px;
+      width:auto;
+      max-width:260px;
+      transform:scale(1.25);
+      opacity:.95;
+    }
+
+    .brandClaim{
+      font-size:11px;
+      color:rgba(255,255,255,.45);
+      letter-spacing:.3px;
     }
   </style>
 </head>
 
 <body>
-  <div class="wrap">
 
-    <div class="topbar">
-      <a class="back" id="backLink" href="#">
-        ← <span data-i18n="back">Volver al menú</span>
-      </a>
+<header>
+  <a class="menuBtn"
+     href="https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view">
+    ← Menú
+  </a>
 
-      <div class="lang" aria-label="Idioma">
-        <button type="button" id="btnES" class="active">ES</button>
-        <button type="button" id="btnEN">EN</button>
-      </div>
-    </div>
+  <a class="byGoscale"
+     href="https://goscalemarketing.com"
+     target="_blank"
+     rel="noopener">
+    <span>by</span>
+    <img src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png">
+  </a>
+</header>
 
-    <div class="brand">
-      <img
-        src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png"
-        alt="Go Scale Marketing"
-      />
-    </div>
+<main>
 
-    <!-- ✅ Viewer 3D + AR (igual que hamburguesa) -->
-    <div class="card viewerCard">
-      <model-viewer
-        id="mv"
-        src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.glb"
-        ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.usdz"
+  <section id="dishInfo">
+    <h1 id="dishTitle">English Breakfast</h1>
+    <p id="dishDesc">
+      Ingredientes: huevo, bacon, salchichas, judías, tomate y tostadas.
+    </p>
+  </section>
 
-        camera-controls
-        interaction-prompt="none"
-        loading="eager"
-        reveal="auto"
+  <div class="viewerWrap">
 
-        environment-image="https://modelviewer.dev/shared-assets/environments/neutral.hdr"
-        tone-mapping="neutral"
-        exposure="1.6"
-        shadow-intensity="1"
-
-        min-camera-orbit="-180deg 5deg auto"
-        max-camera-orbit="180deg 175deg auto"
-
-        ar
-        ar-modes="webxr scene-viewer quick-look"
-        ar-placement="floor"
-        ar-scale="auto"
-        ar-light-estimation
-      >
-        <button class="btn" id="arBtn" slot="ar-button" disabled data-i18n="openBtn">
-          Ver en AR
-        </button>
-      </model-viewer>
-    </div>
-
-    <div class="card">
-      <h1 data-i18n="title">English Breakfast</h1>
-      <p class="subtitle" data-i18n="desc">
-        Desayuno completo con huevo, bacon, salchichas, judías y tostadas. Ideal para empezar fuerte.
-      </p>
-
-      <div class="meta">
-        <div class="pill"><b data-i18n="priceLabel">Precio:</b> <span data-i18n="priceValue">—</span></div>
-        <div class="pill"><b data-i18n="timeLabel">Tiempo:</b> <span data-i18n="timeValue">10–15 min</span></div>
-        <div class="pill"><b data-i18n="allergensLabel">Alérgenos:</b> <span data-i18n="allergensValue">Huevo, gluten</span></div>
-        <div class="pill"><b data-i18n="noteLabel">Nota:</b> <span data-i18n="noteValue">Tamaño orientativo</span></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h1 style="font-size:18px; margin-bottom:10px;" data-i18n="tipsTitle">Cómo verlo en AR</h1>
-      <ul class="tips">
-        <li data-i18n="tip1">Pulsa Ver en AR y acepta el permiso de cámara.</li>
-        <li data-i18n="tip2">Apunta a una superficie plana (mesa o suelo) con buena luz.</li>
-        <li data-i18n="tip3">Mueve el móvil suavemente para que detecte el espacio.</li>
-      </ul>
-    </div>
-
-    <div class="cta">
-      <!-- ✅ Botón “extra” por si quieres mantener el CTA bajo -->
-      <button class="btn" id="openARBtn" type="button" disabled data-i18n="openBtn">Ver en AR</button>
-      <p class="small" data-i18n="smallNote">Si no se abre, prueba desde Chrome/Safari (evita navegadores dentro de apps).</p>
-    </div>
-
-  </div>
-
-  <div id="loaderOverlay">
-    <div class="loader">
+    <div id="loading">
       <div class="spinner"></div>
-      <div class="loaderText" data-i18n="loading">Cargando modelo…</div>
+      <p>Cargando modelo…</p>
+    </div>
+
+    <model-viewer
+      id="mv"
+      src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.glb"
+      ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.usdz"
+
+      camera-controls
+      interaction-prompt="none"
+      loading="eager"
+      reveal="auto"
+
+      environment-image="https://modelviewer.dev/shared-assets/environments/neutral.hdr"
+      tone-mapping="neutral"
+      exposure="1.6"
+      shadow-intensity="1"
+
+      camera-orbit="0deg 75deg 2.2m"
+      min-camera-orbit="-180deg 5deg auto"
+      max-camera-orbit="180deg 175deg auto"
+
+      ar
+      ar-modes="webxr scene-viewer quick-look"
+      ar-placement="floor"
+      ar-scale="auto"
+      ar-light-estimation
+    >
+      <button id="arBtn" class="arBtn" slot="ar-button" disabled>
+        Ver en AR
+      </button>
+    </model-viewer>
+
+  </div>
+
+  <div class="brandBottom">
+    <div class="brandWrap">
+      <img
+        class="restaurantLogo"
+        src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/LOGO%20OPC%202_MONOGRAMA%2CLOGOY%20LEMA%20NARANJA-18.png"
+        alt="Restaurante"
+      >
+      <span class="brandClaim">Powered by Go Scale Marketing</span>
     </div>
   </div>
 
-  <script>
-    const MENU_URL = "https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view?utm_content=DAG8SYy2DPc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5c7aa53580";
+</main>
 
-    const mv = document.getElementById("mv");
-    const overlay = document.getElementById("loaderOverlay");
-    const backLink = document.getElementById("backLink");
-    const arBtn = document.getElementById("arBtn");
-    const openARBtn = document.getElementById("openARBtn");
+<script>
+  const mv = document.getElementById('mv');
+  const arBtn = document.getElementById('arBtn');
+  const loading = document.getElementById('loading');
 
-    backLink.href = MENU_URL;
+  mv.addEventListener('load', () => {
+    loading.style.display = 'none';
+    arBtn.disabled = false;
+  });
 
-    const strings = {
-      es: {
-        back: "Volver al menú",
-        title: "English Breakfast",
-        desc: "Desayuno completo con huevo, bacon, salchichas, judías y tostadas. Ideal para empezar fuerte.",
-        priceLabel: "Precio:",
-        priceValue: "—",
-        timeLabel: "Tiempo:",
-        timeValue: "10–15 min",
-        allergensLabel: "Alérgenos:",
-        allergensValue: "Huevo, gluten",
-        noteLabel: "Nota:",
-        noteValue: "Tamaño orientativo",
-        tipsTitle: "Cómo verlo en AR",
-        tip1: "Pulsa Ver en AR y acepta el permiso de cámara.",
-        tip2: "Apunta a una superficie plana (mesa o suelo) con buena luz.",
-        tip3: "Mueve el móvil suavemente para que detecte el espacio.",
-        openBtn: "Ver en AR",
-        smallNote: "Si no se abre, prueba desde Chrome/Safari (evita navegadores dentro de apps).",
-        loading: "Cargando modelo…"
-      },
-      en: {
-        back: "Back to menu",
-        title: "English Breakfast",
-        desc: "A full breakfast with egg, bacon, sausage, beans and toast. Perfect to start strong.",
-        priceLabel: "Price:",
-        priceValue: "—",
-        timeLabel: "Prep time:",
-        timeValue: "10–15 min",
-        allergensLabel: "Allergens:",
-        allergensValue: "Egg, gluten",
-        noteLabel: "Note:",
-        noteValue: "Approx. size",
-        tipsTitle: "How to view in AR",
-        tip1: "Tap View in AR and allow camera permissions.",
-        tip2: "Point to a flat surface (table or floor) with good light.",
-        tip3: "Move your phone slowly so it can detect the space.",
-        openBtn: "View in AR",
-        smallNote: "If it doesn’t open, try Chrome/Safari (avoid in-app browsers).",
-        loading: "Loading model…"
-      }
-    };
-
-    const setLang = (lang) => {
-      document.getElementById("btnES").classList.toggle("active", lang === "es");
-      document.getElementById("btnEN").classList.toggle("active", lang === "en");
-      document.querySelectorAll("[data-i18n]").forEach(el => {
-        const key = el.getAttribute("data-i18n");
-        if (strings[lang][key] !== undefined) el.innerHTML = strings[lang][key];
-      });
-      // también cambia el <title>
-      document.title = (lang === "en" ? "English Breakfast" : "English Breakfast") + " · AR";
-    };
-
-    document.getElementById("btnES").addEventListener("click", () => setLang("es"));
-    document.getElementById("btnEN").addEventListener("click", () => setLang("en"));
-
-    const navLang = (navigator.language || "").toLowerCase();
-    setLang(navLang.startsWith("en") ? "en" : "es");
-
-    // Loader al inicio
-    overlay.style.display = "flex";
-
-    // Cuando carga el modelo -> habilitar botones y ocultar loader
-    mv.addEventListener("load", () => {
-      overlay.style.display = "none";
-      arBtn.disabled = false;
-      openARBtn.disabled = false;
-    });
-
-    mv.addEventListener("error", () => {
-      overlay.style.display = "flex";
-      overlay.querySelector(".loaderText").textContent =
-        "Error cargando el modelo. Revisa la URL o el nombre del archivo.";
-    });
-
-    // Botón CTA inferior dispara el AR del model-viewer
-    openARBtn.addEventListener("click", () => {
-      // muestra overlay (opcional, el viewer también muestra UI)
-      overlay.style.display = "flex";
-      overlay.querySelector(".loaderText").textContent =
-        document.documentElement.lang === "en" ? "Opening camera…" : "Abriendo cámara…";
-
-      // Esto activa el mismo flujo AR que el botón del slot
-      mv.activateAR();
-      // Quitamos overlay al volver a la página (muchos navegadores disparan visibilitychange)
-      const resume = () => { overlay.style.display = "none"; };
-      window.addEventListener("focus", resume, { once:true });
-      window.addEventListener("pageshow", resume, { once:true });
-      document.addEventListener("visibilitychange", () => { if (!document.hidden) resume(); }, { once:true });
-    });
-  </script>
+  mv.addEventListener('error', () => {
+    loading.querySelector('p').textContent = 'Error cargando el modelo';
+  });
+</script>
 
 </body>
 </html>
