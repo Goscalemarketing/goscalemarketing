@@ -102,7 +102,6 @@
       height:100%;
       background:#0b0b0b;
       display:block;
-      /* ✅ gestos fluidos (móvil/PC) */
       touch-action: pan-y;
     }
 
@@ -185,15 +184,11 @@
 <body>
 
 <header>
-  <a class="menuBtn"
-     href="https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view">
+  <a class="menuBtn" href="https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view">
     ← Menú
   </a>
 
-  <a class="byGoscale"
-     href="https://goscalemarketing.com"
-     target="_blank"
-     rel="noopener">
+  <a class="byGoscale" href="https://goscalemarketing.com" target="_blank" rel="noopener">
     <span>by</span>
     <img src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png">
   </a>
@@ -230,13 +225,12 @@
       exposure="1.6"
       shadow-intensity="1"
 
-      <!-- ✅ Rotación libre en el visor 3D -->
+      camera-orbit="0deg 75deg 2.2m"
       min-camera-orbit="-180deg 5deg auto"
       max-camera-orbit="180deg 175deg auto"
 
       ar
       ar-placement="floor"
-      <!-- ✅ MUY IMPORTANTE: permitir escalar en AR -->
       ar-scale="auto"
       ar-modes="webxr scene-viewer quick-look"
       ar-light-estimation
@@ -250,11 +244,9 @@
 
   <div class="brandBottom">
     <div class="brandWrap">
-      <img
-        class="restaurantLogo"
+      <img class="restaurantLogo"
         src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/LOGO%20OPC%202_MONOGRAMA%2CLOGOY%20LEMA%20NARANJA-18.png"
-        alt="Restaurante"
-      >
+        alt="Restaurante">
       <span class="brandClaim">Powered by Go Scale Marketing</span>
     </div>
   </div>
