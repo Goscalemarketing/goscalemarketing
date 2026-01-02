@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Pastel Banana Chip AR</title>
 
-<!-- Model Viewer -->
 <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
 <style>
@@ -13,6 +12,7 @@
   --bg:#0b0b0b;
   --text:#ffffff;
   --muted:#cfcfcf;
+  --border: rgba(255,255,255,.18);
 }
 
 body{
@@ -37,7 +37,7 @@ body{
 }
 
 .back{
-  border:1px solid rgba(255,255,255,.2);
+  border:1px solid var(--border);
   border-radius:14px;
   padding:10px 14px;
   color:#fff;
@@ -51,31 +51,34 @@ body{
   gap:8px;
   text-decoration:none;
   color:#fff;
-  border:1px solid rgba(255,255,255,.2);
+  border:1px solid var(--border);
   border-radius:14px;
   padding:8px 12px;
 }
 
 .by img{
-  height:26px;
+  height:28px;
 }
 
 /* TITLE */
 h1{
   font-size:28px;
-  font-weight:800;
+  font-weight:900;
   margin:14px 0 6px;
+  color:#fff;
 }
 
 .desc{
   color:var(--muted);
   font-size:15px;
   line-height:1.45;
+  margin:0 0 14px;
 }
 
 /* VIEWER */
 .viewerWrap{
-  margin:20px 0 10px;
+  margin:10px 0 10px;
+  position:relative;
 }
 
 model-viewer{
@@ -85,13 +88,55 @@ model-viewer{
   border-radius:18px;
 }
 
+/* Loading hint over viewer */
+.viewerHint{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  pointer-events:none;
+  border-radius:18px;
+  background: radial-gradient(circle at center, rgba(0,0,0,.18), rgba(0,0,0,.55));
+  opacity:0;
+  transition:opacity .2s ease;
+}
+
+.viewerHint.show{ opacity:1; }
+
+.hintBox{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:12px;
+  padding:16px 18px;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:16px;
+  background: rgba(0,0,0,.35);
+  backdrop-filter: blur(6px);
+}
+
+.smallSpinner{
+  width:34px;
+  height:34px;
+  border:4px solid rgba(255,255,255,.2);
+  border-top:4px solid #fff;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+
+.hintText{
+  font-size:13px;
+  opacity:.9;
+}
+
 /* AR BUTTON */
 .arBtn{
   width:100%;
   margin-top:14px;
   padding:16px;
   font-size:17px;
-  font-weight:800;
+  font-weight:900;
   border-radius:18px;
   border:0;
   cursor:pointer;
@@ -99,23 +144,37 @@ model-viewer{
   color:#000;
 }
 
+.arBtn:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+/* Optional text status */
+.statusLine{
+  margin-top:10px;
+  text-align:center;
+  font-size:12px;
+  color: rgba(255,255,255,.65);
+  min-height:16px;
+}
+
 /* RESTAURANT LOGO BOTTOM */
 .brandBottom{
   display:flex;
   justify-content:center;
   padding:32px 16px 44px;
-  margin-top:16px;
+  margin-top:18px;
   background:linear-gradient(to top, rgba(0,0,0,.45), rgba(0,0,0,0));
 }
 
 .restaurantLogo{
-  height:120px;
+  height:140px;  /* ✅ MÁS GRANDE */
   width:auto;
   max-width:95%;
   filter: drop-shadow(0 6px 16px rgba(0,0,0,.45));
 }
 
-/* LOADER */
+/* LOADER (opening camera) */
 #loader{
   position:fixed;
   inset:0;
@@ -185,7 +244,16 @@ model-viewer{
       alt="Pastel Banana Chip AR">
     </model-viewer>
 
-    <button class="arBtn" id="openAR">Ver en AR</button>
+    <!-- ✅ Overlay de cargando del viewer -->
+    <div id="viewerHint" class="viewerHint show" aria-hidden="true">
+      <div class="hintBox">
+        <div class="smallSpinner"></div>
+        <div class="hintText" id="hintText">Cargando modelo…</div>
+      </div>
+    </div>
+
+    <button class="arBtn" id="openAR" type="button" disabled> Cargando modelo… </button>
+    <div class="statusLine" id="statusLine"></div>
   </div>
 
 </div>
@@ -198,7 +266,7 @@ model-viewer{
   />
 </div>
 
-<!-- LOADER -->
+<!-- LOADER (abriendo cámara) -->
 <div id="loader">
   <div class="loaderBox">
     <div class="spinner"></div>
@@ -210,15 +278,63 @@ model-viewer{
 const mv = document.getElementById("mv");
 const btn = document.getElementById("openAR");
 const loader = document.getElementById("loader");
+const viewerHint = document.getElementById("viewerHint");
+const hintText = document.getElementById("hintText");
+const statusLine = document.getElementById("statusLine");
 
-// Encender loader y abrir AR
+function setReady(){
+  viewerHint.classList.remove("show");
+  btn.disabled = false;
+  btn.textContent = "Ver en AR";
+  statusLine.textContent = "";
+}
+
+function setLoading(){
+  viewerHint.classList.add("show");
+  hintText.textContent = "Cargando modelo…";
+  btn.disabled = true;
+  btn.textContent = "Cargando modelo…";
+  statusLine.textContent = "";
+}
+
+function setError(){
+  viewerHint.classList.add("show");
+  hintText.textContent = "Error cargando modelo";
+  btn.disabled = true;
+  btn.textContent = "Error cargando modelo";
+  statusLine.textContent = "Revisa la URL del modelo (GLB/USDZ) y CORS en R2.";
+}
+
+// Estado inicial
+setLoading();
+
+// ✅ Cuando el GLB termina de cargar
+mv.addEventListener("load", () => {
+  setReady();
+});
+
+// ✅ Progreso (opcional) para que se note que avanza
+mv.addEventListener("progress", (ev) => {
+  const p = Math.round((ev.detail.totalProgress || 0) * 100);
+  if (btn.disabled) {
+    hintText.textContent = `Cargando modelo… ${p}%`;
+    btn.textContent = `Cargando… ${p}%`;
+  }
+});
+
+// ✅ Si falla la carga
+mv.addEventListener("error", () => {
+  setError();
+});
+
+// Abrir AR
 btn.addEventListener("click", async () => {
   loader.style.display = "flex";
-  try {
-    await mv.activateAR(); // abre Scene Viewer / Quick Look / WebXR según dispositivo
-  } catch (e) {
-    // si el navegador bloquea o falla, quitamos loader
+  try{
+    await mv.activateAR();
+  }catch(e){
     loader.style.display = "none";
+    statusLine.textContent = "No se pudo abrir AR en este navegador/dispositivo.";
   }
 });
 
@@ -227,20 +343,16 @@ function hideLoaderOnReturn(){
   loader.style.display = "none";
 }
 
-// Vuelve desde apps externas (Scene Viewer) o Quick Look -> estos eventos suelen dispararse
 window.addEventListener("pageshow", hideLoaderOnReturn);
 window.addEventListener("focus", hideLoaderOnReturn);
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) hideLoaderOnReturn();
 });
 
-// Extra: si el usuario cancela o no soporta AR, también apagar loader
+// Extra: si AR se cancela o falla, también apagar loader
 mv.addEventListener("ar-status", (ev) => {
   const s = ev.detail.status;
-  // statuses típicos: "not-presenting", "session-started", "failed"
-  if (s === "not-presenting" || s === "failed") {
-    loader.style.display = "none";
-  }
+  if (s === "not-presenting" || s === "failed") loader.style.display = "none";
 });
 </script>
 
