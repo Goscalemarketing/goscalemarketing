@@ -1,9 +1,19 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Menú AR</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>English Breakfast · AR</title>
+
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+
+  <!-- (Opcional) Preload para acelerar -->
+  <link rel="preload"
+        href="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.glb"
+        as="fetch" crossorigin>
+  <link rel="preload"
+        href="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.usdz"
+        as="fetch">
 
   <style>
     :root{
@@ -74,13 +84,13 @@
       padding:10px 12px;
       font-size:14px;
       opacity:.7;
+      cursor:pointer;
     }
     .lang button.active{
       background:rgba(255,255,255,.10);
       opacity:1;
     }
 
-    /* Logo */
     .brand{
       display:flex;
       justify-content:center;
@@ -155,11 +165,28 @@
       color:var(--btnText);
       cursor:pointer;
     }
+    .btn[disabled]{
+      opacity:.6;
+      cursor:not-allowed;
+    }
     .small{
       text-align:center;
       color:var(--muted2);
       font-size:12px;
       margin:0;
+    }
+
+    /* ✅ Viewer embebido */
+    .viewerCard{
+      padding:0;
+      overflow:hidden;
+    }
+    model-viewer{
+      width:100%;
+      height:360px;
+      display:block;
+      background:#0b0b0b;
+      touch-action: pan-y;
     }
 
     /* Loader overlay */
@@ -208,12 +235,43 @@
       </div>
     </div>
 
-    <!-- ✅ Logo (solo en la ficha previa) -->
     <div class="brand">
       <img
         src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png"
         alt="Go Scale Marketing"
       />
+    </div>
+
+    <!-- ✅ Viewer 3D + AR (igual que hamburguesa) -->
+    <div class="card viewerCard">
+      <model-viewer
+        id="mv"
+        src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.glb"
+        ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.usdz"
+
+        camera-controls
+        interaction-prompt="none"
+        loading="eager"
+        reveal="auto"
+
+        environment-image="https://modelviewer.dev/shared-assets/environments/neutral.hdr"
+        tone-mapping="neutral"
+        exposure="1.6"
+        shadow-intensity="1"
+
+        min-camera-orbit="-180deg 5deg auto"
+        max-camera-orbit="180deg 175deg auto"
+
+        ar
+        ar-modes="webxr scene-viewer quick-look"
+        ar-placement="floor"
+        ar-scale="auto"
+        ar-light-estimation
+      >
+        <button class="btn" id="arBtn" slot="ar-button" disabled data-i18n="openBtn">
+          Ver en AR
+        </button>
+      </model-viewer>
     </div>
 
     <div class="card">
@@ -240,7 +298,8 @@
     </div>
 
     <div class="cta">
-      <button class="btn" id="openARBtn" type="button" data-i18n="openBtn">Ver en AR</button>
+      <!-- ✅ Botón “extra” por si quieres mantener el CTA bajo -->
+      <button class="btn" id="openARBtn" type="button" disabled data-i18n="openBtn">Ver en AR</button>
       <p class="small" data-i18n="smallNote">Si no se abre, prueba desde Chrome/Safari (evita navegadores dentro de apps).</p>
     </div>
 
@@ -249,27 +308,21 @@
   <div id="loaderOverlay">
     <div class="loader">
       <div class="spinner"></div>
-      <div class="loaderText" data-i18n="loading">Abriendo cámara…</div>
+      <div class="loaderText" data-i18n="loading">Cargando modelo…</div>
     </div>
   </div>
 
   <script>
-    // ✅ Menú Canva
     const MENU_URL = "https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view?utm_content=DAG8SYy2DPc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5c7aa53580";
 
-    // ✅ Modelos
-    const GLB_URL  = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.glb";
-    const USDZ_URL = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/English_Breakfast/Full%20English%20breakfast.usdz";
-
-    const ua = navigator.userAgent;
-    const isiOS = /iPad|iPhone|iPod/.test(ua);
-    const isAndroid = /Android/.test(ua);
-
+    const mv = document.getElementById("mv");
     const overlay = document.getElementById("loaderOverlay");
     const backLink = document.getElementById("backLink");
+    const arBtn = document.getElementById("arBtn");
+    const openARBtn = document.getElementById("openARBtn");
+
     backLink.href = MENU_URL;
 
-    // i18n
     const strings = {
       es: {
         back: "Volver al menú",
@@ -289,7 +342,7 @@
         tip3: "Mueve el móvil suavemente para que detecte el espacio.",
         openBtn: "Ver en AR",
         smallNote: "Si no se abre, prueba desde Chrome/Safari (evita navegadores dentro de apps).",
-        loading: "Abriendo cámara…"
+        loading: "Cargando modelo…"
       },
       en: {
         back: "Back to menu",
@@ -309,7 +362,7 @@
         tip3: "Move your phone slowly so it can detect the space.",
         openBtn: "View in AR",
         smallNote: "If it doesn’t open, try Chrome/Safari (avoid in-app browsers).",
-        loading: "Opening camera…"
+        loading: "Loading model…"
       }
     };
 
@@ -320,50 +373,46 @@
         const key = el.getAttribute("data-i18n");
         if (strings[lang][key] !== undefined) el.innerHTML = strings[lang][key];
       });
+      // también cambia el <title>
+      document.title = (lang === "en" ? "English Breakfast" : "English Breakfast") + " · AR";
     };
 
     document.getElementById("btnES").addEventListener("click", () => setLang("es"));
     document.getElementById("btnEN").addEventListener("click", () => setLang("en"));
 
-    // Idioma inicial
     const navLang = (navigator.language || "").toLowerCase();
     setLang(navLang.startsWith("en") ? "en" : "es");
 
-    // ✅ Función única: al volver desde AR -> ocultar loader + ir al menú
-    const resumeHandler = () => {
-      overlay.style.display = "none";
-      if (sessionStorage.getItem("fromAR") === "1") {
-        sessionStorage.removeItem("fromAR");
-        window.location.href = MENU_URL;
-      }
-    };
+    // Loader al inicio
+    overlay.style.display = "flex";
 
-    // Estos eventos cubren Safari, Chrome, y muchos in-app browsers
-    window.addEventListener("pageshow", resumeHandler);
-    window.addEventListener("focus", resumeHandler);
-    document.addEventListener("visibilitychange", () => {
-      if (!document.hidden) resumeHandler();
+    // Cuando carga el modelo -> habilitar botones y ocultar loader
+    mv.addEventListener("load", () => {
+      overlay.style.display = "none";
+      arBtn.disabled = false;
+      openARBtn.disabled = false;
     });
 
-    // Abrir AR
-    document.getElementById("openARBtn").addEventListener("click", () => {
+    mv.addEventListener("error", () => {
       overlay.style.display = "flex";
-      sessionStorage.setItem("fromAR", "1");
+      overlay.querySelector(".loaderText").textContent =
+        "Error cargando el modelo. Revisa la URL o el nombre del archivo.";
+    });
 
-      setTimeout(() => {
-        if (isiOS) {
-          window.location.href = USDZ_URL;
-        } else if (isAndroid) {
-          const intent =
-            "intent://arvr.google.com/scene-viewer/1.0" +
-            "?file=" + encodeURIComponent(GLB_URL) +
-            "&mode=ar_only" +
-            "#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end;";
-          window.location.href = intent;
-        } else {
-          window.location.href = GLB_URL;
-        }
-      }, 250);
+    // Botón CTA inferior dispara el AR del model-viewer
+    openARBtn.addEventListener("click", () => {
+      // muestra overlay (opcional, el viewer también muestra UI)
+      overlay.style.display = "flex";
+      overlay.querySelector(".loaderText").textContent =
+        document.documentElement.lang === "en" ? "Opening camera…" : "Abriendo cámara…";
+
+      // Esto activa el mismo flujo AR que el botón del slot
+      mv.activateAR();
+      // Quitamos overlay al volver a la página (muchos navegadores disparan visibilitychange)
+      const resume = () => { overlay.style.display = "none"; };
+      window.addEventListener("focus", resume, { once:true });
+      window.addEventListener("pageshow", resume, { once:true });
+      document.addEventListener("visibilitychange", () => { if (!document.hidden) resume(); }, { once:true });
     });
   </script>
 
