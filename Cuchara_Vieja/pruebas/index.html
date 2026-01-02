@@ -54,7 +54,7 @@
     }
 
     a.byGoscale img{
-      height:20px;
+      height:28px; /* logo más grande */
       width:auto;
       opacity:.95;
     }
@@ -108,7 +108,7 @@
       display:block;
     }
 
-    /* BOTÓN AR – debajo del modelo */
+    /* BOTÓN AR */
     .arBtn{
       position:absolute;
       bottom:16px;
@@ -131,7 +131,7 @@
       cursor:not-allowed;
     }
 
-    /* LOGO ABAJO */
+    /* LOGO RESTAURANTE */
     .brandBottom{
       padding:14px 16px 18px;
       display:flex;
@@ -140,10 +140,10 @@
       background:rgba(0,0,0,.12);
     }
 
-    .brandBottom img{
-      height:34px;
+    .restaurantLogo{
+      height:56px;
       width:auto;
-      opacity:.95;
+      max-width:90%;
     }
 
     /* LOADING */
@@ -184,93 +184,97 @@
 
 <body>
 
-  <header>
-    <a class="menuBtn"
-       href="https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view?utm_content=DAG8SYy2DPc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5c7aa53580">
-      ← Menú
-    </a>
+<header>
+  <a class="menuBtn"
+     href="https://www.canva.com/design/DAG8SYy2DPc/RVkcbBbMLHthtSRnkiUkGA/view?utm_content=DAG8SYy2DPc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5c7aa53580">
+    ← Menú
+  </a>
 
-    <a class="byGoscale"
-       href="https://goscalemarketing.com"
-       target="_blank"
-       rel="noopener">
-      <span>by</span>
-      <img
-        src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png"
-        alt="GoScaleMarketing">
-    </a>
-  </header>
+  <a class="byGoscale"
+     href="https://goscalemarketing.com"
+     target="_blank"
+     rel="noopener">
+    <span>by</span>
+    <img
+      src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png"
+      alt="GoScaleMarketing">
+  </a>
+</header>
 
-  <main>
-    <section id="dishInfo">
-      <h1 id="dishTitle">Pastel Banana Chip</h1>
-      <p id="dishDesc">
-        Ingredientes: banana, harina, azúcar, huevos, mantequilla, chips de chocolate.
-      </p>
-    </section>
+<main>
+  <section id="dishInfo">
+    <h1 id="dishTitle">Pastel Banana Chip</h1>
+    <p id="dishDesc">
+      Ingredientes: banana, harina, azúcar, huevos, mantequilla, chips de chocolate.
+    </p>
+  </section>
 
-    <div class="viewerWrap">
-      <!-- LOADING -->
-      <div id="loading">
-        <div class="spinner"></div>
-        <p>Cargando modelo…</p>
-      </div>
+  <div class="viewerWrap">
 
-      <model-viewer
-        id="mv"
-        src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb"
-        ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz"
-
-        camera-controls
-        interaction-prompt="none"
-        touch-action="pan-y"
-
-        loading="eager"
-        reveal="auto"
-
-        environment-image="https://modelviewer.dev/shared-assets/environments/neutral.hdr"
-        tone-mapping="neutral"
-        exposure="1.6"
-        shadow-intensity="1"
-
-        ar
-        ar-placement="floor"
-        ar-scale="fixed"
-        ar-modes="webxr scene-viewer quick-look"
-        ar-light-estimation
-      >
-        <!-- BOTÓN AR NATIVO -->
-        <button
-          id="arBtn"
-          class="arBtn"
-          slot="ar-button"
-          disabled>
-          Ver en AR
-        </button>
-      </model-viewer>
+    <div id="loading">
+      <div class="spinner"></div>
+      <p>Cargando modelo…</p>
     </div>
 
-    <div class="brandBottom">
-      <img
-        src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png"
-        alt="GoScaleMarketing">
-    </div>
-  </main>
+    <model-viewer
+      id="mv"
+      src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb"
+      ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz"
 
-  <script>
-    const mv = document.getElementById('mv');
-    const arBtn = document.getElementById('arBtn');
-    const loading = document.getElementById('loading');
+      camera-controls
+      min-camera-orbit="auto 10deg auto"
+      max-camera-orbit="auto 170deg auto"
 
-    mv.addEventListener('load', () => {
-      loading.style.display = 'none';
-      arBtn.disabled = false;
-    });
+      interaction-prompt="none"
+      touch-action="pan-y"
 
-    mv.addEventListener('error', () => {
-      loading.querySelector('p').textContent = 'Error cargando el modelo';
-    });
-  </script>
+      loading="eager"
+      reveal="auto"
+
+      environment-image="https://modelviewer.dev/shared-assets/environments/neutral.hdr"
+      tone-mapping="neutral"
+      exposure="1.6"
+      shadow-intensity="1"
+
+      ar
+      ar-placement="floor wall"
+      ar-scale="fixed"
+      ar-modes="webxr scene-viewer quick-look"
+      ar-light-estimation
+    >
+      <button
+        id="arBtn"
+        class="arBtn"
+        slot="ar-button"
+        disabled>
+        Ver en AR
+      </button>
+    </model-viewer>
+
+  </div>
+
+  <div class="brandBottom">
+    <img
+      src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/LOGO%20OPC%202_MONOGRAMA%2CLOGOY%20LEMA%20NARANJA-18.png"
+      alt="Restaurante"
+      class="restaurantLogo">
+  </div>
+</main>
+
+<script>
+  const mv = document.getElementById('mv');
+  const arBtn = document.getElementById('arBtn');
+  const loading = document.getElementById('loading');
+
+  mv.addEventListener('load', () => {
+    loading.style.display = 'none';
+    arBtn.disabled = false;
+  });
+
+  mv.addEventListener('error', () => {
+    loading.querySelector('p').textContent = 'Error cargando el modelo';
+  });
+</script>
 
 </body>
 </html>
