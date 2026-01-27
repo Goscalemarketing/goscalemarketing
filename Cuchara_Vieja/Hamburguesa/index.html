@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Hamburguesa clásica · AR</title>
+  <title>Hamburguesa clásica · AR (WebXR)</title>
 
-  <!-- Fija versión para que no te cambie el comportamiento sin querer -->
+  <!-- Versión fija para evitar cambios inesperados -->
   <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
 
   <style>
@@ -16,7 +16,7 @@
       font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial;
       color:#fff;
 
-      /* IMPORTANTE: evita que el navegador “robe” pinch/gestos */
+      /* CLAVE para que el navegador no robe pinch/gestos */
       touch-action: none;
       overscroll-behavior: none;
     }
@@ -57,7 +57,6 @@
       font-size:12px;
       font-weight:700;
     }
-
     .byGoscale img{ height:22px; width:auto; }
 
     main{
@@ -82,7 +81,6 @@
       margin:0;
       font-size:24px;
       font-weight:900;
-      color:#fff;
     }
 
     #dishDesc{
@@ -105,7 +103,7 @@
       background:#0b0b0b;
       display:block;
 
-      /* CLAVE: permite pinch/rotate */
+      /* CLAVE: permite pinch/rotate (en la vista 3D previa) */
       touch-action: none;
     }
 
@@ -125,7 +123,6 @@
       cursor:pointer;
       z-index:25;
     }
-
     .arBtn[disabled]{ opacity:.55; cursor:not-allowed; }
 
     #loading{
@@ -147,7 +144,6 @@
       border-radius:50%;
       animation:spin 1s linear infinite;
     }
-
     @keyframes spin{ to{ transform:rotate(360deg); } }
 
     .brandBottom{
@@ -179,20 +175,33 @@
       letter-spacing:.3px;
     }
 
-    /* =========================================================
-       CLAVE PARA TU PROBLEMA:
-       En WebXR AR, tus overlays pueden “comerse” los gestos.
-       Al entrar en AR (session-started), ocultamos UI superior/inferior
-       para que pinch/rotate/zoom lleguen al AR canvas.
-       ========================================================= */
+    /* En WebXR, para no “comernos” los gestos, ocultamos overlays al entrar en sesión */
     body.in-ar header,
     body.in-ar #dishInfo,
     body.in-ar .brandBottom{
       display:none;
     }
-
     body.in-ar main{
-      inset:0; /* que el visor ocupe toda la pantalla */
+      inset:0;
+    }
+
+    /* Debug pill */
+    #debug{
+      position:fixed;
+      right:10px;
+      bottom:10px;
+      z-index:9999;
+      font-size:12px;
+      padding:8px 10px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(0,0,0,.55);
+      color:#fff;
+      max-width:70vw;
+      pointer-events:none;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
   </style>
 </head>
@@ -200,15 +209,9 @@
 <body>
 
 <header>
-  <a class="menuBtn"
-     href="https://gastro.goscalemarketing.com/menu">
-    ← Menú
-  </a>
+  <a class="menuBtn" href="https://gastro.goscalemarketing.com/menu">← Menú</a>
 
-  <a class="byGoscale"
-     href="https://goscalemarketing.com"
-     target="_blank"
-     rel="noopener">
+  <a class="byGoscale" href="https://goscalemarketing.com" target="_blank" rel="noopener">
     <span>by</span>
     <img src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png" alt="Go Scale Marketing">
   </a>
@@ -249,14 +252,12 @@
       max-camera-orbit="180deg 175deg auto"
 
       ar
-      ar-modes="webxr scene-viewer quick-look"
+      ar-modes="webxr quick-look"
       ar-placement="floor"
       ar-scale="auto"
       ar-light-estimation
     >
-      <button id="arBtn" class="arBtn" slot="ar-button" disabled>
-        Ver en AR
-      </button>
+      <button id="arBtn" class="arBtn" slot="ar-button" disabled>Ver en AR</button>
     </model-viewer>
 
   </div>
@@ -274,10 +275,13 @@
 
 </main>
 
+<div id="debug">AR: —</div>
+
 <script>
   const mv = document.getElementById('mv');
   const arBtn = document.getElementById('arBtn');
   const loading = document.getElementById('loading');
+  const debug = document.getElementById('debug');
 
   mv.addEventListener('load', () => {
     loading.style.display = 'none';
@@ -288,26 +292,25 @@
     loading.querySelector('p').textContent = 'Error cargando el modelo';
   });
 
-  // ✅ CLAVE: cuando entra en WebXR AR, ocultamos overlays para no bloquear gestos
+  // DEBUG + manejo de overlays al entrar/salir de WebXR
   mv.addEventListener('ar-status', (e) => {
     const status = e.detail.status;
+    debug.textContent = 'AR: ' + status;
 
     if (status === 'session-started') {
       document.body.classList.add('in-ar');
     }
 
-    // Al salir de AR, restauramos UI
     if (status === 'not-presenting' || status === 'failed') {
       document.body.classList.remove('in-ar');
     }
   });
 
-  // Seguridad extra: al volver a la pestaña, asegurar UI correcta
+  // Extra: al volver a la pestaña, quita overlays si no hay sesión activa
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {
-      // Si por lo que sea no está presentando, quitamos la clase
-      // (no rompe nada aunque esté en AR)
-      if (!mv.arStatus || mv.arStatus === 'not-presenting') {
+      // si no está presentando, asegúrate de que la UI vuelve
+      if (mv.arStatus === 'not-presenting') {
         document.body.classList.remove('in-ar');
       }
     }
