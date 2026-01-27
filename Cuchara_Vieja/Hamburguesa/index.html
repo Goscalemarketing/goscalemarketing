@@ -3,122 +3,305 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>AR Directo (WebXR)</title>
+  <title>Hamburguesa clásica · AR</title>
 
+  <!-- Solo para previsualización (no usamos WebXR) -->
   <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
 
   <style>
-    html, body {
-      margin: 0;
-      height: 100%;
-      background: #000;
-      color: #fff;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      touch-action: none;
-      overscroll-behavior: none;
+    html, body{
+      margin:0;
+      height:100%;
+      background:#0b0b0b;
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial;
+      color:#fff;
     }
 
-    /* Model-viewer ocupa toda la pantalla */
-    model-viewer {
-      width: 100%;
-      height: 100%;
-      display: block;
-      background: #000;
-      touch-action: none;
+    header{
+      position:fixed;
+      inset:0 0 auto 0;
+      height:56px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 12px;
+      background:rgba(15,15,15,.75);
+      backdrop-filter: blur(10px);
+      z-index:30;
     }
 
-    /* Pantalla mínima de “tap” */
-    #tap {
-      position: fixed;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      background: rgba(0,0,0,0.80);
-      z-index: 9999;
-      text-align: center;
-      padding: 24px;
+    .menuBtn{
+      color:#fff;
+      text-decoration:none;
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:10px;
+      padding:8px 12px;
+      font-size:14px;
+      font-weight:700;
     }
 
-    .box {
-      max-width: 420px;
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 16px;
-      padding: 18px 16px;
-      background: rgba(0,0,0,0.45);
+    .byGoscale{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:12px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.16);
+      text-decoration:none;
+      color:#fff;
+      font-size:12px;
+      font-weight:700;
+    }
+    .byGoscale img{ height:22px; width:auto; }
+
+    main{
+      position:fixed;
+      inset:56px 0 0 0;
+      display:flex;
+      flex-direction:column;
     }
 
-    .title {
-      font-weight: 900;
-      font-size: 18px;
-      margin: 0 0 8px 0;
+    #dishInfo{
+      padding:14px 16px 10px;
+      background:linear-gradient(
+        to bottom,
+        rgba(11,11,11,.95),
+        rgba(11,11,11,.75),
+        rgba(11,11,11,0)
+      );
+      z-index:10;
     }
 
-    .sub {
-      margin: 0;
-      opacity: 0.8;
-      font-size: 13px;
-      line-height: 1.35;
+    #dishTitle{
+      margin:0;
+      font-size:24px;
+      font-weight:900;
+      color:#fff;
     }
 
-    .hint {
-      margin-top: 12px;
-      font-size: 12px;
-      opacity: 0.65;
+    #dishDesc{
+      margin:8px 0 0;
+      font-size:14px;
+      color:rgba(255,255,255,.75);
+      max-width:520px;
+      line-height:1.45;
+    }
+
+    .viewerWrap{
+      position:relative;
+      flex:1;
+      min-height:0;
+    }
+
+    model-viewer{
+      width:100%;
+      height:100%;
+      background:#0b0b0b;
+      display:block;
+      touch-action:none;
+    }
+
+    .arBtn{
+      position:absolute;
+      bottom:18px;
+      left:50%;
+      transform:translateX(-50%);
+      padding:14px 26px;
+      border-radius:18px;
+      font-size:16px;
+      font-weight:900;
+      background:#fff;
+      color:#111;
+      border:0;
+      box-shadow:0 12px 30px rgba(0,0,0,.45);
+      cursor:pointer;
+      z-index:25;
+    }
+
+    .arBtn[disabled]{ opacity:.55; cursor:not-allowed; }
+
+    #loading{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      gap:14px;
+      background:rgba(0,0,0,.75);
+      z-index:24;
+    }
+
+    .spinner{
+      width:44px; height:44px;
+      border:4px solid rgba(255,255,255,.2);
+      border-top:4px solid #fff;
+      border-radius:50%;
+      animation:spin 1s linear infinite;
+    }
+    @keyframes spin{ to{ transform:rotate(360deg); } }
+
+    .brandBottom{
+      padding:10px 12px 14px;
+      display:flex;
+      justify-content:center;
+      border-top:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.18);
+    }
+
+    .brandWrap{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:6px;
+    }
+
+    .restaurantLogo{
+      height:72px;
+      width:auto;
+      max-width:260px;
+      transform:scale(1.25);
+      opacity:.95;
+    }
+
+    .brandClaim{
+      font-size:11px;
+      color:rgba(255,255,255,.45);
+      letter-spacing:.3px;
     }
   </style>
 </head>
 
 <body>
 
-  <model-viewer
-    id="mv"
-    src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Hamburguesa/Hamburguesa.glb"
-    ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Hamburguesa/Hamburguesa.usdz"
+<header>
+  <a class="menuBtn" id="backLink" href="https://gastro.goscalemarketing.com/menu">← Menú</a>
 
-    ar
-    ar-modes="webxr quick-look"
-    ar-placement="floor"
-    ar-scale="auto"
-    ar-light-estimation
+  <a class="byGoscale" href="https://goscalemarketing.com" target="_blank" rel="noopener">
+    <span>by</span>
+    <img src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png" alt="Go Scale Marketing">
+  </a>
+</header>
 
-    interaction-prompt="none"
-    loading="eager"
-    reveal="auto"
-  ></model-viewer>
+<main>
 
-  <div id="tap">
-    <div class="box">
-      <p class="title">Tap para abrir AR</p>
-      <p class="sub">Se abrirá directamente en WebXR (Android). En iPhone abrirá Quick Look.</p>
-      <div class="hint">Si no abre, prueba en Chrome (no dentro de Instagram/WhatsApp).</div>
+  <section id="dishInfo">
+    <h1 id="dishTitle">Hamburguesa clásica</h1>
+    <p id="dishDesc">
+      Ingredientes: pan brioche, carne 180 g, queso cheddar, lechuga, tomate, cebolla y salsa especial.
+    </p>
+  </section>
+
+  <div class="viewerWrap">
+    <div id="loading">
+      <div class="spinner"></div>
+      <p>Cargando modelo…</p>
+    </div>
+
+    <!-- Preview web (NO AR webxr) -->
+    <model-viewer
+      id="mv"
+      src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Hamburguesa/Hamburguesa.glb"
+      camera-controls
+      interaction-prompt="none"
+      loading="eager"
+      reveal="auto"
+      environment-image="https://modelviewer.dev/shared-assets/environments/neutral.hdr"
+      tone-mapping="neutral"
+      exposure="1.6"
+      shadow-intensity="1"
+      min-camera-orbit="-180deg 5deg auto"
+      max-camera-orbit="180deg 175deg auto"
+    ></model-viewer>
+
+    <!-- Botón AR (lo controlamos por JS) -->
+    <button id="arBtn" class="arBtn" disabled>Ver en AR</button>
+  </div>
+
+  <div class="brandBottom">
+    <div class="brandWrap">
+      <img
+        class="restaurantLogo"
+        src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/LOGO%20OPC%202_MONOGRAMA%2CLOGOY%20LEMA%20NARANJA-18.png"
+        alt="Restaurante"
+      >
+      <span class="brandClaim">Powered by Go Scale Marketing</span>
     </div>
   </div>
 
-  <script>
-    const mv = document.getElementById('mv');
-    const tap = document.getElementById('tap');
+</main>
 
-    // Forzamos que el primer toque active AR (requisito del navegador)
-    const startAR = async () => {
-      try {
-        tap.style.display = 'none';
-        await mv.activateAR();
-      } catch (err) {
-        // Si falla, volvemos a mostrar el tap (para reintentar)
-        tap.style.display = 'grid';
-        console.log('No se pudo iniciar AR:', err);
-      }
-    };
+<script>
+  // ===== Config =====
+  const MENU_URL = "https://gastro.goscalemarketing.com/menu";
+  const GLB_URL  = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Hamburguesa/Hamburguesa.glb";
+  const USDZ_URL = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Hamburguesa/Hamburguesa.usdz";
 
-    // Tap en cualquier parte
-    tap.addEventListener('click', startAR, { passive: true });
-    tap.addEventListener('touchend', startAR, { passive: true });
+  const ua = navigator.userAgent;
+  const isiOS = /iPad|iPhone|iPod/.test(ua);
+  const isAndroid = /Android/.test(ua);
 
-    // Debug: confirma si realmente entra en WebXR
-    mv.addEventListener('ar-status', (e) => {
-      console.log('AR status:', e.detail.status);
-    });
-  </script>
+  const mv = document.getElementById('mv');
+  const arBtn = document.getElementById('arBtn');
+  const loading = document.getElementById('loading');
+  const backLink = document.getElementById('backLink');
+
+  backLink.href = MENU_URL;
+
+  mv.addEventListener('load', () => {
+    loading.style.display = 'none';
+    arBtn.disabled = false;
+  });
+
+  mv.addEventListener('error', () => {
+    loading.querySelector('p').textContent = 'Error cargando el modelo';
+  });
+
+  // ===== Auto volver al menú al cerrar AR =====
+  // Marcamos cuando salimos a AR, y cuando la pestaña vuelve visible, mandamos a MENU_URL.
+  const markLeavingToAR = () => sessionStorage.setItem("fromAR", "1");
+
+  const resumeToMenuIfNeeded = () => {
+    if (sessionStorage.getItem("fromAR") === "1") {
+      sessionStorage.removeItem("fromAR");
+      window.location.href = MENU_URL;
+    }
+  };
+
+  window.addEventListener("pageshow", resumeToMenuIfNeeded);
+  window.addEventListener("focus", resumeToMenuIfNeeded);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) resumeToMenuIfNeeded();
+  });
+
+  // ===== Abrir AR =====
+  arBtn.addEventListener('click', () => {
+    markLeavingToAR();
+
+    if (isiOS) {
+      // iOS Quick Look
+      window.location.href = USDZ_URL;
+      return;
+    }
+
+    if (isAndroid) {
+      // Android Scene Viewer (estable para gestos)
+      // mode=ar_preferred suele dar mejor UX que ar_only
+      const intent =
+        "intent://arvr.google.com/scene-viewer/1.0" +
+        "?file=" + encodeURIComponent(GLB_URL) +
+        "&mode=ar_preferred" +
+        "&resizable=true" +
+        "#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end;";
+      window.location.href = intent;
+      return;
+    }
+
+    // Otros: descarga/abre el GLB
+    window.location.href = GLB_URL;
+  });
+</script>
 
 </body>
 </html>
