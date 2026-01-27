@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Hamburguesa clásica · AR</title>
+  <title>Hamburguesa clásica · AR (WebXR)</title>
 
-  <!-- Fija versión para que no te cambie el comportamiento sin querer -->
+  <!-- Versión fija para evitar cambios inesperados -->
   <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
 
   <style>
@@ -15,8 +15,6 @@
       background:#0b0b0b;
       font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial;
       color:#fff;
-
-      /* IMPORTANTE: evita que el navegador “robe” pinch/gestos */
       touch-action: none;
       overscroll-behavior: none;
     }
@@ -57,7 +55,6 @@
       font-size:12px;
       font-weight:700;
     }
-
     .byGoscale img{ height:22px; width:auto; }
 
     main{
@@ -82,7 +79,6 @@
       margin:0;
       font-size:24px;
       font-weight:900;
-      color:#fff;
     }
 
     #dishDesc{
@@ -104,8 +100,6 @@
       height:100%;
       background:#0b0b0b;
       display:block;
-
-      /* CLAVE: permite pinch/rotate */
       touch-action: none;
     }
 
@@ -125,7 +119,6 @@
       cursor:pointer;
       z-index:25;
     }
-
     .arBtn[disabled]{ opacity:.55; cursor:not-allowed; }
 
     #loading{
@@ -147,7 +140,6 @@
       border-radius:50%;
       animation:spin 1s linear infinite;
     }
-
     @keyframes spin{ to{ transform:rotate(360deg); } }
 
     .brandBottom{
@@ -179,36 +171,65 @@
       letter-spacing:.3px;
     }
 
-    /* =========================================================
-       CLAVE PARA TU PROBLEMA:
-       En WebXR AR, tus overlays pueden “comerse” los gestos.
-       Al entrar en AR (session-started), ocultamos UI superior/inferior
-       para que pinch/rotate/zoom lleguen al AR canvas.
-       ========================================================= */
+    /* En AR: quitamos overlays para no bloquear gestos */
     body.in-ar header,
     body.in-ar #dishInfo,
     body.in-ar .brandBottom{
       display:none;
     }
-
     body.in-ar main{
-      inset:0; /* que el visor ocupe toda la pantalla */
+      inset:0;
     }
+
+    /* Hint durante AR */
+    #hint{
+      position:fixed;
+      left:50%;
+      bottom:14px;
+      transform:translateX(-50%);
+      z-index:9999;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(0,0,0,.55);
+      font-size:12px;
+      color:#fff;
+      display:none;
+      pointer-events:none;
+      max-width:90vw;
+      text-align:center;
+    }
+    body.in-ar #hint{ display:block; }
+
+    /* Debug opcional */
+    #debug{
+      position:fixed;
+      right:10px;
+      top:10px;
+      z-index:9999;
+      font-size:12px;
+      padding:8px 10px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(0,0,0,.55);
+      color:#fff;
+      pointer-events:none;
+      max-width:70vw;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      display:none;
+    }
+    /* Pon display:block si quieres ver el estado */
+    /* #debug{ display:block; } */
   </style>
 </head>
 
 <body>
 
 <header>
-  <a class="menuBtn"
-     href="https://gastro.goscalemarketing.com/menu">
-    ← Menú
-  </a>
-
-  <a class="byGoscale"
-     href="https://goscalemarketing.com"
-     target="_blank"
-     rel="noopener">
+  <a class="menuBtn" href="https://gastro.goscalemarketing.com/menu">← Menú</a>
+  <a class="byGoscale" href="https://goscalemarketing.com" target="_blank" rel="noopener">
     <span>by</span>
     <img src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png" alt="Go Scale Marketing">
   </a>
@@ -224,7 +245,6 @@
   </section>
 
   <div class="viewerWrap">
-
     <div id="loading">
       <div class="spinner"></div>
       <p>Cargando modelo…</p>
@@ -245,39 +265,35 @@
       exposure="1.6"
       shadow-intensity="1"
 
-      min-camera-orbit="-180deg 5deg auto"
-      max-camera-orbit="180deg 175deg auto"
-
       ar
-      ar-modes="webxr scene-viewer quick-look"
+      ar-modes="webxr quick-look"
       ar-placement="floor"
       ar-scale="auto"
       ar-light-estimation
     >
-      <button id="arBtn" class="arBtn" slot="ar-button" disabled>
-        Ver en AR
-      </button>
+      <button id="arBtn" class="arBtn" slot="ar-button" disabled>Ver en AR</button>
     </model-viewer>
-
   </div>
 
   <div class="brandBottom">
     <div class="brandWrap">
-      <img
-        class="restaurantLogo"
-        src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/LOGO%20OPC%202_MONOGRAMA%2CLOGOY%20LEMA%20NARANJA-18.png"
-        alt="Restaurante"
-      >
+      <img class="restaurantLogo"
+           src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/LOGO%20OPC%202_MONOGRAMA%2CLOGOY%20LEMA%20NARANJA-18.png"
+           alt="Restaurante">
       <span class="brandClaim">Powered by Go Scale Marketing</span>
     </div>
   </div>
 
 </main>
 
+<div id="hint">Pinch = tamaño · Giro con 2 dedos = rotación</div>
+<div id="debug">AR: —</div>
+
 <script>
   const mv = document.getElementById('mv');
   const arBtn = document.getElementById('arBtn');
   const loading = document.getElementById('loading');
+  const debug = document.getElementById('debug');
 
   mv.addEventListener('load', () => {
     loading.style.display = 'none';
@@ -288,32 +304,129 @@
     loading.querySelector('p').textContent = 'Error cargando el modelo';
   });
 
-  // ✅ CLAVE: cuando entra en WebXR AR, ocultamos overlays para no bloquear gestos
+  // ====== Gestos custom en AR (WebXR) ======
+  // Pinch => escala | Twist => rotación (Y). Mantiene "upright" (sin eje X)
+  let pointers = new Map();
+  let isInAR = false;
+
+  // Estado de manipulación
+  let startDist = 0;
+  let startAngle = 0;
+  let startScale = 1;
+  let startYawDeg = 0;
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+  const getTwo = () => Array.from(pointers.values()).slice(0, 2);
+
+  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  const angle = (a, b) => Math.atan2(b.y - a.y, b.x - a.x);
+
+  function setUniformScale(s) {
+    mv.scale = `${s} ${s} ${s}`; // propiedad soportada por model-viewer :contentReference[oaicite:1]{index=1}
+  }
+
+  function setYaw(yawDeg) {
+    // orientation: "xdeg ydeg zdeg" (nosotros solo Y)
+    mv.orientation = `0deg ${yawDeg}deg 0deg`;
+  }
+
+  function parseCurrentScale() {
+    // mv.scale puede venir como string "1 1 1" o objeto según versión; normalizamos
+    const s = mv.getAttribute('scale');
+    if (!s) return 1;
+    const parts = s.trim().split(/\s+/).map(Number);
+    return (parts.length >= 1 && isFinite(parts[0])) ? parts[0] : 1;
+  }
+
+  function parseCurrentYaw() {
+    const o = mv.getAttribute('orientation');
+    if (!o) return 0;
+    const parts = o.trim().split(/\s+/);
+    if (parts.length < 2) return 0;
+    const y = parseFloat(parts[1]); // "45deg" -> 45
+    return isFinite(y) ? y : 0;
+  }
+
+  function onPointerDown(e) {
+    if (!isInAR) return;
+    mv.setPointerCapture?.(e.pointerId);
+    pointers.set(e.pointerId, {x: e.clientX, y: e.clientY});
+    if (pointers.size === 2) {
+      const [p1, p2] = getTwo();
+      startDist = dist(p1, p2);
+      startAngle = angle(p1, p2);
+      startScale = parseCurrentScale();
+      startYawDeg = parseCurrentYaw();
+    }
+  }
+
+  function onPointerMove(e) {
+    if (!isInAR) return;
+    if (!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, {x: e.clientX, y: e.clientY});
+
+    if (pointers.size === 2) {
+      e.preventDefault();
+
+      const [p1, p2] = getTwo();
+      const d = dist(p1, p2);
+      const a = angle(p1, p2);
+
+      // Escala
+      if (startDist > 0) {
+        const factor = d / startDist;
+        const newScale = clamp(startScale * factor, 0.2, 3.0);
+        setUniformScale(newScale);
+        mv.setAttribute('scale', `${newScale} ${newScale} ${newScale}`);
+      }
+
+      // Rotación sobre Y (yaw)
+      const deltaRad = a - startAngle;
+      const deltaDeg = deltaRad * (180 / Math.PI);
+      const newYaw = startYawDeg + deltaDeg;
+      setYaw(newYaw);
+      mv.setAttribute('orientation', `0deg ${newYaw}deg 0deg`);
+    }
+  }
+
+  function onPointerUp(e) {
+    if (!isInAR) return;
+    pointers.delete(e.pointerId);
+    if (pointers.size < 2) {
+      startDist = 0;
+      startAngle = 0;
+    }
+  }
+
+  // Activamos listeners (solo se usan en AR)
+  mv.addEventListener('pointerdown', onPointerDown, {passive: false});
+  mv.addEventListener('pointermove', onPointerMove, {passive: false});
+  mv.addEventListener('pointerup', onPointerUp, {passive: false});
+  mv.addEventListener('pointercancel', onPointerUp, {passive: false});
+
+  // Estado AR
   mv.addEventListener('ar-status', (e) => {
     const status = e.detail.status;
+    // debug.textContent = 'AR: ' + status; // descomenta si quieres verlo
 
     if (status === 'session-started') {
+      isInAR = true;
+      pointers.clear();
       document.body.classList.add('in-ar');
+
+      // Asegura valores base (por si venías sin atributos)
+      if (!mv.getAttribute('scale')) mv.setAttribute('scale', '1 1 1');
+      if (!mv.getAttribute('orientation')) mv.setAttribute('orientation', '0deg 0deg 0deg');
     }
 
-    // Al salir de AR, restauramos UI
     if (status === 'not-presenting' || status === 'failed') {
+      isInAR = false;
+      pointers.clear();
       document.body.classList.remove('in-ar');
-    }
-  });
-
-  // Seguridad extra: al volver a la pestaña, asegurar UI correcta
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) {
-      // Si por lo que sea no está presentando, quitamos la clase
-      // (no rompe nada aunque esté en AR)
-      if (!mv.arStatus || mv.arStatus === 'not-presenting') {
-        document.body.classList.remove('in-ar');
-      }
     }
   });
 </script>
 
 </body>
 </html>
-
