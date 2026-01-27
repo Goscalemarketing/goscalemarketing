@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Hamburguesa clásica · AR</title>
 
+  <!-- Fija versión para que no te cambie el comportamiento sin querer -->
   <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
 
   <style>
@@ -14,6 +15,10 @@
       background:#0b0b0b;
       font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial;
       color:#fff;
+
+      /* IMPORTANTE: evita que el navegador “robe” pinch/gestos */
+      touch-action: none;
+      overscroll-behavior: none;
     }
 
     header{
@@ -99,7 +104,8 @@
       height:100%;
       background:#0b0b0b;
       display:block;
-      /* ayuda a que los gestos funcionen bien */
+
+      /* CLAVE: permite pinch/rotate */
       touch-action: none;
     }
 
@@ -172,6 +178,22 @@
       color:rgba(255,255,255,.45);
       letter-spacing:.3px;
     }
+
+    /* =========================================================
+       CLAVE PARA TU PROBLEMA:
+       En WebXR AR, tus overlays pueden “comerse” los gestos.
+       Al entrar en AR (session-started), ocultamos UI superior/inferior
+       para que pinch/rotate/zoom lleguen al AR canvas.
+       ========================================================= */
+    body.in-ar header,
+    body.in-ar #dishInfo,
+    body.in-ar .brandBottom{
+      display:none;
+    }
+
+    body.in-ar main{
+      inset:0; /* que el visor ocupe toda la pantalla */
+    }
   </style>
 </head>
 
@@ -188,7 +210,7 @@
      target="_blank"
      rel="noopener">
     <span>by</span>
-    <img src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png">
+    <img src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png" alt="Go Scale Marketing">
   </a>
 </header>
 
@@ -214,7 +236,7 @@
       ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Hamburguesa/Hamburguesa.usdz"
 
       camera-controls
-      interaction-prompt="none"
+      interaction-prompt="auto"
       loading="eager"
       reveal="auto"
 
@@ -227,7 +249,7 @@
       max-camera-orbit="180deg 175deg auto"
 
       ar
-      ar-modes="scene-viewer quick-look"
+      ar-modes="webxr scene-viewer quick-look"
       ar-placement="floor"
       ar-scale="auto"
       ar-light-estimation
@@ -265,14 +287,32 @@
   mv.addEventListener('error', () => {
     loading.querySelector('p').textContent = 'Error cargando el modelo';
   });
+
+  // ✅ CLAVE: cuando entra en WebXR AR, ocultamos overlays para no bloquear gestos
+  mv.addEventListener('ar-status', (e) => {
+    const status = e.detail.status;
+
+    if (status === 'session-started') {
+      document.body.classList.add('in-ar');
+    }
+
+    // Al salir de AR, restauramos UI
+    if (status === 'not-presenting' || status === 'failed') {
+      document.body.classList.remove('in-ar');
+    }
+  });
+
+  // Seguridad extra: al volver a la pestaña, asegurar UI correcta
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      // Si por lo que sea no está presentando, quitamos la clase
+      // (no rompe nada aunque esté en AR)
+      if (!mv.arStatus || mv.arStatus === 'not-presenting') {
+        document.body.classList.remove('in-ar');
+      }
+    }
+  });
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
-
