@@ -3,291 +3,91 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Hamburguesa clásica · AR</title>
-
-  <!-- Solo para previsualización (no usamos WebXR) -->
-  <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
-
+  <title>Hamburguesa AR · WebXR</title>
   <style>
-    html, body{
-      margin:0;
-      height:100%;
-      background:#0b0b0b;
-      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial;
-      color:#fff;
+    html, body { margin:0; height:100%; background:#000; overflow:hidden; touch-action:none; }
+    #overlay {
+      position:fixed; inset:0;
+      display:flex; flex-direction:column; justify-content:space-between;
+      pointer-events:none; color:#fff; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
     }
-
-    header{
-      position:fixed;
-      inset:0 0 auto 0;
-      height:56px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:0 12px;
-      background:rgba(15,15,15,.75);
-      backdrop-filter: blur(10px);
-      z-index:30;
+    #topbar {
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+      padding:12px;
+      background:linear-gradient(to bottom, rgba(0,0,0,.65), rgba(0,0,0,0));
+      pointer-events:auto;
     }
-
-    .menuBtn{
-      color:#fff;
-      text-decoration:none;
-      border:1px solid rgba(255,255,255,.18);
-      border-radius:10px;
-      padding:8px 12px;
-      font-size:14px;
-      font-weight:700;
+    .btn {
+      pointer-events:auto;
+      color:#fff; text-decoration:none;
+      border:1px solid rgba(255,255,255,.2);
+      background:rgba(255,255,255,.08);
+      padding:10px 12px; border-radius:12px;
+      font-weight:800; font-size:14px;
     }
-
-    .byGoscale{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 12px;
-      border-radius:12px;
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.16);
-      text-decoration:none;
-      color:#fff;
-      font-size:12px;
-      font-weight:700;
-    }
-    .byGoscale img{ height:22px; width:auto; }
-
-    main{
-      position:fixed;
-      inset:56px 0 0 0;
-      display:flex;
-      flex-direction:column;
-    }
-
-    #dishInfo{
-      padding:14px 16px 10px;
-      background:linear-gradient(
-        to bottom,
-        rgba(11,11,11,.95),
-        rgba(11,11,11,.75),
-        rgba(11,11,11,0)
-      );
-      z-index:10;
-    }
-
-    #dishTitle{
-      margin:0;
-      font-size:24px;
-      font-weight:900;
-      color:#fff;
-    }
-
-    #dishDesc{
-      margin:8px 0 0;
-      font-size:14px;
-      color:rgba(255,255,255,.75);
-      max-width:520px;
-      line-height:1.45;
-    }
-
-    .viewerWrap{
-      position:relative;
-      flex:1;
-      min-height:0;
-    }
-
-    model-viewer{
-      width:100%;
-      height:100%;
-      background:#0b0b0b;
-      display:block;
-      touch-action:none;
-    }
-
-    .arBtn{
-      position:absolute;
-      bottom:18px;
-      left:50%;
-      transform:translateX(-50%);
-      padding:14px 26px;
-      border-radius:18px;
-      font-size:16px;
-      font-weight:900;
-      background:#fff;
-      color:#111;
-      border:0;
-      box-shadow:0 12px 30px rgba(0,0,0,.45);
-      cursor:pointer;
-      z-index:25;
-    }
-
-    .arBtn[disabled]{ opacity:.55; cursor:not-allowed; }
-
-    #loading{
-      position:absolute;
-      inset:0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      flex-direction:column;
-      gap:14px;
-      background:rgba(0,0,0,.75);
-      z-index:24;
-    }
-
-    .spinner{
-      width:44px; height:44px;
-      border:4px solid rgba(255,255,255,.2);
-      border-top:4px solid #fff;
-      border-radius:50%;
-      animation:spin 1s linear infinite;
-    }
-    @keyframes spin{ to{ transform:rotate(360deg); } }
-
-    .brandBottom{
-      padding:10px 12px 14px;
-      display:flex;
-      justify-content:center;
-      border-top:1px solid rgba(255,255,255,.10);
-      background:rgba(0,0,0,.18);
-    }
-
-    .brandWrap{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:6px;
-    }
-
-    .restaurantLogo{
-      height:72px;
-      width:auto;
-      max-width:260px;
-      transform:scale(1.25);
+    #hint {
+      pointer-events:none;
+      text-align:center;
+      padding:14px 14px 18px;
+      font-size:13px;
+      background:linear-gradient(to top, rgba(0,0,0,.65), rgba(0,0,0,0));
       opacity:.95;
     }
-
-    .brandClaim{
-      font-size:11px;
-      color:rgba(255,255,255,.45);
-      letter-spacing:.3px;
+    #hint b { font-weight:900; }
+    #status {
+      pointer-events:none;
+      position:fixed; left:10px; bottom:10px;
+      font-size:12px; padding:8px 10px;
+      border-radius:10px; border:1px solid rgba(255,255,255,.18);
+      background:rgba(0,0,0,.45);
+      max-width:70vw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      opacity:.9;
     }
+    canvas { display:block; }
   </style>
 </head>
 
 <body>
-
-<header>
-  <a class="menuBtn" id="backLink" href="https://gastro.goscalemarketing.com/menu">← Menú</a>
-
-  <a class="byGoscale" href="https://goscalemarketing.com" target="_blank" rel="noopener">
-    <span>by</span>
-    <img src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png" alt="Go Scale Marketing">
-  </a>
-</header>
-
-<main>
-
-  <section id="dishInfo">
-    <h1 id="dishTitle">Hamburguesa clásica</h1>
-    <p id="dishDesc">
-      Ingredientes: pan brioche, carne 180 g, queso cheddar, lechuga, tomate, cebolla y salsa especial.
-    </p>
-  </section>
-
-  <div class="viewerWrap">
-    <div id="loading">
-      <div class="spinner"></div>
-      <p>Cargando modelo…</p>
+  <div id="overlay">
+    <div id="topbar">
+      <a class="btn" href="https://gastro.goscalemarketing.com/menu">← Menú</a>
+      <span style="font-weight:900">Hamburguesa clásica</span>
+      <a class="btn" href="https://goscalemarketing.com" target="_blank" rel="noopener">by GoScale</a>
     </div>
 
-    <!-- Preview web (NO AR webxr) -->
-    <model-viewer
-      id="mv"
-      src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Hamburguesa/Hamburguesa.glb"
-      camera-controls
-      interaction-prompt="none"
-      loading="eager"
-      reveal="auto"
-      environment-image="https://modelviewer.dev/shared-assets/environments/neutral.hdr"
-      tone-mapping="neutral"
-      exposure="1.6"
-      shadow-intensity="1"
-      min-camera-orbit="-180deg 5deg auto"
-      max-camera-orbit="180deg 175deg auto"
-    ></model-viewer>
-
-    <!-- Botón AR (lo controlamos por JS) -->
-    <button id="arBtn" class="arBtn" disabled>Ver en AR</button>
-  </div>
-
-  <div class="brandBottom">
-    <div class="brandWrap">
-      <img
-        class="restaurantLogo"
-        src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/LOGO%20OPC%202_MONOGRAMA%2CLOGOY%20LEMA%20NARANJA-18.png"
-        alt="Restaurante"
-      >
-      <span class="brandClaim">Powered by Go Scale Marketing</span>
+    <div id="hint">
+      <div><b>1)</b> Apunta al suelo hasta ver el círculo</div>
+      <div><b>2)</b> <b>Tap</b> para colocar</div>
+      <div><b>3)</b> <b>Pinch</b> = tamaño · <b>Giro 2 dedos</b> = rotación</div>
     </div>
   </div>
 
-</main>
+  <div id="status">Preparando…</div>
 
-<script>
-  // ===== Config =====
-  const MENU_URL = "https://gastro.goscalemarketing.com/menu";
-  const GLB_URL  = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Hamburguesa/Hamburguesa.glb";
-  const USDZ_URL = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Hamburguesa/Hamburguesa.usdz";
+  <script type="module">
+    import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+    import { GLTFLoader } from "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
+    import { ARButton } from "https://unpkg.com/three@0.160.0/examples/jsm/webxr/ARButton.js";
 
-  const ua = navigator.userAgent;
-  const isiOS = /iPad|iPhone|iPod/.test(ua);
-  const isAndroid = /Android/.test(ua);
+    // ====== URLs ======
+    const GLB_URL  = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Hamburguesa/Hamburguesa.glb";
+    const USDZ_URL = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Hamburguesa/Hamburguesa.usdz";
 
-  const mv = document.getElementById('mv');
-  const arBtn = document.getElementById('arBtn');
-  const loading = document.getElementById('loading');
-  const backLink = document.getElementById('backLink');
+    // ====== Device detect ======
+    const ua = navigator.userAgent;
+    const isiOS = /iPad|iPhone|iPod/.test(ua);
 
-  backLink.href = MENU_URL;
-
-  mv.addEventListener('load', () => {
-    loading.style.display = 'none';
-    arBtn.disabled = false;
-  });
-
-  mv.addEventListener('error', () => {
-    loading.querySelector('p').textContent = 'Error cargando el modelo';
-  });
-
-  // ===== Auto volver al menú al cerrar AR =====
-  // Marcamos cuando salimos a AR, y cuando la pestaña vuelve visible, mandamos a MENU_URL.
-  const markLeavingToAR = () => sessionStorage.setItem("fromAR", "1");
-
-  const resumeToMenuIfNeeded = () => {
-    if (sessionStorage.getItem("fromAR") === "1") {
-      sessionStorage.removeItem("fromAR");
-      window.location.href = MENU_URL;
-    }
-  };
-
-  window.addEventListener("pageshow", resumeToMenuIfNeeded);
-  window.addEventListener("focus", resumeToMenuIfNeeded);
-  document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) resumeToMenuIfNeeded();
-  });
-
-  // ===== Abrir AR =====
-  arBtn.addEventListener('click', () => {
-    markLeavingToAR();
-
+    // iOS: Quick Look directo (mantener como funciona)
     if (isiOS) {
-      // iOS Quick Look
       window.location.href = USDZ_URL;
-      return;
+      // No seguimos ejecutando JS AR en iOS
     }
 
-    if (isAndroid) {
-      // Android Scene Viewer (estable para gestos)
-      // mode=ar_preferred suele dar mejor UX que ar_only
+    const statusEl = document.getElementById("status");
+    const setStatus = (t) => statusEl.textContent = t;
+
+    // ====== Fallback Scene Viewer (si no hay WebXR AR) ======
+    function openSceneViewer() {
       const intent =
         "intent://arvr.google.com/scene-viewer/1.0" +
         "?file=" + encodeURIComponent(GLB_URL) +
@@ -295,13 +95,229 @@
         "&resizable=true" +
         "#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end;";
       window.location.href = intent;
-      return;
     }
 
-    // Otros: descarga/abre el GLB
-    window.location.href = GLB_URL;
-  });
-</script>
+    // ====== Check WebXR ======
+    if (!navigator.xr) {
+      setStatus("WebXR no disponible. Abriendo Scene Viewer…");
+      openSceneViewer();
+    }
 
+    const isArSupported = await navigator.xr.isSessionSupported("immersive-ar").catch(() => false);
+    if (!isArSupported) {
+      setStatus("AR WebXR no soportado. Abriendo Scene Viewer…");
+      openSceneViewer();
+    }
+
+    setStatus("WebXR AR listo. Pulsa START AR.");
+
+    // ====== Three.js scene ======
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera();
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.xr.enabled = true;
+    document.body.appendChild(renderer.domElement);
+
+    // Light (simple; en AR el fondo es cámara)
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 1.0);
+    scene.add(hemi);
+
+    // Reticle (círculo de colocación)
+    const reticleGeom = new THREE.RingGeometry(0.08, 0.10, 32).rotateX(-Math.PI / 2);
+    const reticleMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 });
+    const reticle = new THREE.Mesh(reticleGeom, reticleMat);
+    reticle.matrixAutoUpdate = false;
+    reticle.visible = false;
+    scene.add(reticle);
+
+    // Load model
+    const loader = new GLTFLoader();
+    let modelRoot = null;
+    let placed = false;
+
+    setStatus("Cargando hamburguesa…");
+    loader.load(
+      GLB_URL,
+      (gltf) => {
+        modelRoot = gltf.scene;
+        modelRoot.visible = false;     // se muestra al colocar
+        modelRoot.scale.setScalar(1);  // escala base
+        scene.add(modelRoot);
+        setStatus("Modelo cargado. START AR → apunta al suelo.");
+      },
+      undefined,
+      (err) => {
+        console.error(err);
+        setStatus("Error cargando GLB. Revisa URL/CORS.");
+      }
+    );
+
+    // ====== WebXR hit test ======
+    let hitTestSource = null;
+    let hitTestSourceRequested = false;
+
+    const controller = renderer.xr.getController(0);
+    scene.add(controller);
+
+    controller.addEventListener("select", () => {
+      if (!reticle.visible || !modelRoot) return;
+
+      // Colocar modelo en el reticle
+      modelRoot.visible = true;
+      modelRoot.position.setFromMatrixPosition(reticle.matrix);
+
+      // Orientación inicial (de pie); rotación solo Y
+      const rot = new THREE.Quaternion().setFromRotationMatrix(reticle.matrix);
+      modelRoot.quaternion.copy(rot);
+
+      placed = true;
+      setStatus("Colocada. Pinch = tamaño · Giro 2 dedos = rotación.");
+    });
+
+    // ====== Gestos custom (pinch/rotate) ======
+    // Importante: sólo manipulamos cuando el modelo ya está colocado.
+    const pointers = new Map();
+    let startDist = 0;
+    let startAngle = 0;
+    let startScale = 1;
+    let startYaw = 0;
+
+    function getTwo() {
+      return Array.from(pointers.values()).slice(0, 2);
+    }
+    function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+    function angle(a, b) { return Math.atan2(b.y - a.y, b.x - a.x); }
+
+    function getYawRad() {
+      if (!modelRoot) return 0;
+      // yaw desde rotación Euler
+      const e = new THREE.Euler().setFromQuaternion(modelRoot.quaternion, "YXZ");
+      return e.y;
+    }
+    function setYawRad(yaw) {
+      if (!modelRoot) return;
+      const e = new THREE.Euler(0, yaw, 0, "YXZ");
+      modelRoot.quaternion.setFromEuler(e);
+    }
+
+    function onPointerDown(e) {
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pointers.size === 2 && placed && modelRoot) {
+        const [p1, p2] = getTwo();
+        startDist = dist(p1, p2);
+        startAngle = angle(p1, p2);
+        startScale = modelRoot.scale.x;
+        startYaw = getYawRad();
+      }
+    }
+
+    function onPointerMove(e) {
+      if (!pointers.has(e.pointerId)) return;
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (pointers.size === 2 && placed && modelRoot) {
+        e.preventDefault();
+
+        const [p1, p2] = getTwo();
+        const d = dist(p1, p2);
+        const a = angle(p1, p2);
+
+        // Escala (pinch)
+        if (startDist > 0) {
+          const factor = d / startDist;
+          const newScale = THREE.MathUtils.clamp(startScale * factor, 0.2, 3.0);
+          modelRoot.scale.setScalar(newScale);
+        }
+
+        // Rotación (twist) sobre eje Y
+        const delta = a - startAngle;
+        setYawRad(startYaw + delta);
+      }
+    }
+
+    function onPointerUp(e) {
+      pointers.delete(e.pointerId);
+      if (pointers.size < 2) {
+        startDist = 0;
+        startAngle = 0;
+      }
+    }
+
+    renderer.domElement.addEventListener("pointerdown", onPointerDown, { passive: false });
+    renderer.domElement.addEventListener("pointermove", onPointerMove, { passive: false });
+    renderer.domElement.addEventListener("pointerup", onPointerUp, { passive: false });
+    renderer.domElement.addEventListener("pointercancel", onPointerUp, { passive: false });
+
+    // ====== Render loop with hit test ======
+    renderer.setAnimationLoop((timestamp, frame) => {
+      if (frame) {
+        const referenceSpace = renderer.xr.getReferenceSpace();
+
+        // Pedir hit-test source una vez
+        if (!hitTestSourceRequested) {
+          const session = renderer.xr.getSession();
+          session.requestReferenceSpace("viewer").then((viewerSpace) => {
+            session.requestHitTestSource({ space: viewerSpace }).then((source) => {
+              hitTestSource = source;
+            });
+          });
+
+          session.addEventListener("end", () => {
+            hitTestSourceRequested = false;
+            hitTestSource = null;
+            reticle.visible = false;
+            placed = false;
+            if (modelRoot) modelRoot.visible = false;
+            setStatus("Sesión AR cerrada.");
+          });
+
+          hitTestSourceRequested = true;
+        }
+
+        if (hitTestSource) {
+          const hitTestResults = frame.getHitTestResults(hitTestSource);
+          if (hitTestResults.length) {
+            const hit = hitTestResults[0];
+            const pose = hit.getPose(referenceSpace);
+            reticle.visible = true;
+            reticle.matrix.fromArray(pose.transform.matrix);
+          } else {
+            reticle.visible = false;
+          }
+        }
+      }
+
+      renderer.render(scene, camera);
+    });
+
+    // ====== Start AR button ======
+    const arButton = ARButton.createButton(renderer, {
+      requiredFeatures: ["hit-test"],
+      optionalFeatures: ["dom-overlay"],
+      domOverlay: { root: document.body }
+    });
+
+    // Estiliza el botón para que quede “app-like”
+    arButton.style.position = "fixed";
+    arButton.style.left = "50%";
+    arButton.style.bottom = "70px";
+    arButton.style.transform = "translateX(-50%)";
+    arButton.style.padding = "14px 18px";
+    arButton.style.borderRadius = "16px";
+    arButton.style.border = "0";
+    arButton.style.fontWeight = "900";
+    arButton.style.background = "#fff";
+    arButton.style.color = "#111";
+    arButton.style.boxShadow = "0 12px 30px rgba(0,0,0,.45)";
+    document.body.appendChild(arButton);
+
+    // Resize
+    window.addEventListener("resize", () => {
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
 </body>
 </html>
