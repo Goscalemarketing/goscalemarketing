@@ -99,6 +99,7 @@
       height:100%;
       background:#0b0b0b;
       display:block;
+      /* ayuda a que pinch no lo “robe” el navegador */
       touch-action: none;
     }
 
@@ -171,49 +172,6 @@
       color:rgba(255,255,255,.45);
       letter-spacing:.3px;
     }
-
-    /* ===== Controles SOLO para AR WebXR ===== */
-    #arControls{
-      position:fixed;
-      left:12px;
-      right:12px;
-      bottom:16px;
-      display:none;            /* se muestra solo en WebXR */
-      z-index:9999;
-      pointer-events:none;
-    }
-
-    .ctrlRow{
-      display:flex;
-      gap:10px;
-      justify-content:center;
-      pointer-events:auto;
-    }
-
-    .ctrlBtn{
-      min-width:56px;
-      height:48px;
-      border-radius:16px;
-      border:1px solid rgba(255,255,255,.18);
-      background:rgba(0,0,0,.45);
-      color:#fff;
-      font-weight:900;
-      font-size:18px;
-      backdrop-filter: blur(10px);
-      cursor:pointer;
-      box-shadow:0 10px 24px rgba(0,0,0,.35);
-    }
-
-    .ctrlBtn:active{ transform:scale(.98); }
-
-    .ctrlHint{
-      margin:10px auto 0;
-      width:min(520px, 92vw);
-      text-align:center;
-      font-size:12px;
-      opacity:.75;
-      pointer-events:none;
-    }
   </style>
 </head>
 
@@ -267,7 +225,7 @@
       ar
       ar-placement="floor"
       ar-scale="auto"
-      ar-modes="webxr scene-viewer quick-look"
+      ar-modes="scene-viewer quick-look"
       ar-light-estimation
     >
       <button id="arBtn" class="arBtn" slot="ar-button" disabled>
@@ -288,29 +246,10 @@
 
 </main>
 
-<!-- Controles WebXR (aparecen cuando el modo es WebXR) -->
-<div id="arControls">
-  <div class="ctrlRow">
-    <button class="ctrlBtn" id="rotL"  title="Rotar izquierda">⟲</button>
-    <button class="ctrlBtn" id="zoomOut" title="Reducir">−</button>
-    <button class="ctrlBtn" id="reset" title="Reset">⟳</button>
-    <button class="ctrlBtn" id="zoomIn" title="Aumentar">＋</button>
-    <button class="ctrlBtn" id="rotR"  title="Rotar derecha">⟳⟲</button>
-  </div>
-  <div class="ctrlHint">Controles para WebXR (si los gestos no funcionan): tamaño y rotación.</div>
-</div>
-
 <script>
   const mv = document.getElementById('mv');
   const arBtn = document.getElementById('arBtn');
   const loading = document.getElementById('loading');
-
-  const arControls = document.getElementById('arControls');
-  const zoomIn = document.getElementById('zoomIn');
-  const zoomOut = document.getElementById('zoomOut');
-  const rotL = document.getElementById('rotL');
-  const rotR = document.getElementById('rotR');
-  const reset = document.getElementById('reset');
 
   mv.addEventListener('load', () => {
     loading.style.display = 'none';
@@ -321,101 +260,38 @@
     loading.querySelector('p').textContent = 'Error cargando el modelo';
   });
 
-  // ===== 🔒 Candado del preview: permite solo zoom (radio), bloquea yaw/pitch =====
-  const LOCK_YAW = 0;
-  const LOCK_PITCH = 75;
+  // ====== 🔒 CANDADO: permite SOLO zoom (radio), bloquea yaw/pitch ======
+  // Ajusta estos 2 valores si quieres otra vista fija:
+  const LOCK_YAW = 0;    // grados
+  const LOCK_PITCH = 75; // grados (más alto = más desde arriba, menos “ver abajo”)
+
+  let lockActive = true;
   let rafId = null;
 
   function applyLock() {
+    // cameraOrbit devuelve un string tipo: "12deg 75deg 1.8m"
     const orbit = (mv.cameraOrbit || '').toString().trim().split(/\s+/);
     if (orbit.length < 3) return;
-    const radius = orbit[2];
+
+    const radius = orbit[2]; // mantenemos SOLO el radio del usuario (zoom)
     const desired = `${LOCK_YAW}deg ${LOCK_PITCH}deg ${radius}`;
-    if (mv.cameraOrbit.toString() !== desired) mv.cameraOrbit = desired;
+
+    // Evita bucles infinitos: solo escribe si es distinto
+    if (mv.cameraOrbit.toString() !== desired) {
+      mv.cameraOrbit = desired;
+    }
   }
 
   mv.addEventListener('camera-change', () => {
+    if (!lockActive) return;
+    // usamos RAF para no pelear con el gesto en cada micro-evento
     cancelAnimationFrame(rafId);
     rafId = requestAnimationFrame(applyLock);
   });
 
+  // Aplica al inicio también
   mv.addEventListener('load', () => {
     mv.cameraOrbit = `${LOCK_YAW}deg ${LOCK_PITCH}deg 2.2m`;
-  });
-
-  // ===== Mostrar controles SOLO cuando esté en WebXR =====
-  // model-viewer emite "ar-status" con valores como: "session-started", "session-ended", "not-presenting"
-  // y también "failed" en algunos casos.
-  let lastArMode = null;
-
-  mv.addEventListener('ar-status', (ev) => {
-    const status = ev.detail.status;
-
-    // Cuando empieza una sesión AR
-    if (status === 'session-started') {
-      // En iOS Quick Look no necesitamos controles.
-      // En Android WebXR sí los mostramos (y si cae en Scene Viewer, no tiene sentido mostrarlos)
-      // Detectamos el modo real consultando currentArMode (si existe)
-      lastArMode = mv.currentArMode || null;
-
-      const isWebXR = (lastArMode === 'webxr');
-
-      arControls.style.display = isWebXR ? 'block' : 'none';
-    }
-
-    // Cuando termina la sesión
-    if (status === 'session-ended' || status === 'not-presenting') {
-      arControls.style.display = 'none';
-    }
-
-    // Si falla WebXR, cae a Scene Viewer / Quick Look; ocultamos controles
-    if (status === 'failed') {
-      arControls.style.display = 'none';
-    }
-  });
-
-  // ===== Acciones en WebXR: scale + orientation =====
-  // Nota: esto afecta también al preview (pero como solo mostramos controles en WebXR, el usuario no los tocará fuera)
-  const DEFAULT_SCALE = 1.0;
-  const MIN_SCALE = 0.2;
-  const MAX_SCALE = 3.0;
-
-  let scale = DEFAULT_SCALE;
-  let yawDeg = 0;
-
-  function applyTransform() {
-    // scale en model-viewer: "x y z"
-    mv.scale = `${scale} ${scale} ${scale}`;
-    // orientation: "xdeg ydeg zdeg" (rotación del modelo)
-    mv.orientation = `0deg ${yawDeg}deg 0deg`;
-  }
-
-  function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
-
-  zoomIn.addEventListener('click', () => {
-    scale = clamp(scale + 0.1, MIN_SCALE, MAX_SCALE);
-    applyTransform();
-  });
-
-  zoomOut.addEventListener('click', () => {
-    scale = clamp(scale - 0.1, MIN_SCALE, MAX_SCALE);
-    applyTransform();
-  });
-
-  rotL.addEventListener('click', () => {
-    yawDeg -= 10;
-    applyTransform();
-  });
-
-  rotR.addEventListener('click', () => {
-    yawDeg += 10;
-    applyTransform();
-  });
-
-  reset.addEventListener('click', () => {
-    scale = DEFAULT_SCALE;
-    yawDeg = 0;
-    applyTransform();
   });
 </script>
 
