@@ -1,75 +1,152 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Pruebas · AR (WebXR)</title>
+  <title>Pruebas · AR</title>
+
+  <!-- Preview estable -->
+  <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
 
   <style>
-    html, body { margin:0; height:100%; background:#000; overflow:hidden; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; color:#fff; }
-    canvas { display:block; }
+    html, body{
+      margin:0;
+      height:100%;
+      background:#0b0b0b;
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial;
+      color:#fff;
+      overflow:hidden;
+    }
 
-    /* UI */
-    #ui {
-      position:fixed; inset:0;
-      display:flex; flex-direction:column;
+    header{
+      position:fixed;
+      inset:0 0 auto 0;
+      height:56px;
+      display:flex;
+      align-items:center;
       justify-content:space-between;
-      pointer-events:none;
+      padding:0 12px;
+      background:rgba(15,15,15,.75);
+      backdrop-filter: blur(10px);
+      z-index:30;
+    }
+
+    .menuBtn{
+      color:#fff;
+      text-decoration:none;
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:10px;
+      padding:8px 12px;
+      font-size:14px;
+      font-weight:700;
+    }
+
+    .byGoscale{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:12px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.16);
+      text-decoration:none;
+      color:#fff;
+      font-size:12px;
+      font-weight:700;
+    }
+    .byGoscale img{ height:22px; width:auto; }
+
+    main{
+      position:fixed;
+      inset:56px 0 0 0;
+      display:flex;
+      flex-direction:column;
+    }
+
+    #dishInfo{
+      padding:14px 16px 10px;
+      background:linear-gradient(
+        to bottom,
+        rgba(11,11,11,.95),
+        rgba(11,11,11,.75),
+        rgba(11,11,11,0)
+      );
       z-index:10;
     }
-    #topbar{
-      pointer-events:auto;
-      display:flex; align-items:center; justify-content:space-between;
-      padding:12px;
-      background:linear-gradient(to bottom, rgba(0,0,0,.65), rgba(0,0,0,0));
-    }
-    .btnLink{
-      color:#fff; text-decoration:none;
-      border:1px solid rgba(255,255,255,.18);
-      background:rgba(255,255,255,.06);
-      border-radius:12px;
-      padding:10px 12px;
-      font-weight:800;
-      font-size:14px;
-      backdrop-filter: blur(10px);
-    }
-    #brand{
-      display:flex; align-items:center; gap:8px;
-    }
-    #brand img{ height:20px; width:auto; }
+    #dishTitle{ margin:0; font-size:24px; font-weight:900; }
+    #dishDesc{ margin:8px 0 0; font-size:14px; color:rgba(255,255,255,.75); max-width:520px; line-height:1.45; }
 
-    #panel{
-      pointer-events:auto;
-      margin:0 auto 18px;
-      width:min(560px, 92vw);
-      border:1px solid rgba(255,255,255,.16);
-      background:rgba(0,0,0,.55);
-      border-radius:18px;
-      padding:16px;
-      text-align:center;
-      backdrop-filter: blur(10px);
+    .viewerWrap{
+      position:relative;
+      flex:1;
+      min-height:0;
     }
-    #title{ margin:0 0 6px 0; font-weight:900; font-size:18px; }
-    #steps{ margin:0 0 12px 0; font-size:13px; opacity:.85; line-height:1.45; }
 
-    #startBtn{
+    /* PREVIEW */
+    model-viewer{
       width:100%;
-      border:0;
-      border-radius:16px;
-      padding:14px 16px;
-      font-weight:900;
+      height:100%;
+      background:#0b0b0b;
+      display:block;
+      touch-action: pan-y;
+    }
+
+    /* Botón AR (nuestro) */
+    .arBtn{
+      position:absolute;
+      bottom:18px;
+      left:50%;
+      transform:translateX(-50%);
+      padding:14px 26px;
+      border-radius:18px;
       font-size:16px;
+      font-weight:900;
       background:#fff;
       color:#111;
-      cursor:pointer;
+      border:0;
       box-shadow:0 12px 30px rgba(0,0,0,.45);
+      cursor:pointer;
+      z-index:25;
+    }
+
+    .arBtn[disabled]{ opacity:.55; cursor:not-allowed; }
+
+    /* Loader preview */
+    #loading{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      gap:14px;
+      background:rgba(0,0,0,.75);
+      z-index:24;
+    }
+    .spinner{
+      width:44px;
+      height:44px;
+      border:4px solid rgba(255,255,255,.2);
+      border-top:4px solid #fff;
+      border-radius:50%;
+      animation:spin 1s linear infinite;
+    }
+    @keyframes spin{ to{ transform:rotate(360deg); } }
+
+    /* WebXR canvas overlay (solo cuando entras en AR) */
+    #xrCanvas{
+      position:fixed;
+      inset:0;
+      z-index:999; /* por encima de todo */
+      display:none; /* se activa al entrar en AR */
+      touch-action:none;
     }
 
     #status{
       position:fixed;
       left:10px;
       bottom:10px;
-      z-index:11;
+      z-index:1000;
       font-size:12px;
       padding:8px 10px;
       border-radius:10px;
@@ -80,62 +157,83 @@
       overflow:hidden;
       text-overflow:ellipsis;
       opacity:.9;
-      pointer-events:none;
+      display:none;
     }
   </style>
 </head>
 
 <body>
 
-  <div id="ui">
-    <div id="topbar">
-      <a class="btnLink" id="menuLink" href="https://www.canva.com/design/DAG9pcht0YQ/vMlVejQnQ2StmRcQqudt3Q/view?utm_content=DAG9pcht0YQ&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h0d5e8121fb">
-        ← Menú
-      </a>
+<header>
+  <a class="menuBtn" href="https://www.canva.com/design/DAG9pcht0YQ/vMlVejQnQ2StmRcQqudt3Q/view?utm_content=DAG9pcht0YQ&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h0d5e8121fb">
+    ← Menú
+  </a>
 
-      <div id="brand">
-        <span style="font-weight:900">Pruebas</span>
-      </div>
+  <a class="byGoscale" href="https://goscalemarketing.com" target="_blank" rel="noopener">
+    <span>by</span>
+    <img src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png">
+  </a>
+</header>
 
-      <a class="btnLink" href="https://goscalemarketing.com" target="_blank" rel="noopener">
-        by <img alt="GoScale" src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png">
-      </a>
+<main id="uiMain">
+  <section id="dishInfo">
+    <h1 id="dishTitle">Pruebas</h1>
+    <p id="dishDesc">Ingredientes: Es un elemento de pruebas.</p>
+  </section>
+
+  <div class="viewerWrap">
+    <div id="loading">
+      <div class="spinner"></div>
+      <p>Cargando modelo…</p>
     </div>
 
-    <div id="panel">
-      <p id="title">Pruebas · AR</p>
-      <p id="steps">
-        1) Pulsa <b>Iniciar AR</b><br>
-        2) Apunta al suelo hasta ver el círculo<br>
-        3) <b>Tap</b> para colocar · <b>Pinch</b> tamaño · <b>Giro 2 dedos</b> rotación
-      </p>
-      <button id="startBtn">Iniciar AR</button>
-      <p style="margin:10px 0 0; font-size:12px; opacity:.65; line-height:1.35;">
-        Android: mejor en <b>Chrome</b>. iPhone: abre <b>Quick Look</b>.
-      </p>
-    </div>
+    <!-- PREVIEW: model-viewer (estable) -->
+    <model-viewer
+      id="mvPreview"
+      src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pruebas/Pruebas.glb"
+      ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pruebas/Pruebas.usdz"
+
+      camera-controls
+      interaction-prompt="none"
+      loading="eager"
+      reveal="auto"
+
+      environment-image="https://modelviewer.dev/shared-assets/environments/neutral.hdr"
+      tone-mapping="neutral"
+      exposure="1.6"
+      shadow-intensity="1"
+
+      ar
+      ar-modes="scene-viewer quick-look"
+      ar-placement="floor"
+      ar-scale="auto"
+      ar-light-estimation
+    ></model-viewer>
+
+    <!-- Botón que nosotros controlamos -->
+    <button id="startAR" class="arBtn" disabled>Ver en AR (WebXR test)</button>
   </div>
+</main>
 
-  <div id="status">Listo</div>
+<canvas id="xrCanvas"></canvas>
+<div id="status">Iniciando…</div>
 
 <script type="module">
-  // ====== CONFIG (las mismas URLs que ya tienes) ======
+  // ===== URLs (las mismas que ya usas) =====
   const GLB_URL  = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pruebas/Pruebas.glb";
   const USDZ_URL = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pruebas/Pruebas.usdz";
-  const MENU_URL = "https://www.canva.com/design/DAG9pcht0YQ/vMlVejQnQ2StmRcQqudt3Q/view?utm_content=DAG9pcht0YQ&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h0d5e8121fb";
 
-  document.getElementById("menuLink").href = MENU_URL;
-
-  // ====== Detect ======
   const ua = navigator.userAgent;
   const isiOS = /iPad|iPhone|iPod/.test(ua);
-  const isAndroid = /Android/.test(ua);
 
-  const statusEl = document.getElementById("status");
-  const setStatus = (t) => statusEl.textContent = t;
+  const mvPreview = document.getElementById('mvPreview');
+  const startBtn = document.getElementById('startAR');
+  const loading = document.getElementById('loading');
 
-  const startBtn = document.getElementById("startBtn");
-  const panel = document.getElementById("panel");
+  const uiMain = document.getElementById('uiMain');
+  const xrCanvas = document.getElementById('xrCanvas');
+  const statusEl = document.getElementById('status');
+  const setStatus = (t) => { statusEl.style.display = "block"; statusEl.textContent = t; };
 
   function openSceneViewer() {
     const intent =
@@ -147,68 +245,30 @@
     window.location.href = intent;
   }
 
-  // ====== Imports (Three.js) ======
+  // Preview listo
+  mvPreview.addEventListener('load', () => {
+    loading.style.display = 'none';
+    startBtn.disabled = false;
+  });
+
+  mvPreview.addEventListener('error', () => {
+    loading.querySelector('p').textContent = 'Error cargando el modelo';
+  });
+
+  // ===== WebXR custom (solo al pulsar el botón) =====
   import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
   import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
 
-  // ====== Three.js Scene ======
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera();
-
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.xr.enabled = true;
-  document.body.appendChild(renderer.domElement);
-
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.0));
-
-  // Reticle
-  const reticle = new THREE.Mesh(
-    new THREE.RingGeometry(0.08, 0.10, 32).rotateX(-Math.PI / 2),
-    new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 })
-  );
-  reticle.matrixAutoUpdate = false;
-  reticle.visible = false;
-  scene.add(reticle);
-
-  // Load model
-  const loader = new GLTFLoader();
+  let renderer, scene, camera, controller;
   let modelRoot = null;
   let placed = false;
+  let hitTestSource = null;
+  let hitTestRequested = false;
 
-  setStatus("Cargando modelo…");
-  loader.load(
-    GLB_URL,
-    (gltf) => {
-      modelRoot = gltf.scene;
-      modelRoot.visible = false;
-      modelRoot.scale.setScalar(1);
-      scene.add(modelRoot);
-      setStatus("Modelo listo. Pulsa Iniciar AR.");
-    },
-    undefined,
-    () => setStatus("Error cargando GLB (revisa URL).")
-  );
+  // Reticle
+  let reticle;
 
-  // Controller (tap)
-  const controller = renderer.xr.getController(0);
-  scene.add(controller);
-
-  controller.addEventListener("select", () => {
-    if (!reticle.visible || !modelRoot) return;
-    modelRoot.visible = true;
-    modelRoot.position.setFromMatrixPosition(reticle.matrix);
-
-    // Orientación inicial: solo yaw (rotación Y)
-    const rot = new THREE.Quaternion().setFromRotationMatrix(reticle.matrix);
-    modelRoot.quaternion.copy(rot);
-
-    placed = true;
-    setStatus("Colocado. Pinch=tamaño · Giro 2 dedos=rotación.");
-  });
-
-  // ====== Gestos custom (pinch escala + twist rotación Y) ======
+  // Gestos
   const pointers = new Map();
   let startDist = 0, startAngle = 0, startScale = 1, startYaw = 0;
 
@@ -227,120 +287,171 @@
     modelRoot.quaternion.setFromEuler(e);
   }
 
-  function onPointerDown(e){
-    pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
-    if (pointers.size === 2 && placed && modelRoot){
-      const [p1,p2] = getTwo();
-      startDist = dist(p1,p2);
-      startAngle = angle(p1,p2);
-      startScale = modelRoot.scale.x;
-      startYaw = getYawRad();
-    }
-  }
+  function bindGestures() {
+    xrCanvas.style.touchAction = "none";
 
-  function onPointerMove(e){
-    if (!pointers.has(e.pointerId)) return;
-    pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
-
-    if (pointers.size === 2 && placed && modelRoot){
-      e.preventDefault();
-      const [p1,p2] = getTwo();
-      const d = dist(p1,p2);
-      const a = angle(p1,p2);
-
-      if (startDist > 0){
-        const factor = d / startDist;
-        const newScale = THREE.MathUtils.clamp(startScale * factor, 0.2, 3.0);
-        modelRoot.scale.setScalar(newScale);
+    xrCanvas.addEventListener("pointerdown", (e) => {
+      pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
+      if (pointers.size === 2 && placed && modelRoot){
+        const [p1,p2] = getTwo();
+        startDist = dist(p1,p2);
+        startAngle = angle(p1,p2);
+        startScale = modelRoot.scale.x;
+        startYaw = getYawRad();
       }
+    }, { passive:false });
 
-      const delta = a - startAngle;
-      setYawRad(startYaw + delta);
-    }
+    xrCanvas.addEventListener("pointermove", (e) => {
+      if (!pointers.has(e.pointerId)) return;
+      pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
+
+      if (pointers.size === 2 && placed && modelRoot){
+        e.preventDefault();
+        const [p1,p2] = getTwo();
+        const d = dist(p1,p2);
+        const a = angle(p1,p2);
+
+        if (startDist > 0){
+          const factor = d / startDist;
+          const newScale = THREE.MathUtils.clamp(startScale * factor, 0.2, 3.0);
+          modelRoot.scale.setScalar(newScale);
+        }
+
+        const delta = a - startAngle;
+        setYawRad(startYaw + delta);
+      }
+    }, { passive:false });
+
+    const up = (e) => {
+      pointers.delete(e.pointerId);
+      if (pointers.size < 2){ startDist = 0; startAngle = 0; }
+    };
+    xrCanvas.addEventListener("pointerup", up, { passive:true });
+    xrCanvas.addEventListener("pointercancel", up, { passive:true });
   }
 
-  function onPointerUp(e){
-    pointers.delete(e.pointerId);
-    if (pointers.size < 2){ startDist = 0; startAngle = 0; }
-  }
+  async function initThree() {
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera();
 
-  renderer.domElement.style.touchAction = "none";
-  renderer.domElement.addEventListener("pointerdown", onPointerDown, { passive:false });
-  renderer.domElement.addEventListener("pointermove", onPointerMove, { passive:false });
-  renderer.domElement.addEventListener("pointerup", onPointerUp, { passive:true });
-  renderer.domElement.addEventListener("pointercancel", onPointerUp, { passive:true });
+    renderer = new THREE.WebGLRenderer({ canvas: xrCanvas, antialias:true, alpha:true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.xr.enabled = true;
 
-  // ====== WebXR hit-test ======
-  let hitTestSource = null;
-  let hitTestRequested = false;
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.0));
 
-  renderer.setAnimationLoop((t, frame) => {
-    if (frame){
-      const refSpace = renderer.xr.getReferenceSpace();
+    reticle = new THREE.Mesh(
+      new THREE.RingGeometry(0.08, 0.10, 32).rotateX(-Math.PI/2),
+      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent:true, opacity:0.9 })
+    );
+    reticle.matrixAutoUpdate = false;
+    reticle.visible = false;
+    scene.add(reticle);
 
-      if (!hitTestRequested){
-        const session = renderer.xr.getSession();
-        session.requestReferenceSpace("viewer").then((viewerSpace) => {
-          session.requestHitTestSource({ space: viewerSpace }).then((src) => {
-            hitTestSource = src;
+    controller = renderer.xr.getController(0);
+    scene.add(controller);
+
+    controller.addEventListener("select", () => {
+      if (!reticle.visible || !modelRoot) return;
+      modelRoot.visible = true;
+      modelRoot.position.setFromMatrixPosition(reticle.matrix);
+
+      const rot = new THREE.Quaternion().setFromRotationMatrix(reticle.matrix);
+      modelRoot.quaternion.copy(rot);
+
+      placed = true;
+      setStatus("Colocado. Pinch=tamaño · Giro 2 dedos=rotación.");
+    });
+
+    // Carga modelo
+    setStatus("Cargando modelo AR…");
+    const loader = new GLTFLoader();
+    modelRoot = await new Promise((resolve, reject) => {
+      loader.load(GLB_URL, (gltf) => resolve(gltf.scene), undefined, reject);
+    });
+    modelRoot.visible = false;
+    modelRoot.scale.setScalar(1);
+    scene.add(modelRoot);
+
+    bindGestures();
+
+    renderer.setAnimationLoop((t, frame) => {
+      if (frame){
+        const refSpace = renderer.xr.getReferenceSpace();
+
+        if (!hitTestRequested){
+          const session = renderer.xr.getSession();
+          session.requestReferenceSpace("viewer").then((viewerSpace) => {
+            session.requestHitTestSource({ space: viewerSpace }).then((src) => hitTestSource = src);
           });
-        });
 
-        session.addEventListener("end", () => {
-          hitTestRequested = false;
-          hitTestSource = null;
-          reticle.visible = false;
-          placed = false;
-          if (modelRoot) modelRoot.visible = false;
+          session.addEventListener("end", () => {
+            // Volver a UI
+            xrCanvas.style.display = "none";
+            uiMain.style.display = "flex";
+            statusEl.style.display = "none";
 
-          // al cerrar AR volvemos a la UI
-          panel.style.display = "block";
-          setStatus("AR cerrado.");
-        });
+            hitTestRequested = false;
+            hitTestSource = null;
+            reticle.visible = false;
+            placed = false;
+            if (modelRoot) modelRoot.visible = false;
+          });
 
-        hitTestRequested = true;
-      }
+          hitTestRequested = true;
+        }
 
-      if (hitTestSource){
-        const hits = frame.getHitTestResults(hitTestSource);
-        if (hits.length){
-          const pose = hits[0].getPose(refSpace);
-          reticle.visible = true;
-          reticle.matrix.fromArray(pose.transform.matrix);
-        } else {
-          reticle.visible = false;
+        if (hitTestSource){
+          const hits = frame.getHitTestResults(hitTestSource);
+          if (hits.length){
+            const pose = hits[0].getPose(refSpace);
+            reticle.visible = true;
+            reticle.matrix.fromArray(pose.transform.matrix);
+          } else {
+            reticle.visible = false;
+          }
         }
       }
-    }
 
-    renderer.render(scene, camera);
-  });
+      renderer.render(scene, camera);
+    });
+  }
 
-  // ====== Start AR (un solo botón) ======
-  async function startAR(){
-    // iOS: Quick Look con gesto
-    if (isiOS){
+  async function startWebXR() {
+    // iOS: Quick Look (sin tocarlo)
+    if (isiOS) {
       window.location.href = USDZ_URL;
       return;
     }
 
-    // Android: intenta WebXR; si no, Scene Viewer
-    if (!navigator.xr || !window.isSecureContext){
-      setStatus("WebXR no disponible. Abriendo Scene Viewer…");
+    // Android: WebXR si existe, si no, Scene Viewer
+    if (!navigator.xr || !window.isSecureContext) {
       openSceneViewer();
       return;
     }
 
-    const supported = await navigator.xr.isSessionSupported("immersive-ar").catch(() => false);
-    if (!supported){
-      setStatus("Este dispositivo no soporta WebXR AR. Abriendo Scene Viewer…");
+    const ok = await navigator.xr.isSessionSupported("immersive-ar").catch(() => false);
+    if (!ok) {
       openSceneViewer();
       return;
     }
 
-    // Inicia sesión AR
+    // Oculta UI y muestra canvas
+    uiMain.style.display = "none";
+    xrCanvas.style.display = "block";
     setStatus("Iniciando WebXR AR…");
-    panel.style.display = "none";
+
+    if (!renderer) {
+      try {
+        await initThree();
+      } catch (e) {
+        console.error(e);
+        setStatus("Error WebXR. Abriendo Scene Viewer…");
+        openSceneViewer();
+        return;
+      }
+    }
 
     const session = await navigator.xr.requestSession("immersive-ar", {
       requiredFeatures: ["hit-test"],
@@ -352,10 +463,10 @@
     setStatus("Apunta al suelo hasta ver el círculo.");
   }
 
-  startBtn.addEventListener("click", startAR);
+  startBtn.addEventListener("click", startWebXR);
 
   window.addEventListener("resize", () => {
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    if (renderer) renderer.setSize(window.innerWidth, window.innerHeight);
   });
 </script>
 
