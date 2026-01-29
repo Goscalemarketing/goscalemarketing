@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Pruebas · AR</title>
 
-  <!-- Preview estable -->
   <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
 
   <style>
@@ -15,7 +14,6 @@
       background:#0b0b0b;
       font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial;
       color:#fff;
-      overflow:hidden;
     }
 
     header{
@@ -54,6 +52,7 @@
       font-size:12px;
       font-weight:700;
     }
+
     .byGoscale img{ height:22px; width:auto; }
 
     main{
@@ -73,8 +72,21 @@
       );
       z-index:10;
     }
-    #dishTitle{ margin:0; font-size:24px; font-weight:900; }
-    #dishDesc{ margin:8px 0 0; font-size:14px; color:rgba(255,255,255,.75); max-width:520px; line-height:1.45; }
+
+    #dishTitle{
+      margin:0;
+      font-size:24px;
+      font-weight:900;
+      color:#fff;
+    }
+
+    #dishDesc{
+      margin:8px 0 0;
+      font-size:14px;
+      color:rgba(255,255,255,.75);
+      max-width:520px;
+      line-height:1.45;
+    }
 
     .viewerWrap{
       position:relative;
@@ -87,7 +99,7 @@
       height:100%;
       background:#0b0b0b;
       display:block;
-      touch-action: pan-y;
+      touch-action: none;
     }
 
     .arBtn{
@@ -106,6 +118,7 @@
       cursor:pointer;
       z-index:25;
     }
+
     .arBtn[disabled]{ opacity:.55; cursor:not-allowed; }
 
     #loading{
@@ -119,6 +132,7 @@
       background:rgba(0,0,0,.75);
       z-index:24;
     }
+
     .spinner{
       width:44px;
       height:44px;
@@ -129,32 +143,75 @@
     }
     @keyframes spin{ to{ transform:rotate(360deg); } }
 
-    /* WebXR canvas (solo cuando entras en AR) */
-    #xrCanvas{
+    .brandBottom{
+      padding:10px 12px 14px;
+      display:flex;
+      justify-content:center;
+      border-top:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.18);
+    }
+
+    .brandWrap{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:6px;
+    }
+
+    .restaurantLogo{
+      height:72px;
+      width:auto;
+      max-width:260px;
+      transform:scale(1.25);
+      opacity:.95;
+    }
+
+    .brandClaim{
+      font-size:11px;
+      color:rgba(255,255,255,.45);
+      letter-spacing:.3px;
+    }
+
+    /* ===== Controles SOLO para AR WebXR ===== */
+    #arControls{
       position:fixed;
-      inset:0;
-      z-index:999;
-      display:none;
-      touch-action:none;
+      left:12px;
+      right:12px;
+      bottom:16px;
+      display:none;            /* se muestra solo en WebXR */
+      z-index:9999;
+      pointer-events:none;
+    }
+
+    .ctrlRow{
+      display:flex;
+      gap:10px;
+      justify-content:center;
       pointer-events:auto;
     }
 
-    #status{
-      position:fixed;
-      left:10px;
-      bottom:10px;
-      z-index:1000;
-      font-size:12px;
-      padding:8px 10px;
-      border-radius:10px;
+    .ctrlBtn{
+      min-width:56px;
+      height:48px;
+      border-radius:16px;
       border:1px solid rgba(255,255,255,.18);
       background:rgba(0,0,0,.45);
-      max-width:78vw;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      opacity:.9;
-      display:none;
+      color:#fff;
+      font-weight:900;
+      font-size:18px;
+      backdrop-filter: blur(10px);
+      cursor:pointer;
+      box-shadow:0 10px 24px rgba(0,0,0,.35);
+    }
+
+    .ctrlBtn:active{ transform:scale(.98); }
+
+    .ctrlHint{
+      margin:10px auto 0;
+      width:min(520px, 92vw);
+      text-align:center;
+      font-size:12px;
+      opacity:.75;
       pointer-events:none;
     }
   </style>
@@ -163,8 +220,7 @@
 <body>
 
 <header>
-  <a class="menuBtn"
-     href="https://www.canva.com/design/DAG9pcht0YQ/vMlVejQnQ2StmRcQqudt3Q/view?utm_content=DAG9pcht0YQ&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h0d5e8121fb">
+  <a class="menuBtn" href="https://www.canva.com/design/DAG9pcht0YQ/vMlVejQnQ2StmRcQqudt3Q/view?utm_content=DAG9pcht0YQ&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h0d5e8121fb">
     ← Menú
   </a>
 
@@ -174,25 +230,27 @@
   </a>
 </header>
 
-<main id="uiMain">
+<main>
+
   <section id="dishInfo">
     <h1 id="dishTitle">Pruebas</h1>
-    <p id="dishDesc">Tap para colocar. Luego pinch para tamaño y giro 2 dedos para rotar.</p>
+    <p id="dishDesc">Ingredientes: Es un elemento de pruebas.</p>
   </section>
 
   <div class="viewerWrap">
+
     <div id="loading">
       <div class="spinner"></div>
-      <p id="loadingText">Cargando modelo…</p>
+      <p>Cargando modelo…</p>
     </div>
 
-    <!-- PREVIEW -->
     <model-viewer
-      id="mvPreview"
+      id="mv"
       src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pruebas/Pruebas.glb"
       ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pruebas/Pruebas.usdz"
 
       camera-controls
+      disable-pan
       interaction-prompt="none"
       loading="eager"
       reveal="auto"
@@ -201,284 +259,163 @@
       tone-mapping="neutral"
       exposure="1.6"
       shadow-intensity="1"
-    ></model-viewer>
 
-    <button id="startAR" class="arBtn" disabled>Ver en AR (WebXR test)</button>
+      camera-orbit="0deg 75deg 2.2m"
+      min-camera-orbit="-180deg 75deg 0.8m"
+      max-camera-orbit="180deg 75deg 2.2m"
+
+      ar
+      ar-placement="floor"
+      ar-scale="auto"
+      ar-modes="webxr scene-viewer quick-look"
+      ar-light-estimation
+    >
+      <button id="arBtn" class="arBtn" slot="ar-button" disabled>
+        Ver en AR
+      </button>
+    </model-viewer>
+
   </div>
+
+  <div class="brandBottom">
+    <div class="brandWrap">
+      <img class="restaurantLogo"
+        src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/LOGO%20OPC%202_MONOGRAMA%2CLOGOY%20LEMA%20NARANJA-18.png"
+        alt="Restaurante">
+      <span class="brandClaim">Powered by Go Scale Marketing</span>
+    </div>
+  </div>
+
 </main>
 
-<canvas id="xrCanvas"></canvas>
-<div id="status">Listo</div>
+<!-- Controles WebXR (aparecen cuando el modo es WebXR) -->
+<div id="arControls">
+  <div class="ctrlRow">
+    <button class="ctrlBtn" id="rotL"  title="Rotar izquierda">⟲</button>
+    <button class="ctrlBtn" id="zoomOut" title="Reducir">−</button>
+    <button class="ctrlBtn" id="reset" title="Reset">⟳</button>
+    <button class="ctrlBtn" id="zoomIn" title="Aumentar">＋</button>
+    <button class="ctrlBtn" id="rotR"  title="Rotar derecha">⟳⟲</button>
+  </div>
+  <div class="ctrlHint">Controles para WebXR (si los gestos no funcionan): tamaño y rotación.</div>
+</div>
 
-<!-- Script básico para loader/botón (siempre funciona) -->
 <script>
-  const GLB_URL  = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pruebas/Pruebas.glb";
-  const USDZ_URL = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pruebas/Pruebas.usdz";
-
-  const ua = navigator.userAgent;
-  const isiOS = /iPad|iPhone|iPod/.test(ua);
-
-  const mv = document.getElementById('mvPreview');
-  const btn = document.getElementById('startAR');
+  const mv = document.getElementById('mv');
+  const arBtn = document.getElementById('arBtn');
   const loading = document.getElementById('loading');
-  const loadingText = document.getElementById('loadingText');
+
+  const arControls = document.getElementById('arControls');
+  const zoomIn = document.getElementById('zoomIn');
+  const zoomOut = document.getElementById('zoomOut');
+  const rotL = document.getElementById('rotL');
+  const rotR = document.getElementById('rotR');
+  const reset = document.getElementById('reset');
 
   mv.addEventListener('load', () => {
     loading.style.display = 'none';
-    btn.disabled = false;
+    arBtn.disabled = false;
   });
 
   mv.addEventListener('error', () => {
-    loadingText.textContent = 'Error cargando preview (puedes probar AR igualmente)';
-    btn.disabled = false;
+    loading.querySelector('p').textContent = 'Error cargando el modelo';
   });
 
-  // fallback: no bloquear nunca
-  setTimeout(() => {
-    if (btn.disabled) {
-      loadingText.textContent = 'El preview tarda. Puedes probar AR igualmente.';
-      btn.disabled = false;
-    }
-  }, 8000);
+  // ===== 🔒 Candado del preview: permite solo zoom (radio), bloquea yaw/pitch =====
+  const LOCK_YAW = 0;
+  const LOCK_PITCH = 75;
+  let rafId = null;
 
-  function openSceneViewer() {
-    const intent =
-      "intent://arvr.google.com/scene-viewer/1.0" +
-      "?file=" + encodeURIComponent(GLB_URL) +
-      "&mode=ar_preferred" +
-      "&resizable=true" +
-      "#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end;";
-    window.location.href = intent;
+  function applyLock() {
+    const orbit = (mv.cameraOrbit || '').toString().trim().split(/\s+/);
+    if (orbit.length < 3) return;
+    const radius = orbit[2];
+    const desired = `${LOCK_YAW}deg ${LOCK_PITCH}deg ${radius}`;
+    if (mv.cameraOrbit.toString() !== desired) mv.cameraOrbit = desired;
   }
 
-  btn.addEventListener('click', async () => {
-    // iOS: Quick Look (no tocamos nada)
-    if (isiOS) {
-      window.location.href = USDZ_URL;
-      return;
-    }
-
-    // Android: intenta WebXR; si no, Scene Viewer
-    if (!navigator.xr || !window.isSecureContext) {
-      openSceneViewer();
-      return;
-    }
-
-    const ok = await navigator.xr.isSessionSupported("immersive-ar").catch(() => false);
-    if (!ok) {
-      openSceneViewer();
-      return;
-    }
-
-    window.__startWebXR__ && window.__startWebXR__();
+  mv.addEventListener('camera-change', () => {
+    cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(applyLock);
   });
-</script>
 
-<!-- WebXR custom: gestos capturados en WINDOW (la prueba que quieres) -->
-<script type="module">
-  const GLB_URL  = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pruebas/Pruebas.glb";
+  mv.addEventListener('load', () => {
+    mv.cameraOrbit = `${LOCK_YAW}deg ${LOCK_PITCH}deg 2.2m`;
+  });
 
-  const uiMain = document.getElementById('uiMain');
-  const xrCanvas = document.getElementById('xrCanvas');
-  const statusEl = document.getElementById('status');
-  const setStatus = (t) => { statusEl.style.display = 'block'; statusEl.textContent = t; };
+  // ===== Mostrar controles SOLO cuando esté en WebXR =====
+  // model-viewer emite "ar-status" con valores como: "session-started", "session-ended", "not-presenting"
+  // y también "failed" en algunos casos.
+  let lastArMode = null;
 
-  async function startWebXR() {
-    try {
-      // Import dinámico solo al entrar
-      const THREE = await import("https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js");
-      const { GLTFLoader } = await import("https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js");
+  mv.addEventListener('ar-status', (ev) => {
+    const status = ev.detail.status;
 
-      // UI -> AR
-      uiMain.style.display = "none";
-      xrCanvas.style.display = "block";
-      xrCanvas.style.touchAction = "none";
-      xrCanvas.style.pointerEvents = "auto";
+    // Cuando empieza una sesión AR
+    if (status === 'session-started') {
+      // En iOS Quick Look no necesitamos controles.
+      // En Android WebXR sí los mostramos (y si cae en Scene Viewer, no tiene sentido mostrarlos)
+      // Detectamos el modo real consultando currentArMode (si existe)
+      lastArMode = mv.currentArMode || null;
 
-      // Esto es CLAVE para intentar que los gestos no los “robe” el sistema
-      document.body.style.touchAction = "none";
+      const isWebXR = (lastArMode === 'webxr');
 
-      // Three setup
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera();
-
-      const renderer = new THREE.WebGLRenderer({ canvas: xrCanvas, antialias:true, alpha:true });
-      renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.xr.enabled = true;
-
-      scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.0));
-
-      // Reticle (suelo)
-      const reticle = new THREE.Mesh(
-        new THREE.RingGeometry(0.08, 0.10, 32).rotateX(-Math.PI/2),
-        new THREE.MeshBasicMaterial({ color: 0xffffff, transparent:true, opacity:0.9 })
-      );
-      reticle.matrixAutoUpdate = false;
-      reticle.visible = false;
-      scene.add(reticle);
-
-      // Load model
-      setStatus("Cargando modelo AR…");
-      const loader = new GLTFLoader();
-      const modelRoot = await new Promise((resolve, reject) => {
-        loader.load(GLB_URL, (gltf) => resolve(gltf.scene), undefined, reject);
-      });
-      modelRoot.visible = false;
-      modelRoot.scale.setScalar(1);
-      scene.add(modelRoot);
-
-      let placed = false;
-
-      // Helpers yaw
-      const getYaw = () => {
-        const e = new THREE.Euler().setFromQuaternion(modelRoot.quaternion, "YXZ");
-        return e.y;
-      };
-      const setYaw = (yaw) => {
-        const e = new THREE.Euler(0, yaw, 0, "YXZ");
-        modelRoot.quaternion.setFromEuler(e);
-      };
-
-      // Tap place
-      const controller = renderer.xr.getController(0);
-      scene.add(controller);
-      controller.addEventListener("select", () => {
-        if (reticle.visible) {
-          modelRoot.visible = true;
-          modelRoot.position.setFromMatrixPosition(reticle.matrix);
-          placed = true;
-          setStatus("Colocado. Pinch=tamaño · Giro 2 dedos=rotación.");
-        } else {
-          setStatus("No detecto suelo todavía. Mueve el móvil hasta ver el círculo.");
-        }
-      });
-
-      // ===== Gestos en WINDOW (PRUEBA) =====
-      const pointers = new Map();
-      let startDist = 0, startAngle = 0, startScale = 1, startYaw = 0;
-
-      const getTwo = () => Array.from(pointers.values()).slice(0, 2);
-      const dist = (a,b) => Math.hypot(a.x-b.x, a.y-b.y);
-      const ang  = (a,b) => Math.atan2(b.y-a.y, b.x-a.x);
-
-      const onDown = (e) => {
-        pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
-
-        if (pointers.size === 2 && placed && modelRoot.visible) {
-          const [p1,p2] = getTwo();
-          startDist = dist(p1,p2);
-          startAngle = ang(p1,p2);
-          startScale = modelRoot.scale.x;
-          startYaw = getYaw();
-        }
-      };
-
-      const onMove = (e) => {
-        if (!pointers.has(e.pointerId)) return;
-        pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
-
-        if (pointers.size === 2 && placed && modelRoot.visible) {
-          e.preventDefault();
-
-          const [p1,p2] = getTwo();
-          const d = dist(p1,p2);
-          const a = ang(p1,p2);
-
-          // Scale
-          if (startDist > 0) {
-            const factor = d / startDist;
-            const newScale = THREE.MathUtils.clamp(startScale * factor, 0.2, 3.0);
-            modelRoot.scale.setScalar(newScale);
-          }
-
-          // Rotate (yaw)
-          const delta = a - startAngle;
-          setYaw(startYaw + delta);
-        }
-      };
-
-      const onUp = (e) => {
-        pointers.delete(e.pointerId);
-        if (pointers.size < 2) { startDist = 0; startAngle = 0; }
-      };
-
-      window.addEventListener("pointerdown", onDown, { passive:false });
-      window.addEventListener("pointermove", onMove, { passive:false });
-      window.addEventListener("pointerup", onUp, { passive:true });
-      window.addEventListener("pointercancel", onUp, { passive:true });
-
-      // Start session
-      setStatus("Iniciando WebXR AR…");
-      const session = await navigator.xr.requestSession("immersive-ar", {
-        requiredFeatures: ["hit-test"]
-      });
-
-      session.addEventListener("end", () => {
-        // Cleanup listeners
-        window.removeEventListener("pointerdown", onDown);
-        window.removeEventListener("pointermove", onMove);
-        window.removeEventListener("pointerup", onUp);
-        window.removeEventListener("pointercancel", onUp);
-
-        xrCanvas.style.display = "none";
-        uiMain.style.display = "flex";
-        statusEl.style.display = "none";
-        document.body.style.touchAction = "";
-
-        placed = false;
-        modelRoot.visible = false;
-        reticle.visible = false;
-      });
-
-      await renderer.xr.setSession(session);
-      setStatus("Apunta al suelo hasta ver el círculo. Tap para colocar.");
-
-      // Hit-test
-      let hitTestSource = null;
-      let requested = false;
-
-      renderer.setAnimationLoop((t, frame) => {
-        if (frame) {
-          const refSpace = renderer.xr.getReferenceSpace();
-
-          if (!requested) {
-            session.requestReferenceSpace("viewer").then((viewerSpace) => {
-              session.requestHitTestSource({ space: viewerSpace }).then((src) => hitTestSource = src);
-            });
-            requested = true;
-          }
-
-          if (hitTestSource) {
-            const hits = frame.getHitTestResults(hitTestSource);
-            if (hits.length) {
-              const pose = hits[0].getPose(refSpace);
-              reticle.visible = true;
-              reticle.matrix.fromArray(pose.transform.matrix);
-            } else {
-              reticle.visible = false;
-            }
-          }
-        }
-
-        renderer.render(scene, camera);
-      });
-
-    } catch (e) {
-      console.error(e);
-      // Si falla, vuelve a UI
-      xrCanvas.style.display = "none";
-      uiMain.style.display = "flex";
-      statusEl.style.display = "block";
-      statusEl.textContent = "Error WebXR. (Luego probamos con botones/slider).";
-      document.body.style.touchAction = "";
+      arControls.style.display = isWebXR ? 'block' : 'none';
     }
+
+    // Cuando termina la sesión
+    if (status === 'session-ended' || status === 'not-presenting') {
+      arControls.style.display = 'none';
+    }
+
+    // Si falla WebXR, cae a Scene Viewer / Quick Look; ocultamos controles
+    if (status === 'failed') {
+      arControls.style.display = 'none';
+    }
+  });
+
+  // ===== Acciones en WebXR: scale + orientation =====
+  // Nota: esto afecta también al preview (pero como solo mostramos controles en WebXR, el usuario no los tocará fuera)
+  const DEFAULT_SCALE = 1.0;
+  const MIN_SCALE = 0.2;
+  const MAX_SCALE = 3.0;
+
+  let scale = DEFAULT_SCALE;
+  let yawDeg = 0;
+
+  function applyTransform() {
+    // scale en model-viewer: "x y z"
+    mv.scale = `${scale} ${scale} ${scale}`;
+    // orientation: "xdeg ydeg zdeg" (rotación del modelo)
+    mv.orientation = `0deg ${yawDeg}deg 0deg`;
   }
 
-  window.__startWebXR__ = startWebXR;
+  function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
 
-  window.addEventListener("resize", () => {
-    // no es crítico aquí
+  zoomIn.addEventListener('click', () => {
+    scale = clamp(scale + 0.1, MIN_SCALE, MAX_SCALE);
+    applyTransform();
+  });
+
+  zoomOut.addEventListener('click', () => {
+    scale = clamp(scale - 0.1, MIN_SCALE, MAX_SCALE);
+    applyTransform();
+  });
+
+  rotL.addEventListener('click', () => {
+    yawDeg -= 10;
+    applyTransform();
+  });
+
+  rotR.addEventListener('click', () => {
+    yawDeg += 10;
+    applyTransform();
+  });
+
+  reset.addEventListener('click', () => {
+    scale = DEFAULT_SCALE;
+    yawDeg = 0;
+    applyTransform();
   });
 </script>
 
