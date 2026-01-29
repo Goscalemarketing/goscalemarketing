@@ -102,7 +102,9 @@
       height:100%;
       background:#0b0b0b;
       display:block;
-      touch-action: pan-y;
+
+      /* CLAVE: permite pinch/zoom y giro sin que el navegador “robe” gestos */
+      touch-action: none;
     }
 
     .arBtn{
@@ -216,6 +218,7 @@
       ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pruebas/Pruebas.usdz"
 
       camera-controls
+      disable-pan
       interaction-prompt="none"
       loading="eager"
       reveal="auto"
@@ -225,9 +228,10 @@
       exposure="1.6"
       shadow-intensity="1"
 
-      camera-orbit="0deg 75deg 2.2m"
-      min-camera-orbit="-180deg 5deg auto"
-      max-camera-orbit="180deg 175deg auto"
+      <!-- ✅ Solo rotación en Y (yaw). Bloqueamos la inclinación vertical fijando el 2º valor -->
+      camera-orbit="0deg 70deg 2.2m"
+      min-camera-orbit="-180deg 70deg 0.6m"
+      max-camera-orbit="180deg 70deg 2.2m"
 
       ar
       ar-placement="floor"
