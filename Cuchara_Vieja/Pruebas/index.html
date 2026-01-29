@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Pruebas · AR</title>
 
-  <!-- model-viewer (preview estable) -->
+  <!-- Preview estable -->
   <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
 
   <style>
@@ -19,8 +19,12 @@
     }
 
     header{
-      position:fixed; inset:0 0 auto 0; height:56px;
-      display:flex; align-items:center; justify-content:space-between;
+      position:fixed;
+      inset:0 0 auto 0;
+      height:56px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
       padding:0 12px;
       background:rgba(15,15,15,.75);
       backdrop-filter: blur(10px);
@@ -28,7 +32,8 @@
     }
 
     .menuBtn{
-      color:#fff; text-decoration:none;
+      color:#fff;
+      text-decoration:none;
       border:1px solid rgba(255,255,255,.18);
       border-radius:10px;
       padding:8px 12px;
@@ -37,7 +42,9 @@
     }
 
     .byGoscale{
-      display:flex; align-items:center; gap:8px;
+      display:flex;
+      align-items:center;
+      gap:8px;
       padding:8px 12px;
       border-radius:12px;
       background:rgba(255,255,255,.06);
@@ -112,7 +119,6 @@
       background:rgba(0,0,0,.75);
       z-index:24;
     }
-
     .spinner{
       width:44px;
       height:44px;
@@ -130,6 +136,7 @@
       z-index:999;
       display:none;
       touch-action:none;
+      pointer-events:auto;
     }
 
     #status{
@@ -142,7 +149,7 @@
       border-radius:10px;
       border:1px solid rgba(255,255,255,.18);
       background:rgba(0,0,0,.45);
-      max-width:75vw;
+      max-width:78vw;
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
@@ -156,7 +163,8 @@
 <body>
 
 <header>
-  <a class="menuBtn" href="https://www.canva.com/design/DAG9pcht0YQ/vMlVejQnQ2StmRcQqudt3Q/view?utm_content=DAG9pcht0YQ&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h0d5e8121fb">
+  <a class="menuBtn"
+     href="https://www.canva.com/design/DAG9pcht0YQ/vMlVejQnQ2StmRcQqudt3Q/view?utm_content=DAG9pcht0YQ&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h0d5e8121fb">
     ← Menú
   </a>
 
@@ -167,14 +175,12 @@
 </header>
 
 <main id="uiMain">
-
   <section id="dishInfo">
     <h1 id="dishTitle">Pruebas</h1>
-    <p id="dishDesc">Ingredientes: Es un elemento de pruebas.</p>
+    <p id="dishDesc">Tap para colocar. Luego pinch para tamaño y giro 2 dedos para rotar.</p>
   </section>
 
   <div class="viewerWrap">
-
     <div id="loading">
       <div class="spinner"></div>
       <p id="loadingText">Cargando modelo…</p>
@@ -197,16 +203,14 @@
       shadow-intensity="1"
     ></model-viewer>
 
-    <!-- Botón AR (nuestro) -->
     <button id="startAR" class="arBtn" disabled>Ver en AR (WebXR test)</button>
-
   </div>
 </main>
 
 <canvas id="xrCanvas"></canvas>
 <div id="status">Listo</div>
 
-<!-- ✅ Script normal (SIN imports) para que SIEMPRE funcione el loader/botón -->
+<!-- Script básico para loader/botón (siempre funciona) -->
 <script>
   const GLB_URL  = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pruebas/Pruebas.glb";
   const USDZ_URL = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pruebas/Pruebas.usdz";
@@ -219,8 +223,23 @@
   const loading = document.getElementById('loading');
   const loadingText = document.getElementById('loadingText');
 
-  const statusEl = document.getElementById('status');
-  const setStatus = (t) => { statusEl.style.display = 'block'; statusEl.textContent = t; };
+  mv.addEventListener('load', () => {
+    loading.style.display = 'none';
+    btn.disabled = false;
+  });
+
+  mv.addEventListener('error', () => {
+    loadingText.textContent = 'Error cargando preview (puedes probar AR igualmente)';
+    btn.disabled = false;
+  });
+
+  // fallback: no bloquear nunca
+  setTimeout(() => {
+    if (btn.disabled) {
+      loadingText.textContent = 'El preview tarda. Puedes probar AR igualmente.';
+      btn.disabled = false;
+    }
+  }, 8000);
 
   function openSceneViewer() {
     const intent =
@@ -232,34 +251,14 @@
     window.location.href = intent;
   }
 
-  // ✅ Si el modelo carga, quitamos loader y activamos botón
-  mv.addEventListener('load', () => {
-    loading.style.display = 'none';
-    btn.disabled = false;
-  });
-
-  // ✅ Si hay error
-  mv.addEventListener('error', () => {
-    loadingText.textContent = 'Error cargando el modelo (revisa URL)';
-    btn.disabled = false; // dejamos probar AR igualmente
-  });
-
-  // ✅ Seguridad: si en 8s no hay load, no bloqueamos al usuario
-  setTimeout(() => {
-    if (btn.disabled) {
-      loadingText.textContent = 'El preview tarda. Puedes probar AR igualmente.';
-      btn.disabled = false;
-    }
-  }, 8000);
-
-  // Botón: iOS → Quick Look; Android → WebXR (si no, Scene Viewer)
   btn.addEventListener('click', async () => {
+    // iOS: Quick Look (no tocamos nada)
     if (isiOS) {
       window.location.href = USDZ_URL;
       return;
     }
 
-    // Intentamos WebXR custom (carga librerías solo aquí)
+    // Android: intenta WebXR; si no, Scene Viewer
     if (!navigator.xr || !window.isSecureContext) {
       openSceneViewer();
       return;
@@ -271,13 +270,11 @@
       return;
     }
 
-    // Llamamos al módulo WebXR
-    setStatus("Cargando AR WebXR…");
     window.__startWebXR__ && window.__startWebXR__();
   });
 </script>
 
-<!-- ✅ Módulo WebXR separado (solo se usa cuando pulsas) -->
+<!-- WebXR custom: gestos capturados en WINDOW (la prueba que quieres) -->
 <script type="module">
   const GLB_URL  = "https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pruebas/Pruebas.glb";
 
@@ -286,23 +283,22 @@
   const statusEl = document.getElementById('status');
   const setStatus = (t) => { statusEl.style.display = 'block'; statusEl.textContent = t; };
 
-  function openSceneViewer() {
-    const intent =
-      "intent://arvr.google.com/scene-viewer/1.0" +
-      "?file=" + encodeURIComponent(GLB_URL) +
-      "&mode=ar_preferred" +
-      "&resizable=true" +
-      "#Intent;scheme=https;package=com.google.android.googlequicksearchbox;end;";
-    window.location.href = intent;
-  }
-
   async function startWebXR() {
     try {
-      // Cargamos librerías SOLO ahora
+      // Import dinámico solo al entrar
       const THREE = await import("https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js");
       const { GLTFLoader } = await import("https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js");
 
-      // Setup Three
+      // UI -> AR
+      uiMain.style.display = "none";
+      xrCanvas.style.display = "block";
+      xrCanvas.style.touchAction = "none";
+      xrCanvas.style.pointerEvents = "auto";
+
+      // Esto es CLAVE para intentar que los gestos no los “robe” el sistema
+      document.body.style.touchAction = "none";
+
+      // Three setup
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera();
 
@@ -313,6 +309,7 @@
 
       scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.0));
 
+      // Reticle (suelo)
       const reticle = new THREE.Mesh(
         new THREE.RingGeometry(0.08, 0.10, 32).rotateX(-Math.PI/2),
         new THREE.MeshBasicMaterial({ color: 0xffffff, transparent:true, opacity:0.9 })
@@ -331,21 +328,9 @@
       modelRoot.scale.setScalar(1);
       scene.add(modelRoot);
 
-      // UI switch
-      uiMain.style.display = "none";
-      xrCanvas.style.display = "block";
-      xrCanvas.style.touchAction = "none";
-      setStatus("Iniciando sesión AR…");
-
-      // Gestos (pinch escala + twist yaw)
-      const pointers = new Map();
       let placed = false;
-      let startDist = 0, startAngle = 0, startScale = 1, startYaw = 0;
 
-      const getTwo = () => Array.from(pointers.values()).slice(0, 2);
-      const dist = (a,b) => Math.hypot(a.x-b.x, a.y-b.y);
-      const angle = (a,b) => Math.atan2(b.y-a.y, b.x-a.x);
-
+      // Helpers yaw
       const getYaw = () => {
         const e = new THREE.Euler().setFromQuaternion(modelRoot.quaternion, "YXZ");
         return e.y;
@@ -355,59 +340,101 @@
         modelRoot.quaternion.setFromEuler(e);
       };
 
-      xrCanvas.addEventListener("pointerdown", (e) => {
+      // Tap place
+      const controller = renderer.xr.getController(0);
+      scene.add(controller);
+      controller.addEventListener("select", () => {
+        if (reticle.visible) {
+          modelRoot.visible = true;
+          modelRoot.position.setFromMatrixPosition(reticle.matrix);
+          placed = true;
+          setStatus("Colocado. Pinch=tamaño · Giro 2 dedos=rotación.");
+        } else {
+          setStatus("No detecto suelo todavía. Mueve el móvil hasta ver el círculo.");
+        }
+      });
+
+      // ===== Gestos en WINDOW (PRUEBA) =====
+      const pointers = new Map();
+      let startDist = 0, startAngle = 0, startScale = 1, startYaw = 0;
+
+      const getTwo = () => Array.from(pointers.values()).slice(0, 2);
+      const dist = (a,b) => Math.hypot(a.x-b.x, a.y-b.y);
+      const ang  = (a,b) => Math.atan2(b.y-a.y, b.x-a.x);
+
+      const onDown = (e) => {
         pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
-        if (pointers.size === 2 && placed) {
+
+        if (pointers.size === 2 && placed && modelRoot.visible) {
           const [p1,p2] = getTwo();
           startDist = dist(p1,p2);
-          startAngle = angle(p1,p2);
+          startAngle = ang(p1,p2);
           startScale = modelRoot.scale.x;
           startYaw = getYaw();
         }
-      }, { passive:false });
+      };
 
-      xrCanvas.addEventListener("pointermove", (e) => {
+      const onMove = (e) => {
         if (!pointers.has(e.pointerId)) return;
         pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
 
-        if (pointers.size === 2 && placed) {
+        if (pointers.size === 2 && placed && modelRoot.visible) {
           e.preventDefault();
+
           const [p1,p2] = getTwo();
           const d = dist(p1,p2);
-          const a = angle(p1,p2);
+          const a = ang(p1,p2);
 
-          const factor = d / startDist;
-          const newScale = THREE.MathUtils.clamp(startScale * factor, 0.2, 3.0);
-          modelRoot.scale.setScalar(newScale);
+          // Scale
+          if (startDist > 0) {
+            const factor = d / startDist;
+            const newScale = THREE.MathUtils.clamp(startScale * factor, 0.2, 3.0);
+            modelRoot.scale.setScalar(newScale);
+          }
 
+          // Rotate (yaw)
           const delta = a - startAngle;
           setYaw(startYaw + delta);
         }
-      }, { passive:false });
+      };
 
-      const up = (e) => { pointers.delete(e.pointerId); if (pointers.size < 2) { startDist = 0; startAngle = 0; } };
-      xrCanvas.addEventListener("pointerup", up, { passive:true });
-      xrCanvas.addEventListener("pointercancel", up, { passive:true });
+      const onUp = (e) => {
+        pointers.delete(e.pointerId);
+        if (pointers.size < 2) { startDist = 0; startAngle = 0; }
+      };
 
-      // Controller select (tap place)
-      const controller = renderer.xr.getController(0);
-      scene.add(controller);
-
-      controller.addEventListener("select", () => {
-        if (!reticle.visible) return;
-        modelRoot.visible = true;
-        modelRoot.position.setFromMatrixPosition(reticle.matrix);
-        placed = true;
-        setStatus("Colocado. Pinch=tamaño · Giro 2 dedos=rotación.");
-      });
+      window.addEventListener("pointerdown", onDown, { passive:false });
+      window.addEventListener("pointermove", onMove, { passive:false });
+      window.addEventListener("pointerup", onUp, { passive:true });
+      window.addEventListener("pointercancel", onUp, { passive:true });
 
       // Start session
+      setStatus("Iniciando WebXR AR…");
       const session = await navigator.xr.requestSession("immersive-ar", {
         requiredFeatures: ["hit-test"]
       });
-      await renderer.xr.setSession(session);
-      setStatus("Apunta al suelo hasta ver el círculo.");
 
+      session.addEventListener("end", () => {
+        // Cleanup listeners
+        window.removeEventListener("pointerdown", onDown);
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+        window.removeEventListener("pointercancel", onUp);
+
+        xrCanvas.style.display = "none";
+        uiMain.style.display = "flex";
+        statusEl.style.display = "none";
+        document.body.style.touchAction = "";
+
+        placed = false;
+        modelRoot.visible = false;
+        reticle.visible = false;
+      });
+
+      await renderer.xr.setSession(session);
+      setStatus("Apunta al suelo hasta ver el círculo. Tap para colocar.");
+
+      // Hit-test
       let hitTestSource = null;
       let requested = false;
 
@@ -416,19 +443,10 @@
           const refSpace = renderer.xr.getReferenceSpace();
 
           if (!requested) {
-            const s = renderer.xr.getSession();
-            s.requestReferenceSpace("viewer").then((viewerSpace) => {
-              s.requestHitTestSource({ space: viewerSpace }).then((src) => hitTestSource = src);
+            session.requestReferenceSpace("viewer").then((viewerSpace) => {
+              session.requestHitTestSource({ space: viewerSpace }).then((src) => hitTestSource = src);
             });
             requested = true;
-
-            s.addEventListener("end", () => {
-              xrCanvas.style.display = "none";
-              uiMain.style.display = "flex";
-              statusEl.style.display = "none";
-              reticle.visible = false;
-              modelRoot.visible = false;
-            });
           }
 
           if (hitTestSource) {
@@ -442,18 +460,26 @@
             }
           }
         }
+
         renderer.render(scene, camera);
       });
 
     } catch (e) {
       console.error(e);
-      setStatus("WebXR falló. Abriendo Scene Viewer…");
-      openSceneViewer();
+      // Si falla, vuelve a UI
+      xrCanvas.style.display = "none";
+      uiMain.style.display = "flex";
+      statusEl.style.display = "block";
+      statusEl.textContent = "Error WebXR. (Luego probamos con botones/slider).";
+      document.body.style.touchAction = "";
     }
   }
 
-  // Expone la función al script normal (sin imports)
   window.__startWebXR__ = startWebXR;
+
+  window.addEventListener("resize", () => {
+    // no es crítico aquí
+  });
 </script>
 
 </body>
