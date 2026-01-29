@@ -53,10 +53,7 @@
       font-weight:700;
     }
 
-    .byGoscale img{
-      height:22px;
-      width:auto;
-    }
+    .byGoscale img{ height:22px; width:auto; }
 
     main{
       position:fixed;
@@ -102,7 +99,8 @@
       height:100%;
       background:#0b0b0b;
       display:block;
-      touch-action: pan-y;
+      /* ayuda a que pinch no lo “robe” el navegador */
+      touch-action: none;
     }
 
     .arBtn{
@@ -122,10 +120,7 @@
       z-index:25;
     }
 
-    .arBtn[disabled]{
-      opacity:.55;
-      cursor:not-allowed;
-    }
+    .arBtn[disabled]{ opacity:.55; cursor:not-allowed; }
 
     #loading{
       position:absolute;
@@ -147,7 +142,6 @@
       border-radius:50%;
       animation:spin 1s linear infinite;
     }
-
     @keyframes spin{ to{ transform:rotate(360deg); } }
 
     .brandBottom{
@@ -198,9 +192,7 @@
 
   <section id="dishInfo">
     <h1 id="dishTitle">Pruebas</h1>
-    <p id="dishDesc">
-      Ingredientes: Es un elemento de pruebas.
-    </p>
+    <p id="dishDesc">Ingredientes: Es un elemento de pruebas.</p>
   </section>
 
   <div class="viewerWrap">
@@ -216,6 +208,7 @@
       ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pruebas/Pruebas.usdz"
 
       camera-controls
+      disable-pan
       interaction-prompt="none"
       loading="eager"
       reveal="auto"
@@ -226,13 +219,13 @@
       shadow-intensity="1"
 
       camera-orbit="0deg 75deg 2.2m"
-      min-camera-orbit="-180deg 5deg auto"
-      max-camera-orbit="180deg 175deg auto"
+      min-camera-orbit="-180deg 75deg 0.8m"
+      max-camera-orbit="180deg 75deg 2.2m"
 
       ar
       ar-placement="floor"
       ar-scale="auto"
-      ar-modes="scene-viewer quick-look"
+      ar-modes="webxr scene-viewer quick-look"
       ar-light-estimation
     >
       <button id="arBtn" class="arBtn" slot="ar-button" disabled>
@@ -265,6 +258,40 @@
 
   mv.addEventListener('error', () => {
     loading.querySelector('p').textContent = 'Error cargando el modelo';
+  });
+
+  // ====== 🔒 CANDADO: permite SOLO zoom (radio), bloquea yaw/pitch ======
+  // Ajusta estos 2 valores si quieres otra vista fija:
+  const LOCK_YAW = 0;    // grados
+  const LOCK_PITCH = 75; // grados (más alto = más desde arriba, menos “ver abajo”)
+
+  let lockActive = true;
+  let rafId = null;
+
+  function applyLock() {
+    // cameraOrbit devuelve un string tipo: "12deg 75deg 1.8m"
+    const orbit = (mv.cameraOrbit || '').toString().trim().split(/\s+/);
+    if (orbit.length < 3) return;
+
+    const radius = orbit[2]; // mantenemos SOLO el radio del usuario (zoom)
+    const desired = `${LOCK_YAW}deg ${LOCK_PITCH}deg ${radius}`;
+
+    // Evita bucles infinitos: solo escribe si es distinto
+    if (mv.cameraOrbit.toString() !== desired) {
+      mv.cameraOrbit = desired;
+    }
+  }
+
+  mv.addEventListener('camera-change', () => {
+    if (!lockActive) return;
+    // usamos RAF para no pelear con el gesto en cada micro-evento
+    cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(applyLock);
+  });
+
+  // Aplica al inicio también
+  mv.addEventListener('load', () => {
+    mv.cameraOrbit = `${LOCK_YAW}deg ${LOCK_PITCH}deg 2.2m`;
   });
 </script>
 
