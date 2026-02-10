@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Go Scale · Test Súper Sensible</title>
+  <title>Go Scale · Control Total</title>
   
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"></script>
 
@@ -12,14 +12,12 @@
       margin: 0; 
       background: #0b0b0b; 
       height: 100vh; 
-      display: flex; 
-      flex-direction: column; 
-      overflow: hidden;
+      overflow: hidden; 
     }
     
     model-viewer {
       width: 100%;
-      flex: 1;
+      height: 100%;
       background-color: #0b0b0b;
     }
 
@@ -28,10 +26,10 @@
       bottom: 40px;
       left: 50%;
       transform: translateX(-50%);
-      padding: 18px 35px;
+      padding: 18px 32px;
       background: #ffffff;
       color: #000;
-      border: 3px solid #4285F4; /* Azul de Google para identificarlo */
+      border: none;
       border-radius: 50px;
       font-weight: bold;
       font-size: 16px;
@@ -43,50 +41,44 @@
 <body>
 
   <model-viewer 
-    id="mv-sensible"
+    id="mv-control"
     src="Pruebas.glb" 
     ios-src="Pruebas.usdz"
     ar 
     ar-modes="webxr" 
     ar-placement="floor"
-    ar-scale="fixed" 
+    /* 'auto' permite que el usuario pueda ampliar/reducir el plato */
+    ar-scale="auto" 
     camera-controls
-    interaction-prompt="none"
-    shadow-intensity="1"
+    interaction-prompt="auto"
+    shadow-intensity="1.5"
     exposure="1.2"
-    /* Mejora el rendimiento para captar mejor los toques */
-    powerPreference="high-performance"
+    /* Evita que el modelo desaparezca al alejar mucho la cámara */
+    min-camera-orbit="auto auto 0.5m"
+    max-camera-orbit="auto auto 5m"
   >
     
     <button slot="ar-button" class="ar-button">
-      ABRIR CÁMARA (TEST SENSIBLE)
+      PROBAR EN MI MESA
     </button>
     
   </model-viewer>
 
   <script>
-    const modelViewer = document.querySelector('#mv-sensible');
+    const mv = document.querySelector('#mv-control');
 
-    // Escuchamos el evento de inicio para forzar el foco
-    modelViewer.addEventListener('ar-status', (event) => {
+    // Mejoramos la detección del toque en AR
+    mv.addEventListener('ar-status', (event) => {
       if (event.detail.status === 'session-started') {
-        console.log("Sesión WebXR iniciada");
-        
-        // TRUCO DE FORO: Forzar que el sistema 'despierte' al tocar
-        // Añadimos un listener global que intente forzar la interacción
-        window.addEventListener('touchstart', (e) => {
-          // Esto ayuda a que el navegador registre la actividad táctil
-          // dentro del contexto de la cámara de WebXR.
-          console.log("Toque de pantalla detectado");
-        }, {passive: true});
+        // En cuanto empieza, el navegador está listo para recibir gestos
+        console.log("AR listo: Usa un dedo para mover, dos para rotar/ampliar");
       }
     });
 
-    // Detectamos si el recuadro azul aparece
-    modelViewer.addEventListener('ar-hit-test-achieved', () => {
-      // Si el navegador soporta vibración, te dará un aviso físico al detectar el suelo
+    // Vibración opcional para saber que el suelo es válido
+    mv.addEventListener('ar-hit-test-achieved', () => {
       if (window.navigator.vibrate) {
-        window.navigator.vibrate(40);
+        window.navigator.vibrate(30);
       }
     });
   </script>
