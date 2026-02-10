@@ -1,23 +1,40 @@
-<model-viewer 
-  src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" 
-  ar 
-  ar-modes="webxr" 
-  ar-placement="floor"
-  camera-controls
-  
-  /* ESTOS 3 ATRIBUTOS DESBLOQUEAN EL MOVIMIENTO EN WEBXR */
-  ar-scale="auto"
-  interaction-prompt="cross"
-  enable-pan
-  
-  /* IMPORTANTE: Quitamos el 'fixed' para que el sistema 
-     permita al usuario ajustar el tamaño y posición */
-  
-  touch-action="none"
-  alt="Prueba de movimiento desbloqueado">
-  
-  <button slot="ar-button" style="background: white; padding: 15px; border-radius: 10px; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);">
-    PROBAR MOVIMIENTO
-  </button>
-  
-</model-viewer>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pruebas Estables · AR</title>
+
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"></script>
+
+  <style>
+    body { margin: 0; background: #0b0b0b; height: 100vh; display: flex; flex-direction: column; }
+    model-viewer { width: 100%; flex: 1; --progress-bar-color: transparent; }
+    .ar-button {
+      position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
+      padding: 16px 30px; border-radius: 20px; border: none;
+      background: #fff; color: #000; font-weight: bold; z-index: 100;
+    }
+  </style>
+</head>
+<body>
+
+  <model-viewer
+    id="mv"
+    src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+    ar
+    /* Al usar la 3.1.1, probamos de nuevo scene-viewer primero, ya que esta versión genera enlaces más limpios */
+    ar-modes="scene-viewer webxr quick-look"
+    ar-placement="floor"
+    camera-controls
+    touch-action="none"
+    shadow-intensity="1"
+    alt="Modelo de prueba estable"
+  >
+    <button slot="ar-button" class="ar-button">
+      PROBAR AR ESTABLE
+    </button>
+  </model-viewer>
+
+</body>
+</html>
