@@ -1,15 +1,33 @@
-<model-viewer 
-  src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" 
-  ar 
-  ar-modes="webxr" 
-  /* CAMBIO CRÍTICO: Probamos con 'wall' para forzar al sistema a habilitar gestos */
-  ar-placement="wall"
-  camera-controls 
-  ar-scale="auto"
-  alt="Prueba de emergencia">
-  
-  <button slot="ar-button" style="padding: 20px; background: white; border-radius: 10px;">
-    PROBAR MODO PARED (Gesto Forzado)
-  </button>
-  
-</model-viewer>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Acceso Directo AR</title>
+    <style>
+        body { 
+            margin: 0; height: 100vh; background: #0b0b0b; 
+            display: flex; align-items: center; justify-content: center;
+            font-family: sans-serif; color: white; text-align: center;
+        }
+        .btn-directo {
+            padding: 20px 40px; background: #fff; color: #000;
+            border-radius: 50px; text-decoration: none; font-weight: bold;
+            font-size: 18px; box-shadow: 0 10px 20px rgba(255,255,255,0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div>
+        <h2>Prueba de Cámara Directa</h2>
+        <p>Este botón llama directamente al sistema de Android.</p>
+        <br>
+        <a class="btn-directo" 
+           href="intent://arcore.google.com/scene-viewer/1.0?file=https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pruebas/Pruebas.glb&mode=ar_only&resizable=true#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=https://goscalemarketing.pages.dev;end;">
+           VER PLATO EN MI MESA
+        </a>
+    </div>
+
+</body>
+</html>
