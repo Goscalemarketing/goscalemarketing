@@ -2,12 +2,28 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Test Final de Movimiento</title>
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"></script>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
   <style>
-    body { margin: 0; background: #000; height: 100vh; display: flex; flex-direction: column; }
-    model-viewer { width: 100%; flex: 1; }
-    .btn { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); padding: 20px; background: white; border-radius: 10px; font-weight: bold; z-index: 1000; }
+    body { margin: 0; background: #111; height: 100vh; }
+    model-viewer { width: 100%; height: 100%; }
+    
+    /* Forzamos que el botón se vea siempre */
+    #custom-ar-button {
+      display: block !important; /* Obligatorio */
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 20px 40px;
+      background: #FF0000; /* Rojo para que no se pierda */
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-weight: bold;
+      font-size: 18px;
+      z-index: 9999;
+      box-shadow: 0 4px 20px rgba(255,0,0,0.5);
+    }
   </style>
 </head>
 <body>
@@ -15,13 +31,14 @@
   <model-viewer 
     src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" 
     ar 
-    ar-modes="scene-viewer" 
+    ar-modes="scene-viewer webxr" 
     ar-scale="auto"
     camera-controls>
     
-    <button slot="ar-button" class="btn">
-      PROBAR ASTRONAUTA (SCENE VIEWER)
+    <button slot="ar-button" id="custom-ar-button">
+      ¡BOTÓN DE EMERGENCIA AR!
     </button>
+
   </model-viewer>
 
 </body>
