@@ -20,29 +20,13 @@
 
   ar
   ar-placement="floor"
-  /* Cambiamos auto por fixed para evitar el rebote por cálculo de escala */
   ar-scale="fixed"
-  /* Ponemos ambos: si Scene Viewer rebota, WebXR entrará al rescate */
-  ar-modes="scene-viewer webxr quick-look"
-  ar-light-estimation
+  /* Forzamos Scene Viewer como única opción en Android para evitar WebXR */
+  ar-modes="scene-viewer quick-look"
+  /* Este parámetro es clave para Scene Viewer */
+  alt="Visualiza este plato en tu mesa"
 >
   <button id="arBtn" class="arBtn" slot="ar-button" disabled>
     Ver en AR
   </button>
 </model-viewer>
-
-<script>
-  /* ... (mantén tu código de carga y el candado igual) ... */
-
-  // ESTA PARTE ES NUEVA: Control de entrada/salida de AR
-  mv.addEventListener('ar-status', (event) => {
-    if (event.detail.status === 'session-started') {
-      // Desactivamos el candado de la cámara web para que no interfiera con la AR
-      lockActive = false;
-    } else if (event.detail.status === 'not-presenting') {
-      // Al volver a la web, reactivamos el candado y la vista estética
-      lockActive = true;
-      mv.cameraOrbit = `${LOCK_YAW}deg ${LOCK_PITCH}deg 2.2m`;
-    }
-  });
-</script>
