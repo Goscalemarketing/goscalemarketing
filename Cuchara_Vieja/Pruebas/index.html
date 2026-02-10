@@ -1,84 +1,92 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Go Scale · Test Súper Sensible</title>
+  
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"></script>
-  <style>
-    body { margin: 0; background: #0b0b0b; height: 100vh; display: flex; flex-direction: column; }
-    
-    /* Dejamos espacio arriba y abajo para que el modelo NO ocupe todo */
-    .container {
-      flex: 1;
-      position: relative;
-      width: 90%;
-      margin: 0 auto;
-      border: 1px solid #333; /* Guía visual para ti */
-    }
 
+  <style>
+    body { 
+      margin: 0; 
+      background: #0b0b0b; 
+      height: 100vh; 
+      display: flex; 
+      flex-direction: column; 
+      overflow: hidden;
+    }
+    
     model-viewer {
       width: 100%;
-      height: 100%;
+      flex: 1;
+      background-color: #0b0b0b;
     }
 
     .ar-button {
-      background: #ffffff;
-      color: black;
-      border-radius: 10px;
-      padding: 15px 25px;
-      border: none;
-      font-weight: bold;
       position: absolute;
-      bottom: 20px;
+      bottom: 40px;
       left: 50%;
       transform: translateX(-50%);
+      padding: 18px 35px;
+      background: #ffffff;
+      color: #000;
+      border: 3px solid #4285F4; /* Azul de Google para identificarlo */
+      border-radius: 50px;
+      font-weight: bold;
+      font-size: 16px;
       z-index: 100;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     }
   </style>
 </head>
 <body>
 
-  <div style="padding: 20px; text-align: center; color: #777; font-size: 12px;">
-    Go Scale Marketing - Test de Colisión
-  </div>
-
-  <div class="container">
-    <model-viewer 
-      id="mv-test"
-      src="Pruebas.glb" 
-      ar 
-      ar-modes="webxr" 
-      ar-scale="fixed"
-      camera-controls
-      auto-rotate
-      shadow-intensity="1">
-      
-      <button slot="ar-button" class="ar-button">
-        PROBAR CÁMARA
-      </button>
-
-    </model-viewer>
-  </div>
-
-  <div id="status" style="padding: 20px; text-align: center; color: #4285F4; font-weight: bold;">
-    Mueve el móvil para detectar suelo
-  </div>
+  <model-viewer 
+    id="mv-sensible"
+    src="Pruebas.glb" 
+    ios-src="Pruebas.usdz"
+    ar 
+    ar-modes="webxr" 
+    ar-placement="floor"
+    ar-scale="fixed" 
+    camera-controls
+    interaction-prompt="none"
+    shadow-intensity="1"
+    exposure="1.2"
+    /* Mejora el rendimiento para captar mejor los toques */
+    powerPreference="high-performance"
+  >
+    
+    <button slot="ar-button" class="ar-button">
+      ABRIR CÁMARA (TEST SENSIBLE)
+    </button>
+    
+  </model-viewer>
 
   <script>
-    const mv = document.querySelector('#mv-test');
-    const status = document.querySelector('#status');
+    const modelViewer = document.querySelector('#mv-sensible');
 
-    // Hack de Foro: Detectar cuando el sistema encuentra el suelo
-    // para avisar al usuario de que ya puede tocar
-    mv.addEventListener('ar-hit-test-achieved', () => {
-      status.innerText = "¡SUELO DETECTADO! Toca ahora.";
-      status.style.color = "#00FF00";
+    // Escuchamos el evento de inicio para forzar el foco
+    modelViewer.addEventListener('ar-status', (event) => {
+      if (event.detail.status === 'session-started') {
+        console.log("Sesión WebXR iniciada");
+        
+        // TRUCO DE FORO: Forzar que el sistema 'despierte' al tocar
+        // Añadimos un listener global que intente forzar la interacción
+        window.addEventListener('touchstart', (e) => {
+          // Esto ayuda a que el navegador registre la actividad táctil
+          // dentro del contexto de la cámara de WebXR.
+          console.log("Toque de pantalla detectado");
+        }, {passive: true});
+      }
     });
 
-    mv.addEventListener('ar-status', (event) => {
-      if(event.detail.status === 'session-started') {
-        status.innerText = "Buscando superficie plana...";
+    // Detectamos si el recuadro azul aparece
+    modelViewer.addEventListener('ar-hit-test-achieved', () => {
+      // Si el navegador soporta vibración, te dará un aviso físico al detectar el suelo
+      if (window.navigator.vibrate) {
+        window.navigator.vibrate(40);
       }
     });
   </script>
