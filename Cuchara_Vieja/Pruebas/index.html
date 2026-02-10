@@ -1,33 +1,21 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Acceso Directo AR</title>
-    <style>
-        body { 
-            margin: 0; height: 100vh; background: #0b0b0b; 
-            display: flex; align-items: center; justify-content: center;
-            font-family: sans-serif; color: white; text-align: center;
-        }
-        .btn-directo {
-            padding: 20px 40px; background: #fff; color: #000;
-            border-radius: 50px; text-decoration: none; font-weight: bold;
-            font-size: 18px; box-shadow: 0 10px 20px rgba(255,255,255,0.2);
-        }
-    </style>
-</head>
-<body>
-
-    <div>
-        <h2>Prueba de Cámara Directa</h2>
-        <p>Este botón llama directamente al sistema de Android.</p>
-        <br>
-        <a class="btn-directo" 
-           href="intent://arcore.google.com/scene-viewer/1.0?file=https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pruebas/Pruebas.glb&mode=ar_only&resizable=true#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=https://goscalemarketing.pages.dev;end;">
-           VER PLATO EN MI MESA
-        </a>
-    </div>
-
-</body>
-</html>
+<model-viewer 
+    /* Archivos locales en GitHub */
+    src="Pruebas.glb" 
+    ios-src="Pruebas.usdz"
+    
+    /* Configuración de Realidad Aumentada */
+    ar 
+    ar-modes="scene-viewer quick-look" 
+    ar-scale="auto"
+    
+    /* Controles y Estética */
+    camera-controls 
+    touch-action="none"
+    shadow-intensity="1"
+    alt="Plato Gastronómico 3D"
+    style="width: 100%; height: 100%;"
+>
+    <button slot="ar-button" class="arBtn">
+      VER EN TU MESA
+    </button>
+</model-viewer>
