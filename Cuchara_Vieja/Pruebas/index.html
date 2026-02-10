@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Pruebas · AR</title>
+  <title>Pruebas · AR Go Scale</title>
 
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"></script>
 
@@ -14,6 +14,7 @@
       color:#fff; overflow: hidden;
     }
 
+    /* Header superior */
     header{
       position:fixed; inset:0 0 auto 0; height:56px;
       display:flex; align-items:center; justify-content:space-between;
@@ -37,6 +38,7 @@
 
     main{ position:fixed; inset:56px 0 0 0; display:flex; flex-direction:column; }
 
+    /* Info del plato */
     #dishInfo{
       padding:14px 16px 10px;
       background:linear-gradient(to bottom, rgba(11,11,11,.95), rgba(11,11,11,0));
@@ -50,15 +52,17 @@
 
     model-viewer{ width:100%; height:100%; background:#0b0b0b; display:block; }
 
+    /* Botón AR */
     .arBtn{
-      position:absolute; bottom:18px; left:50%; transform:translateX(-50%);
-      padding:14px 26px; border-radius:18px; font-size:16px; font-weight:900;
+      position:absolute; bottom:25px; left:50%; transform:translateX(-50%);
+      padding:16px 30px; border-radius:50px; font-size:16px; font-weight:900;
       background:#fff; color:#111; border:0;
       box-shadow:0 12px 30px rgba(0,0,0,.45); cursor:pointer; z-index:25;
     }
 
     .arBtn[disabled]{ opacity:.55; }
 
+    /* Pantalla de carga */
     #loading{
       position:absolute; inset:0; display:flex; align-items:center;
       justify-content:center; flex-direction:column; gap:14px;
@@ -66,19 +70,28 @@
     }
 
     .spinner{
-      width:44px; height:44px; border:4px solid rgba(255,255,255,.2);
+      width:40px; height:40px; border:4px solid rgba(255,255,255,.1);
       border-top:4px solid #fff; border-radius:50%;
-      animation:spin 1s linear infinite;
+      animation:spin 0.8s linear infinite;
     }
     @keyframes spin{ to{ transform:rotate(360deg); } }
 
+    /* Footer con Logo del Restaurante */
     .brandBottom{
-      padding:10px 12px 14px; display:flex; justify-content:center;
-      border-top:1px solid rgba(255,255,255,.10); background:rgba(0,0,0,.18);
+      padding:10px 12px 20px; display:flex; justify-content:center;
+      border-top:1px solid rgba(255,255,255,.10); background:rgba(0,0,0,0.3);
     }
 
-    .restaurantLogo{ height:72px; width:auto; transform:scale(1.25); opacity:.95; }
-    .brandClaim{ font-size:11px; color:rgba(255,255,255,.45); margin-top: 4px; }
+    .restaurantLogo{ height:65px; width:auto; opacity:.95; }
+    .brandClaim{ font-size:10px; color:rgba(255,255,255,.4); margin-top: 4px; }
+
+    /* Toast de ayuda en AR */
+    .ar-toast {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.8); color: white; padding: 15px 25px;
+      border-radius: 12px; text-align: center; z-index: 10000;
+      pointer-events: none; border: 1px solid rgba(255,255,255,0.2);
+    }
   </style>
 </head>
 
@@ -95,13 +108,13 @@
 <main>
   <section id="dishInfo">
     <h1 id="dishTitle">Pruebas</h1>
-    <p id="dishDesc">Ingredientes: Es un elemento de pruebas.</p>
+    <p id="dishDesc">Ingredientes: Es un elemento de pruebas para marketing gastronómico.</p>
   </section>
 
   <div class="viewerWrap">
     <div id="loading">
       <div class="spinner"></div>
-      <p>Cargando plato…</p>
+      <p>Cargando experiencia 3D…</p>
     </div>
 
     <model-viewer
@@ -112,14 +125,15 @@
       ar
       ar-modes="webxr quick-look"
       ar-placement="floor"
-      ar-scale="auto"
-      shadow-intensity="1"
+      ar-scale="fixed"
+      shadow-intensity="1.5"
       environment-image="neutral"
-      exposure="1.6"
+      exposure="1.2"
       loading="eager"
+      interaction-prompt="auto"
     >
       <button id="arBtn" class="arBtn" slot="ar-button" disabled>
-        Ver en AR
+        VER EN MI MESA
       </button>
     </model-viewer>
   </div>
@@ -137,12 +151,28 @@
   const arBtn = document.getElementById('arBtn');
   const loading = document.getElementById('loading');
 
+  // Quitar pantalla de carga
   mv.addEventListener('load', () => {
     loading.style.display = 'none';
     arBtn.disabled = false;
   });
 
-  // Mantenemos tu lógica de bloqueo de cámara para la web
+  // Mensaje de ayuda dinámico al entrar en AR
+  mv.addEventListener('ar-status', (event) => {
+    if(event.detail.status === 'session-started'){
+      const toast = document.createElement('div');
+      toast.className = 'ar-toast';
+      toast.innerHTML = "✨ <b>¡Casi listo!</b><br>Mueve el móvil hacia el suelo y <br><b>TOCA DOS VECES</b> el recuadro azul";
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.transition = "opacity 0.5s";
+        toast.style.opacity = "0";
+        setTimeout(() => toast.remove(), 500);
+      }, 6000);
+    }
+  });
+
+  // Bloqueo de cámara en modo web (Yaw & Pitch fijo)
   const LOCK_YAW = 0;
   const LOCK_PITCH = 75;
   let rafId = null;
