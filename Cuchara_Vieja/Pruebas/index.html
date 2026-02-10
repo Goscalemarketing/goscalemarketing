@@ -1,15 +1,34 @@
-<model-viewer
-  id="mv"
-  /* MODELO DE PRUEBA OFICIAL DE GOOGLE */
-  src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
-  ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pruebas/Pruebas.usdz"
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Test AR Directo</title>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+  <style>
+    body { margin: 0; height: 100vh; background: #222; }
+    model-viewer { width: 100%; height: 90%; background: #000; }
+    .btn-ar {
+      display: block; width: 200px; height: 50px; 
+      margin: 10px auto; background: white; color: black;
+      border-radius: 10px; font-weight: bold;
+    }
+  </style>
+</head>
+<body>
 
-  ar
-  ar-modes="scene-viewer quick-look"
-  ar-scale="fixed"
-  camera-controls
->
-  <button id="arBtn" class="arBtn" slot="ar-button">
-    Probar Astronauta en AR
-  </button>
-</model-viewer>
+  <model-viewer 
+    src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" 
+    ar 
+    ar-modes="scene-viewer quick-look" 
+    camera-controls 
+    shadow-intensity="1">
+    
+    <button slot="ar-button" class="btn-ar">
+      BOTÓN AR GRANDE
+    </button>
+    
+  </model-viewer>
+
+</body>
+</html>
