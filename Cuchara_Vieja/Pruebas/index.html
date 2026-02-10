@@ -1,39 +1,15 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Limpieza Profunda v2.1.1</title>
+<model-viewer 
+  src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" 
+  ar 
+  ar-modes="webxr" 
+  /* CAMBIO CRÍTICO: Probamos con 'wall' para forzar al sistema a habilitar gestos */
+  ar-placement="wall"
+  camera-controls 
+  ar-scale="auto"
+  alt="Prueba de emergencia">
   
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/2.1.1/model-viewer.min.js?v=999"></script>
-
-  <style>
-    body { margin: 0; background: #111; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    model-viewer { width: 90%; height: 80%; background: #000; border: 2px solid #333; }
-    .btn-ar {
-      padding: 20px 40px; background: gold; color: black; 
-      border: none; border-radius: 50px; font-weight: 900; 
-      margin-top: 20px; cursor: pointer; box-shadow: 0 5px 15px rgba(255,215,0,0.4);
-    }
-  </style>
-</head>
-<body>
-
-  <model-viewer 
-    src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" 
-    ar 
-    ar-modes="webxr" 
-    camera-controls 
-    ar-scale="auto"
-    alt="Test Final">
-    
-    <button slot="ar-button" class="btn-ar">
-      PROBAR AR AHORA
-    </button>
-    
-  </model-viewer>
-
-  <p style="color: white; font-family: sans-serif; margin-top: 10px;">Versión 2.1.1 - Forzada</p>
-
-</body>
-</html>
+  <button slot="ar-button" style="padding: 20px; background: white; border-radius: 10px;">
+    PROBAR MODO PARED (Gesto Forzado)
+  </button>
+  
+</model-viewer>
