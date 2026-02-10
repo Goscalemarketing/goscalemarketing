@@ -1,58 +1,14 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Rescate de Botón AR</title>
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"></script>
-  <style>
-    body { margin: 0; height: 100vh; display: flex; flex-direction: column; background: white; font-family: sans-serif; }
-    
-    /* El modelo ocupa el 70% de la pantalla */
-    model-viewer { width: 100%; height: 70%; background-color: #eee; }
-
-    /* Contenedor inferior para el botón */
-    .controls { 
-      height: 30%; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      background: #fff;
-    }
-
-    #custom-ar-button {
-      padding: 20px 40px;
-      background: #4285F4;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-weight: bold;
-      font-size: 20px;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
-
-    .not-supported { display: none; color: red; }
-  </style>
-</head>
-<body>
-
-  <model-viewer 
-    src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" 
-    ar 
-    ar-modes="scene-viewer webxr" 
-    camera-controls 
-    alt="Astronauta de prueba">
-    
-    <button slot="ar-button" id="custom-ar-button">
-      🚀 ABRIR EN REALIDAD AUMENTADA
-    </button>
-
-  </model-viewer>
-
-  <div class="controls">
-    <p id="msg">Si el botón azul no aparece arriba, el navegador no detecta AR.</p>
-  </div>
-
-</body>
-</html>
+<model-viewer 
+  src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" 
+  ar 
+  /* Forzamos SOLAMENTE WebXR para evitar el rebote del Scene Viewer */
+  ar-modes="webxr" 
+  ar-placement="floor"
+  camera-controls 
+  xr-environment
+  style="width: 100%; height: 100%;"
+>
+  <button slot="ar-button" style="padding: 20px; background: #4285F4; color: white; border-radius: 10px; position: absolute; top: 20px; left: 50%; transform: translateX(-50%);">
+    PROBAR MODO WEBXR (SIN REBOTE)
+  </button>
+</model-viewer>
