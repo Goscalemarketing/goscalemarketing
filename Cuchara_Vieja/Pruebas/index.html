@@ -2,194 +2,84 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Pruebas · AR Go Scale</title>
-
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Test de Diagnóstico · Go Scale</title>
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"></script>
-
   <style>
-    html, body{
-      margin:0; height:100%; background:#0b0b0b;
-      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial;
-      color:#fff; overflow: hidden;
+    body { margin: 0; background: #111; color: white; font-family: sans-serif; height: 100vh; overflow: hidden; }
+    model-viewer { width: 100%; height: 100%; background: #0b0b0b; }
+    
+    .ar-button {
+      position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
+      padding: 20px 40px; background: #FF3B30; color: white; border: none;
+      border-radius: 12px; font-weight: bold; z-index: 100;
     }
 
-    /* Header superior */
-    header{
-      position:fixed; inset:0 0 auto 0; height:56px;
-      display:flex; align-items:center; justify-content:space-between;
-      padding:0 12px; background:rgba(15,15,15,.75);
-      backdrop-filter: blur(10px); z-index:30;
-    }
-
-    .menuBtn{
-      color:#fff; text-decoration:none; border:1px solid rgba(255,255,255,.18);
-      border-radius:10px; padding:8px 12px; font-size:14px; font-weight:700;
-    }
-
-    .byGoscale{
-      display:flex; align-items:center; gap:8px; padding:8px 12px;
-      border-radius:12px; background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.16); text-decoration:none;
-      color:#fff; font-size:12px; font-weight:700;
-    }
-
-    .byGoscale img{ height:22px; width:auto; }
-
-    main{ position:fixed; inset:56px 0 0 0; display:flex; flex-direction:column; }
-
-    /* Info del plato */
-    #dishInfo{
-      padding:14px 16px 10px;
-      background:linear-gradient(to bottom, rgba(11,11,11,.95), rgba(11,11,11,0));
-      z-index:10;
-    }
-
-    #dishTitle{ margin:0; font-size:24px; font-weight:900; color:#fff; }
-    #dishDesc{ margin:8px 0 0; font-size:14px; color:rgba(255,255,255,.75); line-height:1.45; }
-
-    .viewerWrap{ position:relative; flex:1; min-height:0; }
-
-    model-viewer{ width:100%; height:100%; background:#0b0b0b; display:block; }
-
-    /* Botón AR */
-    .arBtn{
-      position:absolute; bottom:25px; left:50%; transform:translateX(-50%);
-      padding:16px 30px; border-radius:50px; font-size:16px; font-weight:900;
-      background:#fff; color:#111; border:0;
-      box-shadow:0 12px 30px rgba(0,0,0,.45); cursor:pointer; z-index:25;
-    }
-
-    .arBtn[disabled]{ opacity:.55; }
-
-    /* Pantalla de carga */
-    #loading{
-      position:absolute; inset:0; display:flex; align-items:center;
-      justify-content:center; flex-direction:column; gap:14px;
-      background:#0b0b0b; z-index:24;
-    }
-
-    .spinner{
-      width:40px; height:40px; border:4px solid rgba(255,255,255,.1);
-      border-top:4px solid #fff; border-radius:50%;
-      animation:spin 0.8s linear infinite;
-    }
-    @keyframes spin{ to{ transform:rotate(360deg); } }
-
-    /* Footer con Logo del Restaurante */
-    .brandBottom{
-      padding:10px 12px 20px; display:flex; justify-content:center;
-      border-top:1px solid rgba(255,255,255,.10); background:rgba(0,0,0,0.3);
-    }
-
-    .restaurantLogo{ height:65px; width:auto; opacity:.95; }
-    .brandClaim{ font-size:10px; color:rgba(255,255,255,.4); margin-top: 4px; }
-
-    /* Toast de ayuda en AR */
-    .ar-toast {
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: rgba(0,0,0,0.8); color: white; padding: 15px 25px;
-      border-radius: 12px; text-align: center; z-index: 10000;
-      pointer-events: none; border: 1px solid rgba(255,255,255,0.2);
+    /* Consola de depuración en pantalla para ver qué pasa en el AR */
+    #debug-console {
+      position: fixed; top: 10px; left: 10px; right: 10px;
+      background: rgba(0,0,0,0.8); padding: 10px; font-size: 12px;
+      border-radius: 8px; pointer-events: none; z-index: 10000;
+      border: 1px solid #444;
     }
   </style>
 </head>
-
 <body>
 
-<header>
-  <a class="menuBtn" href="#">← Menú</a>
-  <a class="byGoscale" href="https://goscalemarketing.com" target="_blank">
-    <span>by</span>
-    <img src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png">
-  </a>
-</header>
+  <div id="debug-console">Esperando sesión AR...</div>
 
-<main>
-  <section id="dishInfo">
-    <h1 id="dishTitle">Pruebas</h1>
-    <p id="dishDesc">Ingredientes: Es un elemento de pruebas para marketing gastronómico.</p>
-  </section>
+  <model-viewer
+    id="diagnostic-mv"
+    src="Pruebas.glb"
+    ar
+    ar-modes="webxr"
+    ar-placement="floor"
+    ar-scale="fixed"
+    camera-controls
+    
+    /* PRUEBA DE FLOTACIÓN: Elevamos el objetivo de la cámara */
+    camera-target="0m 0.3m 0m"
+    
+    exposure="1.2"
+    shadow-intensity="1"
+  >
+    <button slot="ar-button" class="ar-button">
+      INICIAR TEST DE FLOTACIÓN
+    </button>
+  </model-viewer>
 
-  <div class="viewerWrap">
-    <div id="loading">
-      <div class="spinner"></div>
-      <p>Cargando experiencia 3D…</p>
-    </div>
+  <script>
+    const mv = document.querySelector('#diagnostic-mv');
+    const debug = document.querySelector('#debug-console');
 
-    <model-viewer
-      id="mv"
-      src="Pruebas.glb" 
-      ios-src="Pruebas.usdz"
-      camera-controls
-      ar
-      ar-modes="webxr quick-look"
-      ar-placement="floor"
-      ar-scale="fixed"
-      shadow-intensity="1.5"
-      environment-image="neutral"
-      exposure="1.2"
-      loading="eager"
-      interaction-prompt="auto"
-    >
-      <button id="arBtn" class="arBtn" slot="ar-button" disabled>
-        VER EN MI MESA
-      </button>
-    </model-viewer>
-  </div>
-
-  <div class="brandBottom">
-    <div style="display:flex; flex-direction:column; align-items:center;">
-      <img class="restaurantLogo" src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/LOGO%20OPC%202_MONOGRAMA%2CLOGOY%20LEMA%20NARANJA-18.png">
-      <span class="brandClaim">Powered by Go Scale Marketing</span>
-    </div>
-  </div>
-</main>
-
-<script>
-  const mv = document.getElementById('mv');
-  const arBtn = document.getElementById('arBtn');
-  const loading = document.getElementById('loading');
-
-  // Quitar pantalla de carga
-  mv.addEventListener('load', () => {
-    loading.style.display = 'none';
-    arBtn.disabled = false;
-  });
-
-  // Mensaje de ayuda dinámico al entrar en AR
-  mv.addEventListener('ar-status', (event) => {
-    if(event.detail.status === 'session-started'){
-      const toast = document.createElement('div');
-      toast.className = 'ar-toast';
-      toast.innerHTML = "✨ <b>¡Casi listo!</b><br>Mueve el móvil hacia el suelo y <br><b>TOCA DOS VECES</b> el recuadro azul";
-      document.body.appendChild(toast);
-      setTimeout(() => {
-        toast.style.transition = "opacity 0.5s";
-        toast.style.opacity = "0";
-        setTimeout(() => toast.remove(), 500);
-      }, 6000);
+    // Función para escribir en nuestra "consola" de móvil
+    function log(msg) {
+      debug.innerHTML = msg;
+      console.log(msg);
     }
-  });
 
-  // Bloqueo de cámara en modo web (Yaw & Pitch fijo)
-  const LOCK_YAW = 0;
-  const LOCK_PITCH = 75;
-  let rafId = null;
+    // 1. Detectar cuando entramos
+    mv.addEventListener('ar-status', (event) => {
+      log("Estado AR: " + event.detail.status);
+    });
 
-  mv.addEventListener('camera-change', () => {
-    cancelAnimationFrame(rafId);
-    rafId = requestAnimationFrame(() => {
-      const orbit = (mv.cameraOrbit || '').toString().trim().split(/\s+/);
-      if (orbit.length < 3) return;
-      const radius = orbit[2];
-      const desired = `${LOCK_YAW}deg ${LOCK_PITCH}deg ${radius}`;
-      if (mv.cameraOrbit.toString() !== desired) {
-        mv.cameraOrbit = desired;
+    // 2. Detectar si el sistema encuentra el suelo
+    mv.addEventListener('ar-hit-test-achieved', () => {
+      log("✅ Suelo detectado. <br>Busca el recuadro azul y TOCA.");
+    });
+
+    // 3. Detectar clics en la pantalla durante el AR
+    window.addEventListener('click', () => {
+      if (mv.canActivateAR) {
+        log("🖱️ Clic detectado en pantalla...");
       }
     });
-  });
-</script>
 
+    // 4. Detectar si el modelo se ha colocado
+    mv.addEventListener('ar-hit-test-select', () => {
+      log("🎯 ¡OBJETO COLOCADO! <br>Ahora intenta moverlo con un dedo.");
+    });
+
+  </script>
 </body>
 </html>
