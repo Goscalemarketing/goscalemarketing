@@ -1,40 +1,23 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Solución Definitiva Android</title>
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
-  <style>
-    body { margin: 0; height: 100vh; background: #0b0b0b; }
-    model-viewer { width: 100%; height: 100%; }
-    .ar-button {
-      background-color: white; border-radius: 10px; border: none;
-      position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
-      padding: 15px 25px; font-weight: bold; z-index: 100;
-    }
-  </style>
-</head>
-<body>
-
-  <model-viewer 
-    src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" 
-    ar 
-    /* Cambiamos el orden: WebXR primero pero configurado para ser móvil */
-    ar-modes="webxr scene-viewer" 
-    ar-placement="floor"
-    /* ESTA PROPIEDAD activa el movimiento en WebXR */
-    ar-scale="auto"
-    camera-controls 
-    interaction-prompt="auto"
-    touch-action="none"
-    alt="Prueba de movimiento">
-    
-    <button slot="ar-button" class="ar-button">
-      PROBAR AR (WEBXR)
-    </button>
-    
-  </model-viewer>
-
-</body>
-</html>
+<model-viewer 
+  src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" 
+  ar 
+  ar-modes="webxr" 
+  ar-placement="floor"
+  camera-controls
+  
+  /* ESTOS 3 ATRIBUTOS DESBLOQUEAN EL MOVIMIENTO EN WEBXR */
+  ar-scale="auto"
+  interaction-prompt="cross"
+  enable-pan
+  
+  /* IMPORTANTE: Quitamos el 'fixed' para que el sistema 
+     permita al usuario ajustar el tamaño y posición */
+  
+  touch-action="none"
+  alt="Prueba de movimiento desbloqueado">
+  
+  <button slot="ar-button" style="background: white; padding: 15px; border-radius: 10px; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);">
+    PROBAR MOVIMIENTO
+  </button>
+  
+</model-viewer>
