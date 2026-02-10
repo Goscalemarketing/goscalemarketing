@@ -2,29 +2,22 @@
   id="mv"
   src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pruebas/Pruebas.glb"
   ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pruebas/Pruebas.usdz"
-
+  
   camera-controls
   disable-pan
   interaction-prompt="none"
-  loading="eager"
-  reveal="auto"
-
-  environment-image="https://modelviewer.dev/shared-assets/environments/neutral.hdr"
-  tone-mapping="neutral"
-  exposure="1.6"
-  shadow-intensity="1"
-
-  camera-orbit="0deg 75deg 2.2m"
-  min-camera-orbit="-180deg 75deg 0.8m"
-  max-camera-orbit="180deg 75deg 2.2m"
-
+  
+  /* Forzamos que Android ignore WebXR por completo */
+  ar-modes="scene-viewer quick-look"
   ar
   ar-placement="floor"
   ar-scale="fixed"
-  /* Forzamos Scene Viewer como única opción en Android para evitar WebXR */
-  ar-modes="scene-viewer quick-look"
-  /* Este parámetro es clave para Scene Viewer */
-  alt="Visualiza este plato en tu mesa"
+  
+  environment-image="https://modelviewer.dev/shared-assets/environments/neutral.hdr"
+  exposure="1.6"
+  shadow-intensity="1"
+  
+  camera-orbit="0deg 75deg 2.2m"
 >
   <button id="arBtn" class="arBtn" slot="ar-button" disabled>
     Ver en AR
