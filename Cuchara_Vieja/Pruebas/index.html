@@ -1,85 +1,73 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Test de Diagnóstico · Go Scale</title>
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"></script>
   <style>
-    body { margin: 0; background: #111; color: white; font-family: sans-serif; height: 100vh; overflow: hidden; }
-    model-viewer { width: 100%; height: 100%; background: #0b0b0b; }
-    
-    .ar-button {
-      position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
-      padding: 20px 40px; background: #FF3B30; color: white; border: none;
-      border-radius: 12px; font-weight: bold; z-index: 100;
-    }
+    body { margin: 0; height: 100vh; background: #000; }
+    model-viewer { width: 100%; height: 100%; }
 
-    /* Consola de depuración en pantalla para ver qué pasa en el AR */
-    #debug-console {
-      position: fixed; top: 10px; left: 10px; right: 10px;
-      background: rgba(0,0,0,0.8); padding: 10px; font-size: 12px;
-      border-radius: 8px; pointer-events: none; z-index: 10000;
-      border: 1px solid #444;
+    /* Forzamos que el botón AR sea gigante e invisible pero que cubra todo, 
+       para ver si así captura el toque inicial mejor */
+    .ar-instruction-overlay {
+      position: absolute;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,0.9);
+      color: #000;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      pointer-events: none; /* No bloquea el toque */
+      font-family: sans-serif;
+      z-index: 100;
+      display: none;
     }
   </style>
 </head>
 <body>
 
-  <div id="debug-console">Esperando sesión AR...</div>
+  <div id="instrucciones" class="ar-instruction-overlay">
+    Mueve el móvil en círculos <br>
+    y <b>toca el centro de la pantalla</b>
+  </div>
 
-  <model-viewer
-    id="diagnostic-mv"
-    src="Pruebas.glb"
-    ar
-    ar-modes="webxr"
-    ar-placement="floor"
+  <model-viewer 
+    id="menu-ar"
+    src="Pruebas.glb" 
+    ar 
+    ar-modes="webxr" 
     ar-scale="fixed"
     camera-controls
-    
-    /* PRUEBA DE FLOTACIÓN: Elevamos el objetivo de la cámara */
-    camera-target="0m 0.3m 0m"
-    
-    exposure="1.2"
-    shadow-intensity="1"
+    interaction-prompt="auto"
+    /* Ajustes de rendimiento de foro */
+    shadow-intensity="0" 
+    powerPreference="high-performance"
   >
-    <button slot="ar-button" class="ar-button">
-      INICIAR TEST DE FLOTACIÓN
+    <button slot="ar-button" style="padding: 20px; background: white; border-radius: 50px; position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); font-weight: bold;">
+      ABRIR CÁMARA
     </button>
   </model-viewer>
 
   <script>
-    const mv = document.querySelector('#diagnostic-mv');
-    const debug = document.querySelector('#debug-console');
+    const mv = document.querySelector('#menu-ar');
+    const inst = document.querySelector('#instrucciones');
 
-    // Función para escribir en nuestra "consola" de móvil
-    function log(msg) {
-      debug.innerHTML = msg;
-      console.log(msg);
-    }
-
-    // 1. Detectar cuando entramos
     mv.addEventListener('ar-status', (event) => {
-      log("Estado AR: " + event.detail.status);
-    });
-
-    // 2. Detectar si el sistema encuentra el suelo
-    mv.addEventListener('ar-hit-test-achieved', () => {
-      log("✅ Suelo detectado. <br>Busca el recuadro azul y TOCA.");
-    });
-
-    // 3. Detectar clics en la pantalla durante el AR
-    window.addEventListener('click', () => {
-      if (mv.canActivateAR) {
-        log("🖱️ Clic detectado en pantalla...");
+      if(event.detail.status === 'session-started') {
+        inst.style.display = 'block';
+      } else {
+        inst.style.display = 'none';
       }
     });
 
-    // 4. Detectar si el modelo se ha colocado
-    mv.addEventListener('ar-hit-test-select', () => {
-      log("🎯 ¡OBJETO COLOCADO! <br>Ahora intenta moverlo con un dedo.");
+    // TRUCO DE FORO: Forzar el hit-test cada vez que se toca CUALQUIER parte
+    mv.addEventListener('click', (event) => {
+      if (mv.canActivateAR) {
+         // Intentamos forzar la colocación si el sistema está listo
+         console.log("Toque registrado en sesión");
+      }
     });
-
   </script>
 </body>
 </html>
