@@ -1,11 +1,14 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Pastel Banana Chip · AR</title>
+  <title>Pan · AR</title>
 
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"></script>
+
+  <link rel="preload" href="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pan/Pan.glb" as="fetch" crossorigin>
+  <link rel="preload" href="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pan/Pan.usdz" as="fetch">
 
   <style>
     html, body{
@@ -53,7 +56,7 @@
 
     model-viewer{
       width:100%; height:100%; background:#0b0b0b; display:block;
-      /* Imprescindible para que el dedo rote el pastel y no mueva la página */
+      /* Bloquea el scroll para que el usuario pueda rotar la burger sin mover la página */
       touch-action: none;
     }
 
@@ -104,9 +107,9 @@
 
 <main>
   <section id="dishInfo">
-    <h1 id="dishTitle">Pastel Banana Chip</h1>
+    <h1 id="dishTitle">Pan</h1>
     <p id="dishDesc">
-      Ingredientes: banana, harina, azúcar, huevos, mantequilla y chips de chocolate.
+      Ingredientes: Pan de mantequilla con semillas de sémola.
     </p>
   </section>
 
@@ -118,8 +121,8 @@
 
     <model-viewer
       id="mv"
-      src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.glb"
-      ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pastel_Banana_Chip/pastelbananachip.usdz"
+      src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pan/Pan.glb"
+      ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Restaurante_Cuchara_Vieja/Pan/Pan.usdz"
 
       camera-controls
       disable-pan
@@ -132,7 +135,6 @@
       exposure="1.6"
       shadow-intensity="1.5"
 
-      camera-orbit="0deg 75deg 2.2m"
       min-camera-orbit="auto auto 0.5m"
       max-camera-orbit="auto auto 5m"
 
@@ -149,4 +151,35 @@
 
   <div class="brandBottom">
     <div class="brandWrap">
-      <img class="restaurantLogo" src="
+      <img class="restaurantLogo" src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/LOGO%20OPC%202_MONOGRAMA%2CLOGOY%20LEMA%20NARANJA-18.png" alt="Restaurante">
+      <span class="brandClaim">Powered by Go Scale Marketing</span>
+    </div>
+  </div>
+</main>
+
+<script>
+  const mv = document.getElementById('mv');
+  const arBtn = document.getElementById('arBtn');
+  const loading = document.getElementById('loading');
+
+  mv.addEventListener('load', () => {
+    loading.style.display = 'none';
+    arBtn.disabled = false;
+  });
+
+  mv.addEventListener('error', () => {
+    loading.querySelector('p').textContent = 'Error cargando el modelo';
+  });
+
+  // ====== FEEDBACK HÁPTICO AL DETECTAR SUELO ======
+  mv.addEventListener('ar-hit-test-achieved', () => {
+    if (window.navigator.vibrate) {
+      window.navigator.vibrate(30);
+    }
+  });
+</script>
+
+</body>
+</html>
+
+
