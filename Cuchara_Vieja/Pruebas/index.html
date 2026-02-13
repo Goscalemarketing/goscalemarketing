@@ -57,6 +57,45 @@
       touch-action: none;
     }
 
+    /* OVERLAY DE INSTRUCCIONES AR */
+    #arOverlay{
+      position:absolute; inset:0; 
+      background:rgba(0,0,0,.75); 
+      display:none; align-items:center; justify-content:center;
+      flex-direction:column; gap:20px; z-index:27;
+      backdrop-filter:blur(5px);
+    }
+
+    #arOverlay.active{ display:flex; }
+
+    .arInstruction{
+      background:rgba(255,255,255,.95); 
+      color:#111; padding:16px 28px; 
+      border-radius:16px; font-size:15px; 
+      font-weight:700; text-align:center;
+      max-width:85%; line-height:1.5;
+      box-shadow:0 8px 24px rgba(0,0,0,.3);
+    }
+
+    .tapIndicator{
+      width:60px; height:60px; 
+      border:4px solid #fff; 
+      border-radius:50%;
+      animation:pulse 1.5s ease-in-out infinite;
+      position:relative;
+    }
+
+    .tapIndicator::after{
+      content:''; position:absolute;
+      inset:12px; background:#fff;
+      border-radius:50%; opacity:.8;
+    }
+
+    @keyframes pulse{
+      0%, 100%{ transform:scale(1); opacity:1; }
+      50%{ transform:scale(1.2); opacity:.6; }
+    }
+
     .arBtn{
       position:absolute; bottom:18px; left:50%; transform:translateX(-50%);
       padding:14px 26px; border-radius:18px; font-size:16px; font-weight:900;
@@ -112,12 +151,21 @@
       <p>Cargando modelo…</p>
     </div>
 
+    <!-- OVERLAY DE INSTRUCCIONES AR -->
+    <div id="arOverlay">
+      <div class="tapIndicator"></div>
+      <div class="arInstruction" id="arInstructionText">
+        Mueve el teléfono para detectar el suelo
+      </div>
+    </div>
+
     <model-viewer
       id="mv"
       src="Pruebas.glb"
       ios-src="Pruebas.usdz"
       camera-controls
-      interaction-prompt="auto"
+      interaction-prompt="none"
+      interaction-policy="always-allow"
       loading="eager"
       reveal="auto"
       shadow-intensity="1.5"
@@ -127,7 +175,7 @@
       ar
       ar-modes="webxr quick-look"
       ar-placement="floor"
-      ar-scale="auto"
+      ar-scale="fixed"
       
       /* LÍMITES PARA NO PERDER EL ASSET */
       min-camera-orbit="auto auto 0.5m"
@@ -151,10 +199,14 @@
   const mv = document.getElementById('mv');
   const arBtn = document.getElementById('arBtn');
   const loading = document.getElementById('loading');
+  const arOverlay = document.getElementById('arOverlay');
+  const arInstructionText = document.getElementById('arInstructionText');
 
+  // Carga del modelo
   mv.addEventListener('load', () => {
     loading.style.display = 'none';
     arBtn.disabled = false;
+    console.log('✅ Modelo cargado');
   });
 
   // ====== 🔒 CANDADO WEB ======
@@ -177,18 +229,113 @@
     rafId = requestAnimationFrame(applyLock);
   });
 
-  // ====== 📱 MEJORA TOUCH AR ======
+  // ====== 📱 SISTEMA AR MEJORADO - UN SOLO TAP ======
+  let arActive = false;
+  let planeDetected = false;
+  let objectPlaced = false;
+
+  // Detectar sesión AR
   mv.addEventListener('ar-status', (event) => {
-    if (event.detail.status === 'session-started') {
-      console.log("Sesión AR Iniciada - Modo Sensible");
+    const status = event.detail.status;
+    
+    if (status === 'session-started') {
+      arActive = true;
+      planeDetected = false;
+      objectPlaced = false;
+      arOverlay.classList.add('active');
+      arInstructionText.textContent = 'Mueve el teléfono lentamente';
+      console.log('🚀 AR iniciada');
+      
+    } else if (status === 'not-presenting') {
+      arActive = false;
+      arOverlay.classList.remove('active');
+      console.log('🛑 AR terminada');
     }
   });
 
-  mv.addEventListener('ar-hit-test-achieved', () => {
-    if (window.navigator.vibrate) {
-      window.navigator.vibrate(30); // Aviso físico de suelo detectado
+  // Detección de plano
+  mv.addEventListener('ar-tracking', (event) => {
+    if (!arActive) return;
+    
+    if (event.detail.status === 'tracking' && !planeDetected) {
+      planeDetected = true;
+      console.log('✅ Suelo detectado');
+      
+      if (navigator.vibrate) {
+        navigator.vibrate([40, 25, 40]);
+      }
+      
+      arInstructionText.textContent = 'Toca la pantalla para colocar';
+      setTimeout(autoPlaceObject, 600);
     }
   });
+
+  // COLOCACIÓN CON UN SOLO TAP
+  let tapStartTime = 0;
+
+  document.addEventListener('touchstart', (e) => {
+    if (!arActive || !planeDetected) return;
+    tapStartTime = Date.now();
+  }, { passive: true });
+
+  document.addEventListener('touchend', (e) => {
+    if (!arActive || !planeDetected) return;
+    
+    const tapDuration = Date.now() - tapStartTime;
+    if (tapDuration < 250) {
+      placeObject();
+    }
+  }, { passive: true });
+
+  function placeObject() {
+    if (objectPlaced) return;
+    objectPlaced = true;
+    console.log('🎯 Objeto colocado');
+    
+    if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+    showSuccessMessage();
+  }
+
+  function autoPlaceObject() {
+    if (objectPlaced || !planeDetected) return;
+    objectPlaced = true;
+    console.log('⏱️ Auto-colocado');
+    
+    if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+    showSuccessMessage();
+  }
+
+  function showSuccessMessage() {
+    arInstructionText.textContent = '¡Listo! Muévelo con tus dedos';
+    setTimeout(() => {
+      arOverlay.classList.remove('active');
+    }, 2000);
+  }
+
+  // Asegurar interactividad completa
+  mv.addEventListener('model-visibility', (event) => {
+    if (arActive && event.detail.visible && objectPlaced) {
+      console.log('👁️ Modelo visible');
+      setTimeout(() => {
+        const container = mv.shadowRoot?.querySelector('.container');
+        if (container) {
+          container.style.touchAction = 'none';
+          container.style.pointerEvents = 'auto';
+          console.log('🎮 Gestos activados');
+        }
+      }, 100);
+    }
+  });
+
+  // Optimización Android
+  if (/android/i.test(navigator.userAgent)) {
+    console.log('📱 Android detectado');
+    mv.setAttribute('shadow-softness', '0.3');
+  }
 </script>
 
 </body>
