@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Go Scale · AR Premium</title>
 
-  <!-- USAR UNA VERSIÓN MÁS RECIENTE -->
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"></script>
 
   <style>
     html, body{
@@ -116,6 +115,7 @@
       src="Pruebas.glb"
       ios-src="Pruebas.usdz"
       camera-controls
+      interaction-prompt="auto"
       loading="eager"
       reveal="auto"
       shadow-intensity="1.5"
@@ -171,6 +171,161 @@
     cancelAnimationFrame(rafId);
     rafId = requestAnimationFrame(applyLock);
   });
+
+  // ====== 🎯 SOLUCIÓN: SIMULAR 5 TAPS RÁPIDOS CONSECUTIVOS ======
+  let arActive = false;
+  let tapsExecuted = false;
+
+  mv.addEventListener('ar-status', (event) => {
+    if (event.detail.status === 'session-started') {
+      arActive = true;
+      tapsExecuted = false;
+      console.log('🚀 WebXR iniciado');
+      
+      if (window.navigator.vibrate) {
+        window.navigator.vibrate(30);
+      }
+      
+    } else if (event.detail.status === 'not-presenting') {
+      arActive = false;
+      tapsExecuted = false;
+      console.log('🛑 WebXR terminado');
+    }
+  });
+
+  // Cuando detecte el plano, disparar 5 taps rápidos
+  mv.addEventListener('ar-tracking', (event) => {
+    if (!arActive || tapsExecuted) return;
+    
+    if (event.detail.status === 'tracking') {
+      console.log('✅ Plano detectado - Disparando 5 taps automáticos');
+      
+      if (window.navigator.vibrate) {
+        window.navigator.vibrate([50, 30, 50]);
+      }
+      
+      tapsExecuted = true;
+      
+      // Esperar 800ms y disparar 5 taps rápidos
+      setTimeout(() => {
+        fire5QuickTaps();
+      }, 800);
+    }
+  });
+
+  // FUNCIÓN CLAVE: Disparar 5 taps en el centro, uno tras otro
+  function fire5QuickTaps() {
+    const shadowRoot = mv.shadowRoot;
+    if (!shadowRoot) {
+      console.log('❌ No shadow DOM');
+      return;
+    }
+    
+    const canvas = shadowRoot.querySelector('canvas');
+    if (!canvas) {
+      console.log('❌ No canvas');
+      return;
+    }
+    
+    console.log('🎯 Iniciando secuencia de 5 taps...');
+    
+    // Disparar 5 taps, uno cada 150ms
+    for (let i = 0; i < 5; i++) {
+      setTimeout(() => {
+        simulateClickOnCanvas(canvas);
+        console.log(`👆 Tap ${i + 1}/5`);
+        
+        // Vibrar en cada tap
+        if (window.navigator.vibrate) {
+          window.navigator.vibrate(20);
+        }
+      }, i * 150);
+    }
+  }
+
+  // Simular un click/tap en el centro del canvas
+  function simulateClickOnCanvas(canvas) {
+    const rect = canvas.getBoundingClientRect();
+    const centerX = rect.left + (rect.width / 2);
+    const centerY = rect.top + (rect.height / 2);
+    
+    try {
+      // Método 1: Touch events
+      const touch = new Touch({
+        identifier: Date.now(),
+        target: canvas,
+        clientX: centerX,
+        clientY: centerY,
+        screenX: centerX,
+        screenY: centerY,
+        pageX: centerX,
+        pageY: centerY
+      });
+      
+      const touchStartEvent = new TouchEvent('touchstart', {
+        bubbles: true,
+        cancelable: true,
+        touches: [touch],
+        targetTouches: [touch],
+        changedTouches: [touch]
+      });
+      
+      canvas.dispatchEvent(touchStartEvent);
+      
+      setTimeout(() => {
+        const touchEndEvent = new TouchEvent('touchend', {
+          bubbles: true,
+          cancelable: true,
+          touches: [],
+          targetTouches: [],
+          changedTouches: [touch]
+        });
+        
+        canvas.dispatchEvent(touchEndEvent);
+      }, 50);
+      
+      // Método 2: Pointer events (por si acaso)
+      const pointerDown = new PointerEvent('pointerdown', {
+        bubbles: true,
+        cancelable: true,
+        clientX: centerX,
+        clientY: centerY,
+        pointerId: 1,
+        pointerType: 'touch'
+      });
+      
+      const pointerUp = new PointerEvent('pointerup', {
+        bubbles: true,
+        cancelable: true,
+        clientX: centerX,
+        clientY: centerY,
+        pointerId: 1,
+        pointerType: 'touch'
+      });
+      
+      canvas.dispatchEvent(pointerDown);
+      setTimeout(() => canvas.dispatchEvent(pointerUp), 50);
+      
+      // Método 3: Click event
+      const clickEvent = new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        clientX: centerX,
+        clientY: centerY
+      });
+      
+      canvas.dispatchEvent(clickEvent);
+      
+    } catch (error) {
+      console.log('Error simulando tap:', error);
+    }
+  }
+
+  // Optimización Android
+  if (/android/i.test(navigator.userAgent)) {
+    console.log('📱 Android detectado');
+    mv.setAttribute('shadow-softness', '0.3');
+  }
 </script>
 
 </body>
