@@ -55,6 +55,25 @@
       width:100%; height:100%; background:#0b0b0b; display:block;
     }
 
+    /* INSTRUCCIÓN VISUAL */
+    #arHint{
+      position:fixed; top:100px; left:50%; transform:translateX(-50%);
+      background:linear-gradient(135deg, #ff6b00 0%, #ff8c42 100%);
+      color:#fff; padding:20px 30px; border-radius:16px;
+      font-size:17px; font-weight:900; text-align:center; z-index:999;
+      box-shadow:0 8px 30px rgba(255,107,0,0.6);
+      border:3px solid rgba(255,255,255,0.4);
+      display:none; max-width:85%;
+      animation: pulseHint 1.5s ease-in-out infinite;
+    }
+
+    #arHint.show{ display:block; }
+
+    @keyframes pulseHint{
+      0%, 100%{ transform:translateX(-50%) scale(1); }
+      50%{ transform:translateX(-50%) scale(1.05); }
+    }
+
     .arBtn{
       position:absolute; bottom:18px; left:50%; transform:translateX(-50%);
       padding:14px 26px; border-radius:18px; font-size:16px; font-weight:900;
@@ -110,6 +129,8 @@
       <p>Cargando modelo…</p>
     </div>
 
+    <div id="arHint">🎯 TOCA Y MANTÉN PRESIONADO</div>
+
     <model-viewer
       id="mv"
       src="Pruebas.glb"
@@ -146,6 +167,7 @@
   const mv = document.getElementById('mv');
   const arBtn = document.getElementById('arBtn');
   const loading = document.getElementById('loading');
+  const arHint = document.getElementById('arHint');
 
   mv.addEventListener('load', () => {
     loading.style.display = 'none';
@@ -172,14 +194,12 @@
     rafId = requestAnimationFrame(applyLock);
   });
 
-  // ====== 🎯 SOLUCIÓN: SIMULAR 5 TAPS RÁPIDOS CONSECUTIVOS ======
+  // ====== 🎯 SOLUCIÓN: INSTRUCCIÓN CLARA ======
   let arActive = false;
-  let tapsExecuted = false;
 
   mv.addEventListener('ar-status', (event) => {
     if (event.detail.status === 'session-started') {
       arActive = true;
-      tapsExecuted = false;
       console.log('🚀 WebXR iniciado');
       
       if (window.navigator.vibrate) {
@@ -188,138 +208,31 @@
       
     } else if (event.detail.status === 'not-presenting') {
       arActive = false;
-      tapsExecuted = false;
+      arHint.classList.remove('show');
       console.log('🛑 WebXR terminado');
     }
   });
 
-  // Cuando detecte el plano, disparar 5 taps rápidos
+  // Mostrar instrucción cuando el objeto esté colocado
   mv.addEventListener('ar-tracking', (event) => {
-    if (!arActive || tapsExecuted) return;
+    if (!arActive) return;
     
     if (event.detail.status === 'tracking') {
-      console.log('✅ Plano detectado - Disparando 5 taps automáticos');
+      console.log('✅ Objeto colocado');
       
       if (window.navigator.vibrate) {
         window.navigator.vibrate([50, 30, 50]);
       }
       
-      tapsExecuted = true;
+      // Mostrar instrucción clara
+      arHint.classList.add('show');
       
-      // Esperar 800ms y disparar 5 taps rápidos
+      // Mantener visible 8 segundos
       setTimeout(() => {
-        fire5QuickTaps();
-      }, 800);
+        arHint.classList.remove('show');
+      }, 8000);
     }
   });
-
-  // FUNCIÓN CLAVE: Disparar 5 taps en el centro, uno tras otro
-  function fire5QuickTaps() {
-    const shadowRoot = mv.shadowRoot;
-    if (!shadowRoot) {
-      console.log('❌ No shadow DOM');
-      return;
-    }
-    
-    const canvas = shadowRoot.querySelector('canvas');
-    if (!canvas) {
-      console.log('❌ No canvas');
-      return;
-    }
-    
-    console.log('🎯 Iniciando secuencia de 5 taps...');
-    
-    // Disparar 5 taps, uno cada 150ms
-    for (let i = 0; i < 5; i++) {
-      setTimeout(() => {
-        simulateClickOnCanvas(canvas);
-        console.log(`👆 Tap ${i + 1}/5`);
-        
-        // Vibrar en cada tap
-        if (window.navigator.vibrate) {
-          window.navigator.vibrate(20);
-        }
-      }, i * 150);
-    }
-  }
-
-  // Simular un click/tap en el centro del canvas
-  function simulateClickOnCanvas(canvas) {
-    const rect = canvas.getBoundingClientRect();
-    const centerX = rect.left + (rect.width / 2);
-    const centerY = rect.top + (rect.height / 2);
-    
-    try {
-      // Método 1: Touch events
-      const touch = new Touch({
-        identifier: Date.now(),
-        target: canvas,
-        clientX: centerX,
-        clientY: centerY,
-        screenX: centerX,
-        screenY: centerY,
-        pageX: centerX,
-        pageY: centerY
-      });
-      
-      const touchStartEvent = new TouchEvent('touchstart', {
-        bubbles: true,
-        cancelable: true,
-        touches: [touch],
-        targetTouches: [touch],
-        changedTouches: [touch]
-      });
-      
-      canvas.dispatchEvent(touchStartEvent);
-      
-      setTimeout(() => {
-        const touchEndEvent = new TouchEvent('touchend', {
-          bubbles: true,
-          cancelable: true,
-          touches: [],
-          targetTouches: [],
-          changedTouches: [touch]
-        });
-        
-        canvas.dispatchEvent(touchEndEvent);
-      }, 50);
-      
-      // Método 2: Pointer events (por si acaso)
-      const pointerDown = new PointerEvent('pointerdown', {
-        bubbles: true,
-        cancelable: true,
-        clientX: centerX,
-        clientY: centerY,
-        pointerId: 1,
-        pointerType: 'touch'
-      });
-      
-      const pointerUp = new PointerEvent('pointerup', {
-        bubbles: true,
-        cancelable: true,
-        clientX: centerX,
-        clientY: centerY,
-        pointerId: 1,
-        pointerType: 'touch'
-      });
-      
-      canvas.dispatchEvent(pointerDown);
-      setTimeout(() => canvas.dispatchEvent(pointerUp), 50);
-      
-      // Método 3: Click event
-      const clickEvent = new MouseEvent('click', {
-        bubbles: true,
-        cancelable: true,
-        clientX: centerX,
-        clientY: centerY
-      });
-      
-      canvas.dispatchEvent(clickEvent);
-      
-    } catch (error) {
-      console.log('Error simulando tap:', error);
-    }
-  }
 
   // Optimización Android
   if (/android/i.test(navigator.userAgent)) {
