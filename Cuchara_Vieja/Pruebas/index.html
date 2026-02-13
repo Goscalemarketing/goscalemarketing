@@ -53,10 +53,8 @@
 
     model-viewer{
       width:100%; height:100%; background:#0b0b0b; display:block;
-      touch-action: none;
-      
-      /* IMPORTANTE: Mejorar el área de interacción en AR */
-      --min-hotspot-opacity: 0;
+      /* IMPORTANTE: Mejorar detección táctil */
+      --progress-bar-height: 0;
     }
 
     .arBtn{
@@ -89,6 +87,18 @@
     .brandWrap{ display:flex; flex-direction:column; align-items:center; gap:6px; }
     .restaurantLogo{ height:72px; width:auto; transform:scale(1.25); opacity:.95; }
     .brandClaim{ font-size:11px; color:rgba(255,255,255,.45); letter-spacing:.3px; }
+
+    /* TOOLTIP VISUAL */
+    #arHint{
+      position:fixed; top:80px; left:50%; transform:translateX(-50%);
+      background:rgba(0,0,0,.9); padding:12px 20px; border-radius:12px;
+      font-size:13px; font-weight:600; text-align:center; z-index:99;
+      max-width:80%; backdrop-filter:blur(10px);
+      border:2px solid rgba(255,255,255,.3);
+      display:none; color:#fff;
+    }
+    #arHint.show{ display:block; animation: fadeIn 0.3s; }
+    @keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
   </style>
 </head>
 
@@ -114,6 +124,8 @@
       <p>Cargando modelo…</p>
     </div>
 
+    <div id="arHint">Toca el objeto para manipularlo</div>
+
     <model-viewer
       id="mv"
       src="Pruebas.glb"
@@ -131,8 +143,6 @@
       
       min-camera-orbit="auto auto 0.5m"
       max-camera-orbit="auto auto 5m"
-      
-      bounds="tight"
     >
       <button id="arBtn" class="arBtn" slot="ar-button" disabled>
         Ver en AR
@@ -152,6 +162,7 @@
   const mv = document.getElementById('mv');
   const arBtn = document.getElementById('arBtn');
   const loading = document.getElementById('loading');
+  const arHint = document.getElementById('arHint');
 
   mv.addEventListener('load', () => {
     loading.style.display = 'none';
@@ -178,39 +189,146 @@
     rafId = requestAnimationFrame(applyLock);
   });
 
-  // ====== 📱 MEJORA WEBXR - GESTOS MÁS SENSIBLES ======
+  // ====== 🎯 SOLUCIÓN: ACTIVAR RECUADRO CON PRIMER TAP ======
   let arSessionActive = false;
+  let objectPlaced = false;
+  let boundingBoxActivated = false;
 
   mv.addEventListener('ar-status', (event) => {
     if (event.detail.status === 'session-started') {
       arSessionActive = true;
-      console.log("🚀 WebXR iniciado");
-      console.log("💡 GESTOS:");
-      console.log("  - 1 dedo SOBRE el objeto = MOVER");
-      console.log("  - 2 dedos = ESCALAR (pellizcar)");
-      console.log("  - 1 dedo FUERA del objeto = ROTAR");
+      objectPlaced = false;
+      boundingBoxActivated = false;
+      console.log('🚀 WebXR iniciado');
       
-      // Vibración de inicio
+      arHint.textContent = 'Mueve el teléfono para detectar el suelo';
+      arHint.classList.add('show');
+      
       if (window.navigator.vibrate) {
         window.navigator.vibrate(30);
       }
       
     } else if (event.detail.status === 'not-presenting') {
       arSessionActive = false;
-      console.log("🛑 WebXR terminado");
+      arHint.classList.remove('show');
+      console.log('🛑 WebXR terminado');
     }
   });
 
-  // Detección de plano encontrado
+  // Detectar cuando el objeto está colocado
   mv.addEventListener('ar-tracking', (event) => {
-    if (arSessionActive && event.detail.status === 'tracking') {
-      console.log("✅ Suelo detectado - Objeto colocado");
+    if (arSessionActive && event.detail.status === 'tracking' && !objectPlaced) {
+      objectPlaced = true;
+      console.log('✅ Objeto colocado en el suelo');
       
       if (window.navigator.vibrate) {
         window.navigator.vibrate([50, 30, 50]);
       }
+      
+      arHint.textContent = '👆 Toca el objeto para activar controles';
+      
+      // CLAVE: Ampliar el área de detección del objeto
+      setTimeout(() => {
+        expandHitArea();
+      }, 500);
     }
   });
+
+  // FUNCIÓN CLAVE: Ampliar el área táctil invisible del objeto
+  function expandHitArea() {
+    try {
+      // Acceder al shadow DOM de model-viewer
+      const shadowRoot = mv.shadowRoot;
+      if (!shadowRoot) return;
+      
+      // Buscar el canvas de WebXR
+      const container = shadowRoot.querySelector('.container');
+      if (!container) return;
+      
+      // Forzar que TODO el canvas sea táctil
+      container.style.touchAction = 'none';
+      container.style.pointerEvents = 'auto';
+      
+      console.log('🎯 Área táctil ampliada');
+      
+      // Interceptar TODOS los toques y simular que tocan el objeto
+      let touchCount = 0;
+      
+      container.addEventListener('touchstart', (e) => {
+        if (!arSessionActive || boundingBoxActivated) return;
+        
+        touchCount++;
+        console.log(`👆 Touch #${touchCount} detectado`);
+        
+        // Después del primer tap, forzar activación del bounding box
+        if (touchCount === 1) {
+          setTimeout(() => {
+            activateBoundingBox();
+          }, 100);
+        }
+        
+      }, { passive: true, capture: true });
+      
+    } catch (error) {
+      console.error('Error expandiendo área:', error);
+    }
+  }
+
+  // Activar el recuadro de manipulación
+  function activateBoundingBox() {
+    if (boundingBoxActivated) return;
+    
+    boundingBoxActivated = true;
+    console.log('📦 Recuadro activado!');
+    
+    if (window.navigator.vibrate) {
+      window.navigator.vibrate(40);
+    }
+    
+    arHint.textContent = '✅ ¡Listo! Mueve, rota y escala';
+    
+    setTimeout(() => {
+      arHint.classList.remove('show');
+    }, 2000);
+    
+    // Forzar foco en el objeto para que el recuadro sea visible
+    try {
+      const shadowRoot = mv.shadowRoot;
+      const arRenderer = shadowRoot?.querySelector('#default-ar-button');
+      
+      // Simular click en el centro del objeto
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      
+      const touchEvent = new TouchEvent('touchstart', {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        touches: [{
+          clientX: centerX,
+          clientY: centerY,
+          screenX: centerX,
+          screenY: centerY
+        }]
+      });
+      
+      if (shadowRoot) {
+        const canvas = shadowRoot.querySelector('canvas');
+        if (canvas) {
+          canvas.dispatchEvent(touchEvent);
+        }
+      }
+      
+    } catch (error) {
+      console.log('Activación manual:', error);
+    }
+  }
+
+  // Optimización para Android
+  if (/android/i.test(navigator.userAgent)) {
+    console.log('📱 Android detectado - Modo optimizado');
+    mv.setAttribute('shadow-softness', '0.3');
+  }
 </script>
 
 </body>
