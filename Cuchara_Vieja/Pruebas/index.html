@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Go Scale · AR Premium</title>
 
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"></script>
+  <!-- USAR UNA VERSIÓN MÁS RECIENTE -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
 
   <style>
     html, body{
@@ -115,7 +116,6 @@
       src="Pruebas.glb"
       ios-src="Pruebas.usdz"
       camera-controls
-      interaction-prompt="auto"
       loading="eager"
       reveal="auto"
       shadow-intensity="1.5"
@@ -171,133 +171,6 @@
     cancelAnimationFrame(rafId);
     rafId = requestAnimationFrame(applyLock);
   });
-
-  // ====== 🚀 SOLUCIÓN AGRESIVA: MÚLTIPLES TAPS AUTOMÁTICOS ======
-  let arActive = false;
-  let autoTapAttempts = 0;
-  const MAX_TAP_ATTEMPTS = 10; // Intentar 10 veces
-
-  mv.addEventListener('ar-status', (event) => {
-    if (event.detail.status === 'session-started') {
-      arActive = true;
-      autoTapAttempts = 0;
-      console.log('🚀 AR iniciado');
-      
-      if (window.navigator.vibrate) {
-        window.navigator.vibrate(30);
-      }
-      
-    } else if (event.detail.status === 'not-presenting') {
-      arActive = false;
-      autoTapAttempts = 0;
-      console.log('🛑 AR terminado');
-    }
-  });
-
-  // Cuando detecte el plano, disparar múltiples taps
-  mv.addEventListener('ar-tracking', (event) => {
-    if (!arActive || autoTapAttempts >= MAX_TAP_ATTEMPTS) return;
-    
-    if (event.detail.status === 'tracking') {
-      console.log('✅ Plano detectado - Iniciando taps automáticos');
-      
-      if (window.navigator.vibrate) {
-        window.navigator.vibrate([50, 30, 50]);
-      }
-      
-      // Esperar 500ms y luego disparar múltiples taps
-      setTimeout(() => {
-        fireMultipleTaps();
-      }, 500);
-    }
-  });
-
-  // FUNCIÓN CLAVE: Disparar múltiples taps en diferentes posiciones
-  function fireMultipleTaps() {
-    const shadowRoot = mv.shadowRoot;
-    if (!shadowRoot) return;
-    
-    const canvas = shadowRoot.querySelector('canvas');
-    if (!canvas) return;
-    
-    // Posiciones donde disparar taps (centro + alrededor)
-    const positions = [
-      { x: 0.5, y: 0.5 },   // Centro
-      { x: 0.4, y: 0.4 },   // Centro-izquierda-arriba
-      { x: 0.6, y: 0.4 },   // Centro-derecha-arriba
-      { x: 0.4, y: 0.6 },   // Centro-izquierda-abajo
-      { x: 0.6, y: 0.6 },   // Centro-derecha-abajo
-      { x: 0.5, y: 0.4 },   // Centro-arriba
-      { x: 0.5, y: 0.6 },   // Centro-abajo
-      { x: 0.4, y: 0.5 },   // Centro-izquierda
-      { x: 0.6, y: 0.5 },   // Centro-derecha
-      { x: 0.5, y: 0.5 }    // Centro otra vez
-    ];
-    
-    positions.forEach((pos, index) => {
-      setTimeout(() => {
-        simulateTapAt(canvas, pos.x, pos.y);
-        autoTapAttempts++;
-        console.log(`🎯 Tap automático ${autoTapAttempts}/${MAX_TAP_ATTEMPTS}`);
-      }, index * 200); // Un tap cada 200ms
-    });
-  }
-
-  // Simular tap en una posición específica
-  function simulateTapAt(canvas, xRatio, yRatio) {
-    const rect = canvas.getBoundingClientRect();
-    const x = rect.left + (rect.width * xRatio);
-    const y = rect.top + (rect.height * yRatio);
-    
-    try {
-      // Crear touch
-      const touch = new Touch({
-        identifier: Date.now(),
-        target: canvas,
-        clientX: x,
-        clientY: y,
-        screenX: x,
-        screenY: y,
-        pageX: x,
-        pageY: y,
-        radiusX: 2.5,
-        radiusY: 2.5,
-        rotationAngle: 0,
-        force: 1
-      });
-      
-      // touchstart
-      canvas.dispatchEvent(new TouchEvent('touchstart', {
-        bubbles: true,
-        cancelable: true,
-        touches: [touch],
-        targetTouches: [touch],
-        changedTouches: [touch],
-        view: window
-      }));
-      
-      // touchend después de 50ms
-      setTimeout(() => {
-        canvas.dispatchEvent(new TouchEvent('touchend', {
-          bubbles: true,
-          cancelable: true,
-          touches: [],
-          targetTouches: [],
-          changedTouches: [touch],
-          view: window
-        }));
-      }, 50);
-      
-    } catch (error) {
-      console.log('Error en tap:', error);
-    }
-  }
-
-  // Optimización Android
-  if (/android/i.test(navigator.userAgent)) {
-    console.log('📱 Android detectado');
-    mv.setAttribute('shadow-softness', '0.3');
-  }
 </script>
 
 </body>
