@@ -53,47 +53,10 @@
 
     model-viewer{
       width:100%; height:100%; background:#0b0b0b; display:block;
-      /* Vital para que el navegador no 'robe' los gestos */
       touch-action: none;
-    }
-
-    /* OVERLAY DE INSTRUCCIONES AR */
-    #arOverlay{
-      position:absolute; inset:0; 
-      background:rgba(0,0,0,.75); 
-      display:none; align-items:center; justify-content:center;
-      flex-direction:column; gap:20px; z-index:27;
-      backdrop-filter:blur(5px);
-    }
-
-    #arOverlay.active{ display:flex; }
-
-    .arInstruction{
-      background:rgba(255,255,255,.95); 
-      color:#111; padding:16px 28px; 
-      border-radius:16px; font-size:15px; 
-      font-weight:700; text-align:center;
-      max-width:85%; line-height:1.5;
-      box-shadow:0 8px 24px rgba(0,0,0,.3);
-    }
-
-    .tapIndicator{
-      width:60px; height:60px; 
-      border:4px solid #fff; 
-      border-radius:50%;
-      animation:pulse 1.5s ease-in-out infinite;
-      position:relative;
-    }
-
-    .tapIndicator::after{
-      content:''; position:absolute;
-      inset:12px; background:#fff;
-      border-radius:50%; opacity:.8;
-    }
-
-    @keyframes pulse{
-      0%, 100%{ transform:scale(1); opacity:1; }
-      50%{ transform:scale(1.2); opacity:.6; }
+      
+      /* IMPORTANTE: Mejorar el área de interacción en AR */
+      --min-hotspot-opacity: 0;
     }
 
     .arBtn{
@@ -151,35 +114,25 @@
       <p>Cargando modelo…</p>
     </div>
 
-    <!-- OVERLAY DE INSTRUCCIONES AR -->
-    <div id="arOverlay">
-      <div class="tapIndicator"></div>
-      <div class="arInstruction" id="arInstructionText">
-        Mueve el teléfono para detectar el suelo
-      </div>
-    </div>
-
     <model-viewer
       id="mv"
       src="Pruebas.glb"
       ios-src="Pruebas.usdz"
       camera-controls
-      interaction-prompt="none"
-      interaction-policy="always-allow"
+      interaction-prompt="auto"
       loading="eager"
       reveal="auto"
       shadow-intensity="1.5"
       exposure="1.2"
       
-      /* AJUSTES DE CONTROL TÁCTIL */
       ar
       ar-modes="webxr quick-look"
       ar-placement="floor"
-      ar-scale="fixed"
       
-      /* LÍMITES PARA NO PERDER EL ASSET */
       min-camera-orbit="auto auto 0.5m"
       max-camera-orbit="auto auto 5m"
+      
+      bounds="tight"
     >
       <button id="arBtn" class="arBtn" slot="ar-button" disabled>
         Ver en AR
@@ -199,14 +152,10 @@
   const mv = document.getElementById('mv');
   const arBtn = document.getElementById('arBtn');
   const loading = document.getElementById('loading');
-  const arOverlay = document.getElementById('arOverlay');
-  const arInstructionText = document.getElementById('arInstructionText');
 
-  // Carga del modelo
   mv.addEventListener('load', () => {
     loading.style.display = 'none';
     arBtn.disabled = false;
-    console.log('✅ Modelo cargado');
   });
 
   // ====== 🔒 CANDADO WEB ======
@@ -229,115 +178,40 @@
     rafId = requestAnimationFrame(applyLock);
   });
 
-  // ====== 📱 SISTEMA AR MEJORADO - UN SOLO TAP ======
-  let arActive = false;
-  let planeDetected = false;
-  let objectPlaced = false;
+  // ====== 📱 MEJORA WEBXR - GESTOS MÁS SENSIBLES ======
+  let arSessionActive = false;
 
-  // Detectar sesión AR
   mv.addEventListener('ar-status', (event) => {
-    const status = event.detail.status;
-    
-    if (status === 'session-started') {
-      arActive = true;
-      planeDetected = false;
-      objectPlaced = false;
-      arOverlay.classList.add('active');
-      arInstructionText.textContent = 'Mueve el teléfono lentamente';
-      console.log('🚀 AR iniciada');
+    if (event.detail.status === 'session-started') {
+      arSessionActive = true;
+      console.log("🚀 WebXR iniciado");
+      console.log("💡 GESTOS:");
+      console.log("  - 1 dedo SOBRE el objeto = MOVER");
+      console.log("  - 2 dedos = ESCALAR (pellizcar)");
+      console.log("  - 1 dedo FUERA del objeto = ROTAR");
       
-    } else if (status === 'not-presenting') {
-      arActive = false;
-      arOverlay.classList.remove('active');
-      console.log('🛑 AR terminada');
-    }
-  });
-
-  // Detección de plano
-  mv.addEventListener('ar-tracking', (event) => {
-    if (!arActive) return;
-    
-    if (event.detail.status === 'tracking' && !planeDetected) {
-      planeDetected = true;
-      console.log('✅ Suelo detectado');
-      
-      if (navigator.vibrate) {
-        navigator.vibrate([40, 25, 40]);
+      // Vibración de inicio
+      if (window.navigator.vibrate) {
+        window.navigator.vibrate(30);
       }
       
-      arInstructionText.textContent = 'Toca la pantalla para colocar';
-      setTimeout(autoPlaceObject, 600);
+    } else if (event.detail.status === 'not-presenting') {
+      arSessionActive = false;
+      console.log("🛑 WebXR terminado");
     }
   });
 
-  // COLOCACIÓN CON UN SOLO TAP
-  let tapStartTime = 0;
-
-  document.addEventListener('touchstart', (e) => {
-    if (!arActive || !planeDetected) return;
-    tapStartTime = Date.now();
-  }, { passive: true });
-
-  document.addEventListener('touchend', (e) => {
-    if (!arActive || !planeDetected) return;
-    
-    const tapDuration = Date.now() - tapStartTime;
-    if (tapDuration < 250) {
-      placeObject();
-    }
-  }, { passive: true });
-
-  function placeObject() {
-    if (objectPlaced) return;
-    objectPlaced = true;
-    console.log('🎯 Objeto colocado');
-    
-    if (navigator.vibrate) {
-      navigator.vibrate(50);
-    }
-    showSuccessMessage();
-  }
-
-  function autoPlaceObject() {
-    if (objectPlaced || !planeDetected) return;
-    objectPlaced = true;
-    console.log('⏱️ Auto-colocado');
-    
-    if (navigator.vibrate) {
-      navigator.vibrate(50);
-    }
-    showSuccessMessage();
-  }
-
-  function showSuccessMessage() {
-    arInstructionText.textContent = '¡Listo! Muévelo con tus dedos';
-    setTimeout(() => {
-      arOverlay.classList.remove('active');
-    }, 2000);
-  }
-
-  // Asegurar interactividad completa
-  mv.addEventListener('model-visibility', (event) => {
-    if (arActive && event.detail.visible && objectPlaced) {
-      console.log('👁️ Modelo visible');
-      setTimeout(() => {
-        const container = mv.shadowRoot?.querySelector('.container');
-        if (container) {
-          container.style.touchAction = 'none';
-          container.style.pointerEvents = 'auto';
-          console.log('🎮 Gestos activados');
-        }
-      }, 100);
+  // Detección de plano encontrado
+  mv.addEventListener('ar-tracking', (event) => {
+    if (arSessionActive && event.detail.status === 'tracking') {
+      console.log("✅ Suelo detectado - Objeto colocado");
+      
+      if (window.navigator.vibrate) {
+        window.navigator.vibrate([50, 30, 50]);
+      }
     }
   });
-
-  // Optimización Android
-  if (/android/i.test(navigator.userAgent)) {
-    console.log('📱 Android detectado');
-    mv.setAttribute('shadow-softness', '0.3');
-  }
 </script>
 
 </body>
 </html>
-
