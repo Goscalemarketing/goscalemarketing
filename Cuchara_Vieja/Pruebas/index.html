@@ -172,15 +172,16 @@
     rafId = requestAnimationFrame(applyLock);
   });
 
-  // ====== 🎯 ESTRATEGIA: TAP AUTOMÁTICO PARA ACTIVAR RECUADRO ======
+  // ====== 🚀 SOLUCIÓN AGRESIVA: MÚLTIPLES TAPS AUTOMÁTICOS ======
   let arActive = false;
-  let autoTapExecuted = false;
+  let autoTapAttempts = 0;
+  const MAX_TAP_ATTEMPTS = 10; // Intentar 10 veces
 
   mv.addEventListener('ar-status', (event) => {
     if (event.detail.status === 'session-started') {
       arActive = true;
-      autoTapExecuted = false;
-      console.log('🚀 WebXR iniciado');
+      autoTapAttempts = 0;
+      console.log('🚀 AR iniciado');
       
       if (window.navigator.vibrate) {
         window.navigator.vibrate(30);
@@ -188,98 +189,107 @@
       
     } else if (event.detail.status === 'not-presenting') {
       arActive = false;
-      autoTapExecuted = false;
-      console.log('🛑 WebXR terminado');
+      autoTapAttempts = 0;
+      console.log('🛑 AR terminado');
     }
   });
 
-  // Detectar cuando el plano está detectado
+  // Cuando detecte el plano, disparar múltiples taps
   mv.addEventListener('ar-tracking', (event) => {
-    if (!arActive || autoTapExecuted) return;
+    if (!arActive || autoTapAttempts >= MAX_TAP_ATTEMPTS) return;
     
     if (event.detail.status === 'tracking') {
-      console.log('✅ Plano detectado - Activando recuadro automáticamente...');
+      console.log('✅ Plano detectado - Iniciando taps automáticos');
       
       if (window.navigator.vibrate) {
         window.navigator.vibrate([50, 30, 50]);
       }
       
-      // Esperar 800ms para que el objeto se coloque completamente
+      // Esperar 500ms y luego disparar múltiples taps
       setTimeout(() => {
-        simulateAutoTap();
-      }, 800);
-      
-      autoTapExecuted = true;
+        fireMultipleTaps();
+      }, 500);
     }
   });
 
-  // FUNCIÓN CLAVE: Simular tap automático
-  function simulateAutoTap() {
+  // FUNCIÓN CLAVE: Disparar múltiples taps en diferentes posiciones
+  function fireMultipleTaps() {
+    const shadowRoot = mv.shadowRoot;
+    if (!shadowRoot) return;
+    
+    const canvas = shadowRoot.querySelector('canvas');
+    if (!canvas) return;
+    
+    // Posiciones donde disparar taps (centro + alrededor)
+    const positions = [
+      { x: 0.5, y: 0.5 },   // Centro
+      { x: 0.4, y: 0.4 },   // Centro-izquierda-arriba
+      { x: 0.6, y: 0.4 },   // Centro-derecha-arriba
+      { x: 0.4, y: 0.6 },   // Centro-izquierda-abajo
+      { x: 0.6, y: 0.6 },   // Centro-derecha-abajo
+      { x: 0.5, y: 0.4 },   // Centro-arriba
+      { x: 0.5, y: 0.6 },   // Centro-abajo
+      { x: 0.4, y: 0.5 },   // Centro-izquierda
+      { x: 0.6, y: 0.5 },   // Centro-derecha
+      { x: 0.5, y: 0.5 }    // Centro otra vez
+    ];
+    
+    positions.forEach((pos, index) => {
+      setTimeout(() => {
+        simulateTapAt(canvas, pos.x, pos.y);
+        autoTapAttempts++;
+        console.log(`🎯 Tap automático ${autoTapAttempts}/${MAX_TAP_ATTEMPTS}`);
+      }, index * 200); // Un tap cada 200ms
+    });
+  }
+
+  // Simular tap en una posición específica
+  function simulateTapAt(canvas, xRatio, yRatio) {
+    const rect = canvas.getBoundingClientRect();
+    const x = rect.left + (rect.width * xRatio);
+    const y = rect.top + (rect.height * yRatio);
+    
     try {
-      const shadowRoot = mv.shadowRoot;
-      if (!shadowRoot) {
-        console.log('❌ No se puede acceder al shadow DOM');
-        return;
-      }
-      
-      // Buscar el canvas WebXR
-      const canvas = shadowRoot.querySelector('canvas');
-      if (!canvas) {
-        console.log('❌ Canvas no encontrado');
-        return;
-      }
-      
-      // Calcular el centro de la pantalla
-      const centerX = window.innerWidth / 2;
-      const centerY = window.innerHeight / 2;
-      
-      console.log(`🎯 Simulando tap en centro: ${centerX}, ${centerY}`);
-      
-      // Crear eventos táctiles sintéticos
+      // Crear touch
       const touch = new Touch({
         identifier: Date.now(),
         target: canvas,
-        clientX: centerX,
-        clientY: centerY,
-        screenX: centerX,
-        screenY: centerY,
-        pageX: centerX,
-        pageY: centerY
+        clientX: x,
+        clientY: y,
+        screenX: x,
+        screenY: y,
+        pageX: x,
+        pageY: y,
+        radiusX: 2.5,
+        radiusY: 2.5,
+        rotationAngle: 0,
+        force: 1
       });
       
-      // Simular touchstart
-      const touchStartEvent = new TouchEvent('touchstart', {
+      // touchstart
+      canvas.dispatchEvent(new TouchEvent('touchstart', {
         bubbles: true,
         cancelable: true,
         touches: [touch],
         targetTouches: [touch],
-        changedTouches: [touch]
-      });
+        changedTouches: [touch],
+        view: window
+      }));
       
-      canvas.dispatchEvent(touchStartEvent);
-      
-      // Simular touchend después de 100ms
+      // touchend después de 50ms
       setTimeout(() => {
-        const touchEndEvent = new TouchEvent('touchend', {
+        canvas.dispatchEvent(new TouchEvent('touchend', {
           bubbles: true,
           cancelable: true,
           touches: [],
           targetTouches: [],
-          changedTouches: [touch]
-        });
-        
-        canvas.dispatchEvent(touchEndEvent);
-        
-        console.log('✅ Tap automático ejecutado');
-        
-        if (window.navigator.vibrate) {
-          window.navigator.vibrate(40);
-        }
-        
-      }, 100);
+          changedTouches: [touch],
+          view: window
+        }));
+      }, 50);
       
     } catch (error) {
-      console.error('❌ Error en tap automático:', error);
+      console.log('Error en tap:', error);
     }
   }
 
