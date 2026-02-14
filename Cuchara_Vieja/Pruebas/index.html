@@ -105,13 +105,13 @@
   <div class="viewerWrap">
     <div id="loading">
       <div class="spinner"></div>
-      <p>Cargando modelo…</p>
+      <p>Limpiando caché y cargando…</p>
     </div>
 
     <model-viewer
       id="mv"
-      src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Pruebas.glb"
-      ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Pruebas.usdz"
+      src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Pruebas.glb?v=2"
+      ios-src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/Pruebas.usdz?v=2"
       camera-controls
       interaction-prompt="auto"
       loading="eager"
@@ -141,18 +141,19 @@
   const mv = document.getElementById('mv');
   const loading = document.getElementById('loading');
 
-  // Ocultar pantalla de carga al finalizar
   mv.addEventListener('load', () => {
     loading.style.display = 'none';
   });
 
-  // ====== 🔒 CANDADO DE CÁMARA (VISTA WEB) ======
+  mv.addEventListener('error', (error) => {
+    console.error("Error cargando el modelo:", error);
+    document.querySelector('#loading p').innerText = "Error de conexión. Reintenta.";
+  });
+
   const LOCK_YAW = 0;
   const LOCK_PITCH = 75;
-
   mv.addEventListener('camera-change', () => {
     const orbit = mv.getCameraOrbit();
-    // Forzamos la posición cenital mientras el usuario está en la web
     mv.cameraOrbit = `${LOCK_YAW}deg ${LOCK_PITCH}deg ${orbit.radius}m`;
   });
 </script>
