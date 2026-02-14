@@ -3,155 +3,135 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Go Scale · AR Premium</title>
+  <title>Go Scale · AR Hotspots</title>
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
   <style>
-    html, body { margin:0; height:100%; background:#0b0b0b; font-family: system-ui, sans-serif; color:#fff; overflow:hidden; }
+    html, body { margin:0; height:100%; background:#0b0b0b; font-family: system-ui, sans-serif; overflow:hidden; }
     
-    header { position:fixed; top:0; width:100%; height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 12px; background:rgba(15,15,15,.8); backdrop-filter:blur(10px); z-index:1000; }
+    header { position:fixed; top:0; width:100%; height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 12px; background:rgba(15,15,15,.8); backdrop-filter:blur(10px); z-index:100; }
     .byGoscale img { height:22px; }
 
     main { height:100vh; display:flex; flex-direction:column; padding-top:56px; }
     .viewerWrap { flex:1; position:relative; }
     model-viewer { width:100%; height:100%; background:#0b0b0b; }
 
-    /* BOTÓN AR PRINCIPAL */
-    .arBtn { 
-      position:absolute; bottom:30px; left:50%; transform:translateX(-50%); 
-      padding:16px 32px; border-radius:30px; background:#fff; color:#000; 
-      font-weight:900; border:none; box-shadow:0 10px 20px rgba(0,0,0,0.5); z-index:100;
-    }
-
-    /* PANEL DE CONTROL BLINDADO (FUERA DE MODEL-VIEWER) */
-    #externalControls {
-      position: fixed;
-      bottom: 40px;
-      left: 0;
-      right: 0;
-      z-index: 2147483647; /* El máximo Z-index posible en navegadores */
-      display: none; 
+    /* ESTILO DE LOS HOTSPOTS (BOTONES 3D) */
+    .hotspot-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.8);
+      background: rgba(0, 0, 0, 0.85);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       justify-content: center;
-      gap: 12px;
-      pointer-events: none;
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+      cursor: pointer;
+      transition: transform 0.2s;
     }
 
-    .btnGroup { display: flex; flex-direction: column; align-items: center; gap: 5px; pointer-events: auto; }
+    .hotspot-btn:active { transform: scale(0.8); background: #ff6b00; }
+    .hotspot-btn span { font-size: 18px; font-weight: bold; line-height: 1; }
+    .hotspot-label { font-size: 8px; text-transform: uppercase; font-weight: 800; margin-top: 2px; }
 
-    .ctrlBtn {
-      background: rgba(20, 20, 20, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      color: white; width: 60px; height: 60px; border-radius: 18px;
-      font-size: 24px; display: flex; align-items: center; justify-content: center;
-      backdrop-filter: blur(10px);
+    /* Solo mostrar hotspots cuando estemos en AR */
+    model-viewer:not([ar-status="session-started"]) .hotspot-btn {
+      display: none;
     }
-    
-    .btnLabel { font-size: 9px; font-weight: 800; text-transform: uppercase; color: #fff; text-shadow: 0 1px 3px #000; }
 
-    #loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:#0b0b0b; z-index:500; }
-    .brandBottom { padding:10px; display:flex; justify-content:center; background:#000; }
-    .restaurantLogo { height:65px; width:auto; }
+    .ar-launch-btn {
+      position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+      padding: 16px 32px; border-radius: 30px; background: #fff; color: #000;
+      font-weight: 900; border: none; z-index: 50;
+    }
+
+    #loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:#0b0b0b; z-index:200; color:white; }
   </style>
 </head>
 <body>
 
 <header>
-  <div style="font-weight:bold;">← Menú</div>
+  <div style="color:white; font-weight:bold;">← Menú</div>
   <div class="byGoscale"><img src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png"></div>
 </header>
 
 <main>
   <div class="viewerWrap">
-    <div id="loading">Cargando experiencia...</div>
+    <div id="loading">Cargando...</div>
 
     <model-viewer
       id="mv"
       src="Pruebas.glb" 
       ios-src="Pruebas.usdz"
-      ar ar-modes="webxr quick-look" ar-placement="floor"
-      camera-controls touch-action="none" shadow-intensity="1" ar-scale="auto"
+      ar ar-modes="webxr" ar-placement="floor"
+      camera-controls touch-action="none" shadow-intensity="1"
     >
-      <button slot="ar-button" class="arBtn">VER EN TU MESA</button>
+      <button slot="ar-button" class="ar-launch-btn">VER EN TU MESA</button>
+
+      <button slot="hotspot-rotate" class="hotspot-btn" 
+              data-position="0m 0.15m 0m" 
+              data-normal="0m 1m 0m" 
+              id="hot-rotate">
+        <span>↻</span>
+        <div class="hotspot-label">Girar</div>
+      </button>
+
+      <button slot="hotspot-move" class="hotspot-btn" 
+              data-position="0.12m 0.05m 0m" 
+              data-normal="1m 0m 0m" 
+              id="hot-move">
+        <span>⚓</span>
+        <div class="hotspot-label">Mover</div>
+      </button>
+
+      <button slot="hotspot-zoom-in" class="hotspot-btn" 
+              data-position="-0.12m 0.05m 0.05m" 
+              data-normal="-1m 0m 0m" 
+              id="hot-zoom-in">
+        <span>+</span>
+        <div class="hotspot-label">Zoom</div>
+      </button>
+
     </model-viewer>
-
-    <div id="externalControls">
-      <div class="btnGroup">
-        <button class="ctrlBtn" onclick="doZoom(0.2)">+</button>
-        <span class="btnLabel">Zoom</span>
-      </div>
-      <div class="btnGroup">
-        <button class="ctrlBtn" onclick="doZoom(-0.2)">-</button>
-        <span class="btnLabel">Zoom</span>
-      </div>
-      <div class="btnGroup">
-        <button class="ctrlBtn" onclick="doRotate()">↻</button>
-        <span class="btnLabel">Girar</span>
-      </div>
-      <div class="btnGroup">
-        <button class="ctrlBtn" id="forceSelect">⚓</button>
-        <span class="btnLabel">Mover</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="brandBottom">
-    <img class="restaurantLogo" src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/LOGO%20OPC%202_MONOGRAMA%2CLOGOY%20LEMA%20NARANJA-18.png">
   </div>
 </main>
 
 <script>
   const mv = document.getElementById('mv');
-  const controls = document.getElementById('externalControls');
-
   mv.addEventListener('load', () => { document.getElementById('loading').style.display = 'none'; });
 
-  // Monitoreo constante de la sesión AR
-  mv.addEventListener('ar-status', (event) => {
-    if (event.detail.status === 'session-started') {
-      controls.style.display = 'flex';
-      // Pequeño truco: forzar el estilo cada segundo por si el sistema intenta ocultarlo
-      const blinkFix = setInterval(() => {
-        if(mv.getAttribute('ar-status') !== 'session-started') clearInterval(blinkFix);
-        controls.style.zIndex = "2147483647";
-        controls.style.display = "flex";
-      }, 500);
-    } else {
-      controls.style.display = 'none';
-    }
-  });
-
-  // FUNCIONES DE CONTROL
-  let currentRotation = 0;
+  // LÓGICA DE INTERACCIÓN MEDIANTE HOTSPOTS
+  let rotation = 0;
   let currentScale = 1;
 
-  window.doRotate = () => {
-    currentRotation += 45;
-    mv.orientation = `0deg 0deg ${currentRotation}deg`;
+  // 1. Girar
+  document.getElementById('hot-rotate').onclick = (e) => {
+    rotation += 45;
+    mv.orientation = `0deg 0deg ${rotation}deg`;
   };
 
-  window.doZoom = (val) => {
-    currentScale += val;
-    if (currentScale < 0.2) currentScale = 0.2;
+  // 2. Zoom In
+  document.getElementById('hot-zoom-in').onclick = () => {
+    currentScale += 0.2;
     mv.scale = `${currentScale} ${currentScale} ${currentScale}`;
   };
 
-  // BOTÓN MOVER: Selección Forzada Real
-  document.getElementById('forceSelect').addEventListener('click', () => {
-    if (window.navigator.vibrate) window.navigator.vibrate(60);
-
-    // En lugar de resetear, usamos un cambio de visibilidad de sombras.
-    // Esto obliga al motor de renderizado de ARCore a "tocar" el objeto de nuevo,
-    // lo que activa el recuadro blanco de selección en la mayoría de terminales.
-    const originalShadow = mv.shadowIntensity;
-    mv.shadowIntensity = 0;
+  // 3. Mover (Selección forzada)
+  document.getElementById('hot-move').onclick = () => {
+    if (window.navigator.vibrate) window.navigator.vibrate(50);
     
-    // Forzamos al sistema a que "busque" el objeto de nuevo
-    if(mv.announceHasPose) mv.announceHasPose();
-
-    setTimeout(() => {
-        mv.shadowIntensity = originalShadow;
-        mv.requestUpdate();
-    }, 100);
-  });
+    // Al interactuar con un Hotspot, el sistema WebXR recibe un evento 
+    // directo desde el espacio 3D. Esto suele "despertar" el recuadro 
+    // de selección inmediatamente.
+    mv.requestUpdate();
+    
+    // Pequeño hack: Alteramos ligeramente la posición del objetivo
+    // para obligar al sistema a re-anclar el objeto.
+    mv.cameraTarget = "0m 0.01m 0m";
+    setTimeout(() => { mv.cameraTarget = "0m 0m 0m"; }, 100);
+  };
 </script>
 
 </body>
