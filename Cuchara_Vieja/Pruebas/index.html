@@ -2,135 +2,156 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Go Scale · AR Premium</title>
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"></script>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
   <style>
-    html, body { margin:0; height:100%; background:#0b0b0b; font-family: system-ui, sans-serif; overflow:hidden; }
+    html, body { margin:0; height:100%; background:#0b0b0b; font-family: system-ui, sans-serif; color:#fff; overflow:hidden; }
     
-    header { position:fixed; top:0; width:100%; height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 12px; background:rgba(15,15,15,.8); backdrop-filter:blur(10px); z-index:100; box-sizing:border-box; }
+    header { position:fixed; top:0; width:100%; height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 12px; background:rgba(15,15,15,.8); backdrop-filter:blur(10px); z-index:1000; }
     .byGoscale img { height:22px; }
-    main { height:100vh; display:flex; flex-direction:column; padding-top:56px; box-sizing:border-box; }
-    .viewerWrap { flex:1; position:relative; }
-    model-viewer { width:100%; height:100%; }
 
-    /* CONTENEDOR UNIFICADO EN EL SLOT */
-    .ar-slot-container {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      align-items: center;
-      padding-bottom: 50px;
+    main { height:100vh; display:flex; flex-direction:column; padding-top:56px; }
+    .viewerWrap { flex:1; position:relative; }
+    model-viewer { width:100%; height:100%; background:#0b0b0b; }
+
+    /* BOTÓN AR PRINCIPAL */
+    .arBtn { 
+      position:absolute; bottom:30px; left:50%; transform:translateX(-50%); 
+      padding:16px 32px; border-radius:30px; background:#fff; color:#000; 
+      font-weight:900; border:none; box-shadow:0 10px 20px rgba(0,0,0,0.5); z-index:100;
+    }
+
+    /* PANEL DE CONTROL BLINDADO (FUERA DE MODEL-VIEWER) */
+    #externalControls {
+      position: fixed;
+      bottom: 40px;
+      left: 0;
+      right: 0;
+      z-index: 2147483647; /* El máximo Z-index posible en navegadores */
+      display: none; 
+      justify-content: center;
+      gap: 12px;
       pointer-events: none;
     }
 
-    /* BOTÓN INICIAL (VISIBLE SIEMPRE FUERA DE AR) */
-    .launch-btn {
-      pointer-events: auto;
-      padding: 16px 30px; border-radius: 30px; background: #fff; color: #000;
-      font-weight: 900; border: none; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-      display: block; /* Forzamos visibilidad inicial */
-    }
+    .btnGroup { display: flex; flex-direction: column; align-items: center; gap: 5px; pointer-events: auto; }
 
-    /* PANEL DE CONTROLES (OCULTO POR DEFECTO) */
-    #ar-controls-panel {
-      display: none; 
-      pointer-events: auto;
-      flex-direction: row;
-      gap: 12px;
-    }
-
-    .circle-btn {
-      background: rgba(0, 0, 0, 0.7);
+    .ctrlBtn {
+      background: rgba(20, 20, 20, 0.9);
       border: 1px solid rgba(255, 255, 255, 0.4);
-      color: white; width: 60px; height: 60px; border-radius: 50%;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: white; width: 60px; height: 60px; border-radius: 18px;
+      font-size: 24px; display: flex; align-items: center; justify-content: center;
       backdrop-filter: blur(10px);
     }
-    .circle-btn span { font-size: 8px; text-transform: uppercase; font-weight: bold; margin-top: 2px; }
+    
+    .btnLabel { font-size: 9px; font-weight: 800; text-transform: uppercase; color: #fff; text-shadow: 0 1px 3px #000; }
 
-    /* ESTADOS DE VISIBILIDAD */
-    model-viewer[ar-status="session-started"] .launch-btn { display: none; }
-    model-viewer[ar-status="session-started"] #ar-controls-panel { display: flex; }
-
-    #loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:#0b0b0b; z-index:200; color:white; }
+    #loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:#0b0b0b; z-index:500; }
+    .brandBottom { padding:10px; display:flex; justify-content:center; background:#000; }
+    .restaurantLogo { height:65px; width:auto; }
   </style>
 </head>
 <body>
 
 <header>
-  <div style="color:white; font-weight:bold;">← Menú</div>
+  <div style="font-weight:bold;">← Menú</div>
   <div class="byGoscale"><img src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png"></div>
 </header>
 
 <main>
   <div class="viewerWrap">
-    <div id="loading"><p>Cargando plato...</p></div>
+    <div id="loading">Cargando experiencia...</div>
 
     <model-viewer
       id="mv"
       src="Pruebas.glb" 
       ios-src="Pruebas.usdz"
       ar ar-modes="webxr quick-look" ar-placement="floor"
-      camera-controls touch-action="none" shadow-intensity="1"
+      camera-controls touch-action="none" shadow-intensity="1" ar-scale="auto"
     >
-      <div slot="ar-button" class="ar-slot-container">
-          <button class="launch-btn">VER EN TU MESA</button>
-          
-          <div id="ar-controls-panel">
-            <button class="circle-btn" id="rotBtn">↻<span>Girar</span></button>
-            <button class="circle-btn" id="zoomInBtn">+<span>Zoom</span></button>
-            <button class="circle-btn" id="zoomOutBtn">−<span>Zoom</span></button>
-            <button class="circle-btn" id="moveBtn">⚓<span>Mover</span></button>
-          </div>
-      </div>
+      <button slot="ar-button" class="arBtn">VER EN TU MESA</button>
     </model-viewer>
+
+    <div id="externalControls">
+      <div class="btnGroup">
+        <button class="ctrlBtn" onclick="doZoom(0.2)">+</button>
+        <span class="btnLabel">Zoom</span>
+      </div>
+      <div class="btnGroup">
+        <button class="ctrlBtn" onclick="doZoom(-0.2)">-</button>
+        <span class="btnLabel">Zoom</span>
+      </div>
+      <div class="btnGroup">
+        <button class="ctrlBtn" onclick="doRotate()">↻</button>
+        <span class="btnLabel">Girar</span>
+      </div>
+      <div class="btnGroup">
+        <button class="ctrlBtn" id="forceSelect">⚓</button>
+        <span class="btnLabel">Mover</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="brandBottom">
+    <img class="restaurantLogo" src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/LOGO%20OPC%202_MONOGRAMA%2CLOGOY%20LEMA%20NARANJA-18.png">
   </div>
 </main>
 
 <script>
   const mv = document.getElementById('mv');
+  const controls = document.getElementById('externalControls');
+
   mv.addEventListener('load', () => { document.getElementById('loading').style.display = 'none'; });
 
-  // Lógica de interacción
-  let rotation = 0;
-  let scale = 1;
+  // Monitoreo constante de la sesión AR
+  mv.addEventListener('ar-status', (event) => {
+    if (event.detail.status === 'session-started') {
+      controls.style.display = 'flex';
+      // Pequeño truco: forzar el estilo cada segundo por si el sistema intenta ocultarlo
+      const blinkFix = setInterval(() => {
+        if(mv.getAttribute('ar-status') !== 'session-started') clearInterval(blinkFix);
+        controls.style.zIndex = "2147483647";
+        controls.style.display = "flex";
+      }, 500);
+    } else {
+      controls.style.display = 'none';
+    }
+  });
 
-  document.getElementById('rotBtn').onclick = (e) => {
-    e.preventDefault();
-    rotation += 45;
-    mv.orientation = `0deg 0deg ${rotation}deg`;
+  // FUNCIONES DE CONTROL
+  let currentRotation = 0;
+  let currentScale = 1;
+
+  window.doRotate = () => {
+    currentRotation += 45;
+    mv.orientation = `0deg 0deg ${currentRotation}deg`;
   };
 
-  document.getElementById('zoomInBtn').onclick = (e) => {
-    e.preventDefault();
-    scale += 0.2;
-    mv.scale = `${scale} ${scale} ${scale}`;
+  window.doZoom = (val) => {
+    currentScale += val;
+    if (currentScale < 0.2) currentScale = 0.2;
+    mv.scale = `${currentScale} ${currentScale} ${currentScale}`;
   };
 
-  document.getElementById('zoomOutBtn').onclick = (e) => {
-    e.preventDefault();
-    if (scale > 0.4) scale -= 0.2;
-    mv.scale = `${scale} ${scale} ${scale}`;
-  };
+  // BOTÓN MOVER: Selección Forzada Real
+  document.getElementById('forceSelect').addEventListener('click', () => {
+    if (window.navigator.vibrate) window.navigator.vibrate(60);
 
-  // RECUADRO DE SELECCIÓN (⚓)
-  document.getElementById('moveBtn').onclick = (e) => {
-    e.preventDefault();
-    if (window.navigator.vibrate) window.navigator.vibrate(50);
-
-    // Cambiamos el modo de escala y forzamos el anuncio de pose
-    // Esto hace que Android re-evalúe el objeto y muestre el recuadro blanco
-    const currentMode = mv.arScale;
-    mv.arScale = (currentMode === "auto") ? "fixed" : "auto";
+    // En lugar de resetear, usamos un cambio de visibilidad de sombras.
+    // Esto obliga al motor de renderizado de ARCore a "tocar" el objeto de nuevo,
+    // lo que activa el recuadro blanco de selección en la mayoría de terminales.
+    const originalShadow = mv.shadowIntensity;
+    mv.shadowIntensity = 0;
     
-    // Pequeño desplazamiento técnico para despertar el motor
-    mv.resetTurntableRotation();
+    // Forzamos al sistema a que "busque" el objeto de nuevo
     if(mv.announceHasPose) mv.announceHasPose();
-    mv.requestUpdate();
-  };
+
+    setTimeout(() => {
+        mv.shadowIntensity = originalShadow;
+        mv.requestUpdate();
+    }, 100);
+  });
 </script>
 
 </body>
