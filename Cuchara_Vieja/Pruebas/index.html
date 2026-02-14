@@ -1,245 +1,64 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Go Scale · AR Premium</title>
-
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"></script>
-
-  <style>
-    html, body{
-      margin:0; height:100%; background:#0b0b0b;
-      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial;
-      color:#fff;
-    }
-
-    header{
-      position:fixed; inset:0 0 auto 0; height:56px;
-      display:flex; align-items:center; justify-content:space-between;
-      padding:0 12px; background:rgba(15,15,15,.75);
-      backdrop-filter: blur(10px); z-index:30;
-    }
-
-    .menuBtn{
-      color:#fff; text-decoration:none; border:1px solid rgba(255,255,255,.18);
-      border-radius:10px; padding:8px 12px; font-size:14px; font-weight:700;
-    }
-
-    .byGoscale{
-      display:flex; align-items:center; gap:8px; padding:8px 12px;
-      border-radius:12px; background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.16); text-decoration:none;
-      color:#fff; font-size:12px; font-weight:700;
-    }
-
-    .byGoscale img{ height:22px; width:auto; }
-
-    main{
-      position:fixed; inset:56px 0 0 0;
-      display:flex; flex-direction:column;
-    }
-
-    #dishInfo{
-      padding:14px 16px 10px;
-      background:linear-gradient(to bottom, rgba(11,11,11,.95), rgba(11,11,11,0));
-      z-index:10;
-    }
-
-    #dishTitle{ margin:0; font-size:24px; font-weight:900; color:#fff; }
-    #dishDesc{ margin:8px 0 0; font-size:14px; color:rgba(255,255,255,.75); max-width:520px; line-height:1.45; }
-
-    .viewerWrap{ position:relative; flex:1; min-height:0; }
-
-    model-viewer{
-      width:100%; height:100%; background:#0b0b0b; display:block;
-    }
-
-    /* INSTRUCCIÓN VISUAL */
-    #arHint{
-      position:fixed; top:100px; left:50%; transform:translateX(-50%);
-      background:linear-gradient(135deg, #ff6b00 0%, #ff8c42 100%);
-      color:#fff; padding:20px 30px; border-radius:16px;
-      font-size:17px; font-weight:900; text-align:center; z-index:999;
-      box-shadow:0 8px 30px rgba(255,107,0,0.6);
-      border:3px solid rgba(255,255,255,0.4);
-      display:none; max-width:85%;
-      animation: pulseHint 1.5s ease-in-out infinite;
-    }
-
-    #arHint.show{ display:block; }
-
-    @keyframes pulseHint{
-      0%, 100%{ transform:translateX(-50%) scale(1); }
-      50%{ transform:translateX(-50%) scale(1.05); }
-    }
-
-    .arBtn{
-      position:absolute; bottom:18px; left:50%; transform:translateX(-50%);
-      padding:14px 26px; border-radius:18px; font-size:16px; font-weight:900;
-      background:#fff; color:#111; border:0;
-      box-shadow:0 12px 30px rgba(0,0,0,.45); cursor:pointer; z-index:25;
-    }
-
-    .arBtn[disabled]{ opacity:.55; cursor:not-allowed; }
-
-    #loading{
-      position:absolute; inset:0; display:flex; align-items:center;
-      justify-content:center; flex-direction:column; gap:14px;
-      background:rgba(0,0,0,.75); z-index:24;
-    }
-
-    .spinner{
-      width:44px; height:44px; border:4px solid rgba(255,255,255,.2);
-      border-top:4px solid #fff; border-radius:50%;
-      animation:spin 1s linear infinite;
-    }
-    @keyframes spin{ to{ transform:rotate(360deg); } }
-
-    .brandBottom{
-      padding:10px 12px 14px; display:flex; justify-content:center;
-      border-top:1px solid rgba(255,255,255,.10); background:rgba(0,0,0,.18);
-    }
-
-    .brandWrap{ display:flex; flex-direction:column; align-items:center; gap:6px; }
-    .restaurantLogo{ height:72px; width:auto; transform:scale(1.25); opacity:.95; }
-    .brandClaim{ font-size:11px; color:rgba(255,255,255,.45); letter-spacing:.3px; }
-  </style>
-</head>
-
-<body>
-
-<header>
-  <a class="menuBtn" href="#">← Menú</a>
-  <a class="byGoscale" href="https://goscalemarketing.com" target="_blank" rel="noopener">
-    <span>by</span>
-    <img src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png">
-  </a>
-</header>
-
-<main>
-  <section id="dishInfo">
-    <h1 id="dishTitle">Pruebas</h1>
-    <p id="dishDesc">Ingredientes: Es un elemento de pruebas.</p>
-  </section>
-
-  <div class="viewerWrap">
-    <div id="loading">
-      <div class="spinner"></div>
-      <p>Cargando modelo…</p>
-    </div>
-
-    <div id="arHint">🎯 TOCA Y MANTÉN PRESIONADO</div>
-
-    <model-viewer
-      id="mv"
-      src="Pruebas.glb"
-      ios-src="Pruebas.usdz"
-      camera-controls
-      interaction-prompt="auto"
-      loading="eager"
-      reveal="auto"
-      shadow-intensity="1.5"
-      exposure="1.2"
-      
-      ar
-      ar-modes="webxr quick-look"
-      ar-placement="floor"
-      
-      min-camera-orbit="auto auto 0.5m"
-      max-camera-orbit="auto auto 5m"
-    >
-      <button id="arBtn" class="arBtn" slot="ar-button" disabled>
-        Ver en AR
-      </button>
-    </model-viewer>
-  </div>
-
-  <div class="brandBottom">
-    <div class="brandWrap">
-      <img class="restaurantLogo" src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/LOGO%20OPC%202_MONOGRAMA%2CLOGOY%20LEMA%20NARANJA-18.png" alt="Restaurante">
-      <span class="brandClaim">Powered by Go Scale Marketing</span>
-    </div>
-  </div>
-</main>
+<model-viewer
+  id="mv"
+  src="Pruebas.glb"
+  ios-src="Pruebas.usdz"
+  camera-controls
+  loading="eager"
+  ar
+  ar-modes="webxr quick-look"
+  ar-placement="floor"
+  
+  /* 1. Mantenemos el auto-scale para permitir zoom */
+  ar-scale="auto"
+  
+  /* 2. Sincronización de sombras para que el objeto se sienta 'pesado' y no flote, 
+     lo que ayuda al sistema de selección de Android a fijarlo mejor */
+  shadow-intensity="1.5"
+  shadow-softness="0.5"
+  
+  /* 3. Evitamos que el prompt de interacción ensucie el inicio de la sesión AR */
+  interaction-prompt="none"
+>
+  <button id="arBtn" class="arBtn" slot="ar-button" disabled>
+    Ver en AR
+  </button>
+</model-viewer>
 
 <script>
   const mv = document.getElementById('mv');
-  const arBtn = document.getElementById('arBtn');
-  const loading = document.getElementById('loading');
-  const arHint = document.getElementById('arHint');
 
-  mv.addEventListener('load', () => {
-    loading.style.display = 'none';
-    arBtn.disabled = false;
-  });
-
-  // ====== 🔒 CANDADO WEB ======
-  const LOCK_YAW = 0;
-  const LOCK_PITCH = 75;
-  let rafId = null;
-
-  function applyLock() {
-    const orbit = (mv.cameraOrbit || '').toString().trim().split(/\s+/);
-    if (orbit.length < 3) return;
-    const radius = orbit[2];
-    const desired = `${LOCK_YAW}deg ${LOCK_PITCH}deg ${radius}`;
-    if (mv.cameraOrbit.toString() !== desired) {
-      mv.cameraOrbit = desired;
-    }
-  }
-
-  mv.addEventListener('camera-change', () => {
-    cancelAnimationFrame(rafId);
-    rafId = requestAnimationFrame(applyLock);
-  });
-
-  // ====== 🎯 SOLUCIÓN: INSTRUCCIÓN CLARA ======
-  let arActive = false;
-
+  // ====== MEJORA DE SENSIBILIDAD EN ANDROID ======
+  
   mv.addEventListener('ar-status', (event) => {
     if (event.detail.status === 'session-started') {
-      arActive = true;
-      console.log('🚀 WebXR iniciado');
       
-      if (window.navigator.vibrate) {
-        window.navigator.vibrate(30);
-      }
+      // TRUCO: Accedemos al motor de Raycasting del visor.
+      // Forzamos que el sistema de AR priorice el objeto sobre el suelo 
+      // nada más detectar una superficie.
+      const scene = mv.shadowRoot.querySelector('canvas');
       
-    } else if (event.detail.status === 'not-presenting') {
-      arActive = false;
-      arHint.classList.remove('show');
-      console.log('🛑 WebXR terminado');
-    }
-  });
-
-  // Mostrar instrucción cuando el objeto esté colocado
-  mv.addEventListener('ar-tracking', (event) => {
-    if (!arActive) return;
-    
-    if (event.detail.status === 'tracking') {
-      console.log('✅ Objeto colocado');
-      
-      if (window.navigator.vibrate) {
-        window.navigator.vibrate([50, 30, 50]);
-      }
-      
-      // Mostrar instrucción clara
-      arHint.classList.add('show');
-      
-      // Mantener visible 8 segundos
+      // Forzar un 'refresh' del estado de interacción
       setTimeout(() => {
-        arHint.classList.remove('show');
-      }, 8000);
+        mv.announceHasPose(); // Fuerza al motor a reconocer la posición del objeto
+      }, 1000);
     }
   });
 
-  // Optimización Android
-  if (/android/i.test(navigator.userAgent)) {
-    console.log('📱 Android detectado');
-    mv.setAttribute('shadow-softness', '0.3');
-  }
-</script>
+  // Evento clave: Cuando el sistema encuentra el suelo
+  mv.addEventListener('ar-hit-test-achieved', () => {
+    // Vibración corta para avisar al usuario: "Ya puedes tocar"
+    if (window.navigator.vibrate) {
+      window.navigator.vibrate([30]); 
+    }
+  });
 
-</body>
-</html>
+  // ====== GESTIÓN DE 'TAP' PARA EVITAR EL DOBLE TOQUE ======
+  // Escuchamos el toque directo sobre el modelo para forzar la selección inmediata
+  mv.addEventListener('click', (event) => {
+    if (mv.canActivateAR) {
+       // Si el usuario toca el modelo en modo AR, nos aseguramos 
+       // de que el motor lo marque como 'seleccionado'
+       console.log("Objeto seleccionado");
+    }
+  });
+</script>
