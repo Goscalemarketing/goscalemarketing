@@ -8,41 +8,40 @@
   <style>
     html, body { margin:0; height:100%; background:#0b0b0b; font-family: system-ui, sans-serif; overflow:hidden; }
     
-    /* Interfaz Base */
     header { position:fixed; top:0; width:100%; height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 12px; background:rgba(15,15,15,.8); backdrop-filter:blur(10px); z-index:100; box-sizing:border-box; }
     .byGoscale img { height:22px; }
     main { height:100vh; display:flex; flex-direction:column; padding-top:56px; box-sizing:border-box; }
     .viewerWrap { flex:1; position:relative; }
     model-viewer { width:100%; height:100%; }
 
-    /* BOTÓN LANZADOR Y CONTROLES (TODO EN EL MISMO SLOT) */
-    .ar-interface-container {
-      pointer-events: none;
+    /* CONTENEDOR UNIFICADO EN EL SLOT */
+    .ar-slot-container {
       position: absolute;
       inset: 0;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
       align-items: center;
-      padding-bottom: 40px;
+      padding-bottom: 50px;
+      pointer-events: none;
     }
 
-    /* El botón que el usuario ve para entrar */
+    /* BOTÓN INICIAL (VISIBLE SIEMPRE FUERA DE AR) */
     .launch-btn {
       pointer-events: auto;
       padding: 16px 30px; border-radius: 30px; background: #fff; color: #000;
       font-weight: 900; border: none; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+      display: block; /* Forzamos visibilidad inicial */
     }
 
-    /* Los botones que aparecen DENTRO de la AR */
-    .ar-only-controls {
-      display: none; /* Model-viewer los mostrará solo en AR */
+    /* PANEL DE CONTROLES (OCULTO POR DEFECTO) */
+    #ar-controls-panel {
+      display: none; 
       pointer-events: auto;
       flex-direction: row;
       gap: 12px;
     }
 
-    /* Estilo de los botones circulares */
     .circle-btn {
       background: rgba(0, 0, 0, 0.7);
       border: 1px solid rgba(255, 255, 255, 0.4);
@@ -50,14 +49,13 @@
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       backdrop-filter: blur(10px);
     }
-    .circle-btn span { font-size: 9px; text-transform: uppercase; font-weight: bold; margin-top: 2px; }
+    .circle-btn span { font-size: 8px; text-transform: uppercase; font-weight: bold; margin-top: 2px; }
 
-    /* Cuando estamos en AR, el botón de lanzamiento se oculta y salen los controles */
-    :not([ar-status="active"]) > .ar-only-controls { display: none; }
-    [ar-status="active"] > .launch-btn { display: none; }
-    [ar-status="active"] > .ar-only-controls { display: flex; }
+    /* ESTADOS DE VISIBILIDAD */
+    model-viewer[ar-status="session-started"] .launch-btn { display: none; }
+    model-viewer[ar-status="session-started"] #ar-controls-panel { display: flex; }
 
-    #loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:#0b0b0b; z-index:200; color:white;}
+    #loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:#0b0b0b; z-index:200; color:white; }
   </style>
 </head>
 <body>
@@ -78,10 +76,10 @@
       ar ar-modes="webxr quick-look" ar-placement="floor"
       camera-controls touch-action="none" shadow-intensity="1"
     >
-      <div slot="ar-button" class="ar-interface-container">
+      <div slot="ar-button" class="ar-slot-container">
           <button class="launch-btn">VER EN TU MESA</button>
           
-          <div class="ar-only-controls">
+          <div id="ar-controls-panel">
             <button class="circle-btn" id="rotBtn">↻<span>Girar</span></button>
             <button class="circle-btn" id="zoomInBtn">+<span>Zoom</span></button>
             <button class="circle-btn" id="zoomOutBtn">−<span>Zoom</span></button>
@@ -96,45 +94,42 @@
   const mv = document.getElementById('mv');
   mv.addEventListener('load', () => { document.getElementById('loading').style.display = 'none'; });
 
-  // Lógica de Rotación y Zoom
+  // Lógica de interacción
   let rotation = 0;
   let scale = 1;
 
   document.getElementById('rotBtn').onclick = (e) => {
-    e.stopPropagation();
+    e.preventDefault();
     rotation += 45;
     mv.orientation = `0deg 0deg ${rotation}deg`;
   };
 
   document.getElementById('zoomInBtn').onclick = (e) => {
-    e.stopPropagation();
+    e.preventDefault();
     scale += 0.2;
     mv.scale = `${scale} ${scale} ${scale}`;
   };
 
   document.getElementById('zoomOutBtn').onclick = (e) => {
-    e.stopPropagation();
+    e.preventDefault();
     if (scale > 0.4) scale -= 0.2;
     mv.scale = `${scale} ${scale} ${scale}`;
   };
 
-  // BOTÓN MOVER: El truco final para que salga el RECUADRO
+  // RECUADRO DE SELECCIÓN (⚓)
   document.getElementById('moveBtn').onclick = (e) => {
-    e.stopPropagation();
+    e.preventDefault();
     if (window.navigator.vibrate) window.navigator.vibrate(50);
 
-    // 1. Forzamos un cambio de modo de escala.
-    // En WebXR, cambiar 'ar-scale' de auto a fixed obliga al sistema
-    // a RE-SELECCIONAR el objeto para que el usuario verifique el tamaño.
+    // Cambiamos el modo de escala y forzamos el anuncio de pose
+    // Esto hace que Android re-evalúe el objeto y muestre el recuadro blanco
     const currentMode = mv.arScale;
     mv.arScale = (currentMode === "auto") ? "fixed" : "auto";
     
-    // 2. Reseteamos el centro del objeto. 
-    // Esto hace que el recuadro blanco de selección aparezca por cojones.
+    // Pequeño desplazamiento técnico para despertar el motor
     mv.resetTurntableRotation();
+    if(mv.announceHasPose) mv.announceHasPose();
     mv.requestUpdate();
-    
-    console.log("Modo de selección forzado");
   };
 </script>
 
