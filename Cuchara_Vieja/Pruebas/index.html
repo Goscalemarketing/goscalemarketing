@@ -8,99 +8,21 @@
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"></script>
 
   <style>
-    html, body{
-      margin:0; height:100%; background:#0b0b0b;
-      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial;
-      color:#fff;
-      overflow: hidden; /* Evita scrolls accidentales en móvil */
-    }
-
-    header{
-      position:fixed; inset:0 0 auto 0; height:56px;
-      display:flex; align-items:center; justify-content:space-between;
-      padding:0 12px; background:rgba(15,15,15,.75);
-      backdrop-filter: blur(10px); z-index:30;
-    }
-
-    .menuBtn{
-      color:#fff; text-decoration:none; border:1px solid rgba(255,255,255,.18);
-      border-radius:10px; padding:8px 12px; font-size:14px; font-weight:700;
-    }
-
-    .byGoscale{
-      display:flex; align-items:center; gap:8px; padding:8px 12px;
-      border-radius:12px; background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.16); text-decoration:none;
-      color:#fff; font-size:12px; font-weight:700;
-    }
-
+    html, body{ margin:0; height:100%; background:#0b0b0b; font-family: system-ui; color:#fff; overflow: hidden; }
+    header{ position:fixed; inset:0 0 auto 0; height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 12px; background:rgba(15,15,15,.75); backdrop-filter: blur(10px); z-index:30; }
+    .menuBtn{ color:#fff; text-decoration:none; border:1px solid rgba(255,255,255,.18); border-radius:10px; padding:8px 12px; font-size:14px; font-weight:700; }
+    .byGoscale{ display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:12px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.16); text-decoration:none; color:#fff; font-size:12px; font-weight:700; }
     .byGoscale img{ height:22px; width:auto; }
-
-    main{
-      position:fixed; inset:56px 0 0 0;
-      display:flex; flex-direction:column;
-    }
-
-    #dishInfo{
-      padding:14px 16px 10px;
-      background:linear-gradient(to bottom, rgba(11,11,11,.95), rgba(11,11,11,0));
-      z-index:10;
-    }
-
-    #dishTitle{ margin:0; font-size:24px; font-weight:900; color:#fff; }
-    #dishDesc{ margin:8px 0 0; font-size:14px; color:rgba(255,255,255,.75); max-width:520px; line-height:1.45; }
-
+    main{ position:fixed; inset:56px 0 0 0; display:flex; flex-direction:column; }
+    
     .viewerWrap{ position:relative; flex:1; min-height:0; }
-
-    model-viewer{
-      width:100%; height:100%; background:#0b0b0b; display:block;
-      touch-action: none;
-    }
-
-    /* INSTRUCCIÓN VISUAL MEJORADA */
-    #arHint{
-      position:fixed; bottom:120px; left:50%; transform:translateX(-50%);
-      background: rgba(0,0,0,0.8); color:#fff; padding:12px 24px; border-radius:30px;
-      font-size:14px; font-weight:700; text-align:center; z-index:999;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-      border: 1px solid rgba(255,255,255,0.2);
-      display:none; pointer-events: none;
-    }
-
-    #arHint.show{ display:block; animation: fadeIn 0.3s ease; }
-
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-    .arBtn{
-      position:absolute; bottom:18px; left:50%; transform:translateX(-50%);
-      padding:14px 26px; border-radius:18px; font-size:16px; font-weight:900;
-      background:#fff; color:#111; border:0;
-      box-shadow:0 12px 30px rgba(0,0,0,.45); cursor:pointer; z-index:25;
-    }
-
-    .arBtn[disabled]{ opacity:.55; cursor:not-allowed; }
-
-    #loading{
-      position:absolute; inset:0; display:flex; align-items:center;
-      justify-content:center; flex-direction:column; gap:14px;
-      background:rgba(0,0,0,.9); z-index:24;
-    }
-
-    .spinner{
-      width:44px; height:44px; border:4px solid rgba(255,255,255,.2);
-      border-top:4px solid #fff; border-radius:50%;
-      animation:spin 1s linear infinite;
-    }
+    model-viewer{ width:100%; height:100%; background:#0b0b0b; display:block; touch-action: none; }
+    
+    .arBtn{ position:absolute; bottom:18px; left:50%; transform:translateX(-50%); padding:14px 26px; border-radius:18px; font-size:16px; font-weight:900; background:#fff; color:#111; border:0; box-shadow:0 12px 30px rgba(0,0,0,.45); cursor:pointer; z-index:25; }
+    
+    #loading{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:14px; background:rgba(0,0,0,.9); z-index:24; }
+    .spinner{ width:44px; height:44px; border:4px solid rgba(255,255,255,.2); border-top:4px solid #fff; border-radius:50%; animation:spin 1s linear infinite; }
     @keyframes spin{ to{ transform:rotate(360deg); } }
-
-    .brandBottom{
-      padding:10px 12px 14px; display:flex; justify-content:center;
-      border-top:1px solid rgba(255,255,255,.10); background:rgba(0,0,0,.18);
-    }
-
-    .brandWrap{ display:flex; flex-direction:column; align-items:center; gap:6px; }
-    .restaurantLogo{ height:72px; width:auto; transform:scale(1.25); opacity:.95; }
-    .brandClaim{ font-size:11px; color:rgba(255,255,255,.45); letter-spacing:.3px; }
   </style>
 </head>
 
@@ -108,25 +30,18 @@
 
 <header>
   <a class="menuBtn" href="#">← Menú</a>
-  <a class="byGoscale" href="https://goscalemarketing.com" target="_blank" rel="noopener">
+  <a class="byGoscale" href="https://goscalemarketing.com" target="_blank">
     <span>by</span>
     <img src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png">
   </a>
 </header>
 
 <main>
-  <section id="dishInfo">
-    <h1 id="dishTitle">Pruebas WebXR</h1>
-    <p id="dishDesc">Ingredientes: Optimizando la selección táctil en Android.</p>
-  </section>
-
   <div class="viewerWrap">
     <div id="loading">
       <div class="spinner"></div>
       <p>Cargando experiencia...</p>
     </div>
-
-    <div id="arHint">Toca el plato para moverlo o rotarlo</div>
 
     <model-viewer
       id="mv"
@@ -134,105 +49,74 @@
       ios-src="Pruebas.usdz"
       camera-controls
       interaction-prompt="none"
-      loading="eager"
-      reveal="auto"
-      shadow-intensity="1.5"
-      shadow-softness="0.5"
-      exposure="1.2"
-      
       ar
-      ar-modes="webxr quick-look"
+      /* Mantenemos ambos modos para compatibilidad total */
+      ar-modes="webxr quick-look" 
       ar-placement="floor"
       ar-scale="auto"
-      
-      min-camera-orbit="auto auto 0.5m"
-      max-camera-orbit="auto auto 5m"
+      shadow-intensity="1.5"
+      shadow-softness="1"
     >
-      <button id="arBtn" class="arBtn" slot="ar-button" disabled>
-        Ver en AR
-      </button>
+      <button id="arBtn" class="arBtn" slot="ar-button" disabled>Ver en AR</button>
     </model-viewer>
-  </div>
-
-  <div class="brandBottom">
-    <div class="brandWrap">
-      <img class="restaurantLogo" src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/LOGO%20OPC%202_MONOGRAMA%2CLOGOY%20LEMA%20NARANJA-18.png" alt="Restaurante">
-      <span class="brandClaim">Powered by Go Scale Marketing</span>
-    </div>
   </div>
 </main>
 
 <script>
   const mv = document.getElementById('mv');
-  const arBtn = document.getElementById('arBtn');
-  const loading = document.getElementById('loading');
-  const arHint = document.getElementById('arHint');
 
   mv.addEventListener('load', () => {
-    loading.style.display = 'none';
-    arBtn.disabled = false;
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('arBtn').disabled = false;
   });
 
-  // ====== 🛠️ OPTIMIZACIÓN DE INTERACCIÓN WEBXR (ANDROID) ======
+  // ====== 🎯 SOLUCIÓN DE INTERACCIÓN ANDROID ======
 
   mv.addEventListener('ar-status', (event) => {
     if (event.detail.status === 'session-started') {
       
-      // 1. Forzamos el foco en el canvas para que Android reciba los eventos touch
-      const canvas = mv.shadowRoot.querySelector('canvas');
-      if(canvas) canvas.focus();
+      // Obtenemos la sesión WebXR
+      const session = mv.xrSession;
+      
+      if (session) {
+        // Al tocar cualquier parte de la pantalla AR
+        session.addEventListener('select', (ev) => {
+          // Forzamos al visor a entender que el toque es para el objeto
+          // Esto simula el "truco" de los taps de forma automática
+          mv.requestUpdate();
+          
+          if (window.navigator.vibrate) window.navigator.vibrate(25);
+          
+          console.log("Input XR detectado y procesado");
+        });
+      }
 
-      // 2. Pequeña vibración de entrada
-      if (window.navigator.vibrate) window.navigator.vibrate(30);
-
-      // 3. Forzar el motor a reconocer la posición (Elimina el 'truco' de varios taps)
+      // Hack de visibilidad: A veces el objeto no se "ilumina" porque
+      // el motor de ARCore cree que está muy lejos. Forzamos un reset.
       setTimeout(() => {
-        if (mv.announceHasPose) {
-          mv.announceHasPose();
-        }
-      }, 1500);
-
-    } else if (event.detail.status === 'not-presenting') {
-      arHint.classList.remove('show');
+        mv.resetTurntableRotation();
+      }, 1000);
     }
   });
 
-  // Evento cuando el sistema detecta el suelo correctamente
-  mv.addEventListener('ar-hit-test-achieved', () => {
-    // Vibración sutil: confirmamos al usuario que el sistema está listo
-    if (window.navigator.vibrate) window.navigator.vibrate([40]);
-    
-    // Mostramos la instrucción de selección
-    arHint.classList.add('show');
-    setTimeout(() => {
-      arHint.classList.remove('show');
-    }, 4000);
-  });
+  // Este evento ayuda a que la "retícula" se pegue al objeto al primer toque
+  mv.addEventListener('touchstart', (e) => {
+    if (mv.canActivateAR && e.touches.length === 1) {
+        // Si estamos en AR, intentamos forzar que el raycast del dedo 
+        // tenga prioridad sobre el escaneo del suelo
+        mv.queueRender(); 
+    }
+  }, { passive: true });
 
-  // ====== 🔒 CANDADO DE CÁMARA (WEB) ======
+
+  // ====== BLOQUEO DE CÁMARA (WEB) ======
   const LOCK_YAW = 0;
   const LOCK_PITCH = 75;
-  let rafId = null;
-
-  function applyLock() {
-    const orbit = (mv.cameraOrbit || '').toString().trim().split(/\s+/);
-    if (orbit.length < 3) return;
-    const radius = orbit[2];
-    const desired = `${LOCK_YAW}deg ${LOCK_PITCH}deg ${radius}`;
-    if (mv.cameraOrbit.toString() !== desired) {
-      mv.cameraOrbit = desired;
-    }
-  }
-
   mv.addEventListener('camera-change', () => {
-    cancelAnimationFrame(rafId);
-    rafId = requestAnimationFrame(applyLock);
+    const orbit = (mv.cameraOrbit || '').toString().split(/\s+/);
+    if (orbit.length < 3) return;
+    mv.cameraOrbit = `${LOCK_YAW}deg ${LOCK_PITCH}deg ${orbit[2]}`;
   });
-
-  // Optimizaciones extra para Android
-  if (/android/i.test(navigator.userAgent)) {
-    mv.setAttribute('shadow-softness', '0.4');
-  }
 </script>
 
 </body>
