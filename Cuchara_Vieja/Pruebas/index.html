@@ -8,61 +8,56 @@
   <style>
     html, body { margin:0; height:100%; background:#0b0b0b; font-family: system-ui, sans-serif; overflow:hidden; }
     
-    /* Interfaz Web Normal */
+    /* Interfaz Base */
     header { position:fixed; top:0; width:100%; height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 12px; background:rgba(15,15,15,.8); backdrop-filter:blur(10px); z-index:100; box-sizing:border-box; }
     .byGoscale img { height:22px; }
-    
     main { height:100vh; display:flex; flex-direction:column; padding-top:56px; box-sizing:border-box; }
     .viewerWrap { flex:1; position:relative; }
     model-viewer { width:100%; height:100%; }
 
-    /* --- CAPA DE CONTROLES AR (DOM OVERLAY) --- */
-    /* Este ID es crítico para que WebXR lo reconozca */
-    #ar-overlay {
-      display: none; 
-      width: 100%;
-      height: 100%;
-      pointer-events: none; /* Deja pasar los toques al 3D */
-    }
-
-    /* Contenedor de botones para que no se muevan al fijar el objeto */
-    .controls-container {
-      position: absolute;
-      bottom: 60px;
-      left: 0;
-      right: 0;
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      padding: 20px;
+    /* BOTÓN LANZADOR Y CONTROLES (TODO EN EL MISMO SLOT) */
+    .ar-interface-container {
       pointer-events: none;
-    }
-
-    .btn-ar {
-      pointer-events: auto; /* Permite pulsar los botones */
-      background: rgba(0, 0, 0, 0.75);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      color: white;
-      width: 58px;
-      height: 58px;
-      border-radius: 50%;
+      position: absolute;
+      inset: 0;
       display: flex;
       flex-direction: column;
+      justify-content: flex-end;
       align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(5px);
+      padding-bottom: 40px;
     }
 
-    .btn-ar span:first-child { font-size: 20px; font-weight: bold; }
-    .btn-ar span:last-child { font-size: 9px; text-transform: uppercase; font-weight: bold; }
-
-    .ar-launch-btn { 
-      position:absolute; bottom:20px; left:50%; transform:translateX(-50%);
-      padding:16px 30px; border-radius:30px; background:#fff; color:#000;
-      font-weight:900; border:none; box-shadow:0 10px 20px rgba(0,0,0,0.5);
+    /* El botón que el usuario ve para entrar */
+    .launch-btn {
+      pointer-events: auto;
+      padding: 16px 30px; border-radius: 30px; background: #fff; color: #000;
+      font-weight: 900; border: none; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
     }
 
-    #loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:#0b0b0b; z-index:200; }
+    /* Los botones que aparecen DENTRO de la AR */
+    .ar-only-controls {
+      display: none; /* Model-viewer los mostrará solo en AR */
+      pointer-events: auto;
+      flex-direction: row;
+      gap: 12px;
+    }
+
+    /* Estilo de los botones circulares */
+    .circle-btn {
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      color: white; width: 60px; height: 60px; border-radius: 50%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      backdrop-filter: blur(10px);
+    }
+    .circle-btn span { font-size: 9px; text-transform: uppercase; font-weight: bold; margin-top: 2px; }
+
+    /* Cuando estamos en AR, el botón de lanzamiento se oculta y salen los controles */
+    :not([ar-status="active"]) > .ar-only-controls { display: none; }
+    [ar-status="active"] > .launch-btn { display: none; }
+    [ar-status="active"] > .ar-only-controls { display: flex; }
+
+    #loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:#0b0b0b; z-index:200; color:white;}
   </style>
 </head>
 <body>
@@ -74,28 +69,24 @@
 
 <main>
   <div class="viewerWrap">
-    <div id="loading"><p style="color:white;">Cargando plato...</p></div>
+    <div id="loading"><p>Cargando plato...</p></div>
 
     <model-viewer
       id="mv"
       src="Pruebas.glb" 
       ios-src="Pruebas.usdz"
-      ar
-      ar-modes="webxr quick-look"
-      ar-placement="floor"
-      camera-controls
-      touch-action="none"
-      shadow-intensity="1"
+      ar ar-modes="webxr quick-look" ar-placement="floor"
+      camera-controls touch-action="none" shadow-intensity="1"
     >
-      <button slot="ar-button" class="ar-launch-btn">VER EN TU MESA</button>
-
-      <div id="ar-overlay">
-        <div class="controls-container">
-          <button class="btn-ar" id="rotBtn"><span>↻</span><span>Girar</span></button>
-          <button class="btn-ar" id="zoomInBtn"><span>+</span><span>Zoom</span></button>
-          <button class="btn-ar" id="zoomOutBtn"><span>−</span><span>Zoom</span></button>
-          <button class="btn-ar" id="resetBtn"><span>⚓</span><span>Mover</span></button>
-        </div>
+      <div slot="ar-button" class="ar-interface-container">
+          <button class="launch-btn">VER EN TU MESA</button>
+          
+          <div class="ar-only-controls">
+            <button class="circle-btn" id="rotBtn">↻<span>Girar</span></button>
+            <button class="circle-btn" id="zoomInBtn">+<span>Zoom</span></button>
+            <button class="circle-btn" id="zoomOutBtn">−<span>Zoom</span></button>
+            <button class="circle-btn" id="moveBtn">⚓<span>Mover</span></button>
+          </div>
       </div>
     </model-viewer>
   </div>
@@ -103,51 +94,47 @@
 
 <script>
   const mv = document.getElementById('mv');
-  const overlay = document.getElementById('ar-overlay');
+  mv.addEventListener('load', () => { document.getElementById('loading').style.display = 'none'; });
 
-  mv.addEventListener('load', () => {
-    document.getElementById('loading').style.display = 'none';
-  });
-
-  // GESTIÓN DE VISIBILIDAD DE CONTROLES
-  mv.addEventListener('ar-status', (event) => {
-    if (event.detail.status === 'session-started') {
-      overlay.style.display = 'block';
-    } else {
-      overlay.style.display = 'none';
-    }
-  });
-
-  // Lógica de interacción
+  // Lógica de Rotación y Zoom
   let rotation = 0;
   let scale = 1;
 
-  document.getElementById('rotBtn').onclick = () => {
+  document.getElementById('rotBtn').onclick = (e) => {
+    e.stopPropagation();
     rotation += 45;
     mv.orientation = `0deg 0deg ${rotation}deg`;
   };
 
-  document.getElementById('zoomInBtn').onclick = () => {
+  document.getElementById('zoomInBtn').onclick = (e) => {
+    e.stopPropagation();
     scale += 0.2;
     mv.scale = `${scale} ${scale} ${scale}`;
   };
 
-  document.getElementById('zoomOutBtn').onclick = () => {
+  document.getElementById('zoomOutBtn').onclick = (e) => {
+    e.stopPropagation();
     if (scale > 0.4) scale -= 0.2;
     mv.scale = `${scale} ${scale} ${scale}`;
   };
 
-  // BOTÓN MOVER: Fuerza el reinicio del tracking
-  document.getElementById('resetBtn').onclick = () => {
-    if (window.navigator.vibrate) window.navigator.vibrate(40);
+  // BOTÓN MOVER: El truco final para que salga el RECUADRO
+  document.getElementById('moveBtn').onclick = (e) => {
+    e.stopPropagation();
+    if (window.navigator.vibrate) window.navigator.vibrate(50);
+
+    // 1. Forzamos un cambio de modo de escala.
+    // En WebXR, cambiar 'ar-scale' de auto a fixed obliga al sistema
+    // a RE-SELECCIONAR el objeto para que el usuario verifique el tamaño.
+    const currentMode = mv.arScale;
+    mv.arScale = (currentMode === "auto") ? "fixed" : "auto";
     
-    // Al resetear el modo de placement, el sistema se ve obligado a 
-    // soltar el anclaje actual y pedir al usuario que lo coloque de nuevo.
-    mv.arPlacement = "wall"; 
-    setTimeout(() => {
-        mv.arPlacement = "floor";
-        mv.requestUpdate();
-    }, 50);
+    // 2. Reseteamos el centro del objeto. 
+    // Esto hace que el recuadro blanco de selección aparezca por cojones.
+    mv.resetTurntableRotation();
+    mv.requestUpdate();
+    
+    console.log("Modo de selección forzado");
   };
 </script>
 
