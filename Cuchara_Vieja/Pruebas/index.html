@@ -8,29 +8,29 @@
   <style>
     html, body { margin:0; height:100%; background:#0b0b0b; font-family: system-ui; color:#fff; overflow:hidden; }
     header { position:fixed; inset:0 0 auto 0; height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 12px; background:rgba(15,15,15,.75); backdrop-filter:blur(10px); z-index:30; }
-    .menuBtn { color:#fff; text-decoration:none; border:1px solid rgba(255,255,255,.18); border-radius:10px; padding:8px 12px; font-size:14px; font-weight:700; }
-    .byGoscale { display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:12px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.16); text-decoration:none; color:#fff; font-size:12px; font-weight:700; }
     .byGoscale img { height:22px; width:auto; }
     main { position:fixed; inset:56px 0 0 0; display:flex; flex-direction:column; }
     .viewerWrap { position:relative; flex:1; min-height:0; }
     model-viewer { width:100%; height:100%; background:#0b0b0b; display:block; }
     
-    /* BOTÓN AR PRINCIPAL */
     .arBtn { position:absolute; bottom:18px; left:50%; transform:translateX(-50%); padding:14px 26px; border-radius:18px; font-size:16px; font-weight:900; background:#fff; color:#111; border:0; box-shadow:0 12px 30px rgba(0,0,0,.45); z-index:25; }
 
-    /* BOTONES DE CONTROL (SOLO AR) */
+    /* PANEL DE CONTROLES AR */
     #arControls {
-      position: absolute; bottom: 100px; left: 0; right: 0;
-      display: none; justify-content: center; gap: 20px; z-index: 100;
-      pointer-events: none; /* Evita bloquear taps al visor */
+      position: absolute; bottom: 80px; left: 0; right: 0;
+      display: none; flex-wrap: wrap; justify-content: center; gap: 10px; z-index: 100;
+      padding: 0 10px; pointer-events: none;
     }
     .ctrlBtn {
-      pointer-events: auto; /* Activa los botones específicamente */
-      background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.3);
-      color: white; width: 60px; height: 60px; border-radius: 50%;
-      font-size: 24px; display: flex; align-items: center; justify-content: center;
-      backdrop-filter: blur(5px);
+      pointer-events: auto; background: rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.2);
+      color: white; width: 54px; height: 54px; border-radius: 12px;
+      font-size: 20px; display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(5px); transition: transform 0.1s;
     }
+    .ctrlBtn:active { transform: scale(0.9); background: #ff6b00; }
+    .btnLabel { font-size: 10px; position: absolute; bottom: -18px; color: #fff; font-weight: bold; text-transform: uppercase; }
+    
+    .btnGroup { position: relative; display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
 
     #loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:14px; background:#0b0b0b; z-index:40; }
     .spinner { width:44px; height:44px; border:4px solid rgba(255,255,255,.2); border-top:4px solid #fff; border-radius:50%; animation:spin 1s linear infinite; }
@@ -40,7 +40,7 @@
 <body>
 
 <header>
-  <a class="menuBtn" href="#">← Menú</a>
+  <a style="color:white; text-decoration:none;" href="#">← Menú</a>
   <div class="byGoscale"><span>by</span><img src="https://pub-83c24afb5cab45db860452e48428fdd5.r2.dev/assets/logo/goscalemarketing-logo.png"></div>
 </header>
 
@@ -55,13 +55,26 @@
       ar ar-modes="webxr quick-look" ar-placement="floor"
       camera-controls touch-action="pan-y" 
       shadow-intensity="1" ar-scale="auto"
-      interaction-prompt="auto"
     >
-      <button slot="ar-button" class="arBtn">Ver en AR</button>
+      <button slot="ar-button" class="arBtn">VER EN AR</button>
       
       <div id="arControls">
-        <button class="ctrlBtn" id="rotateLeft">↺</button>
-        <button class="ctrlBtn" id="rotateRight">↻</button>
+        <div class="btnGroup">
+            <button class="ctrlBtn" id="zoomIn">+</button>
+            <span class="btnLabel">Zoom</span>
+        </div>
+        <div class="btnGroup">
+            <button class="ctrlBtn" id="zoomOut">-</button>
+            <span class="btnLabel">Zoom</span>
+        </div>
+        <div class="btnGroup">
+            <button class="ctrlBtn" id="rotateRight">↻</button>
+            <span class="btnLabel">Girar</span>
+        </div>
+        <div class="btnGroup">
+            <button class="ctrlBtn" id="focusObj">🎯</button>
+            <span class="btnLabel">Fijar</span>
+        </div>
       </div>
     </model-viewer>
   </div>
@@ -69,38 +82,46 @@
 
 <script>
   const mv = document.getElementById('mv');
-  const loading = document.getElementById('loading');
   const arControls = document.getElementById('arControls');
 
-  mv.addEventListener('load', () => { loading.style.display = 'none'; });
+  mv.addEventListener('load', () => { document.getElementById('loading').style.display = 'none'; });
 
-  // Paso 2 y 3: Gestión de la experiencia AR
   mv.addEventListener('ar-status', (event) => {
-    if (event.detail.status === 'session-started') {
-      arControls.style.display = 'flex'; // Mostramos controles al entrar en AR
-    } else {
-      arControls.style.display = 'none';
-    }
+    arControls.style.display = (event.detail.status === 'session-started') ? 'flex' : 'none';
   });
 
-  // Funciones de rotación mediante botones externos
+  // --- LÓGICA DE BOTONES ---
+
+  // 1. Rotación
   let rotation = 0;
-  document.getElementById('rotateLeft').addEventListener('click', () => {
-    rotation -= 45;
-    mv.orientation = `0deg 0deg ${rotation}deg`;
-  });
-
   document.getElementById('rotateRight').addEventListener('click', () => {
     rotation += 45;
     mv.orientation = `0deg 0deg ${rotation}deg`;
   });
 
-  // Bloqueo de cámara Web
-  const LOCK_YAW = 0, LOCK_PITCH = 75;
-  mv.addEventListener('camera-change', () => {
-    if (!mv.loaded) return;
-    const orbit = mv.getCameraOrbit();
-    mv.cameraOrbit = `${LOCK_YAW}deg ${LOCK_PITCH}deg ${orbit.radius}m`;
+  // 2. Zoom (Escala)
+  let scale = 1;
+  document.getElementById('zoomIn').addEventListener('click', () => {
+    scale += 0.2;
+    mv.scale = `${scale} ${scale} ${scale}`;
+  });
+
+  document.getElementById('zoomOut').addEventListener('click', () => {
+    if (scale > 0.4) scale -= 0.2;
+    mv.scale = `${scale} ${scale} ${scale}`;
+  });
+
+  // 3. Selección Forzada (🎯)
+  document.getElementById('focusObj').addEventListener('click', () => {
+    // Forzamos al sistema a centrar la atención en el objeto
+    mv.jumpCameraToGoal();
+    if (mv.announceHasPose) mv.announceHasPose();
+    
+    // Vibración para confirmar
+    if (window.navigator.vibrate) window.navigator.vibrate([30, 50, 30]);
+    
+    // El "recuadro" suele aparecer cuando el sistema detecta un cambio de estado manual
+    mv.requestUpdate();
   });
 </script>
 
